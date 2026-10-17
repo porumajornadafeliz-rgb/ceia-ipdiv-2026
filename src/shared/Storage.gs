@@ -1,10 +1,10 @@
-var HEADERS_ = ['id', 'createdAt', 'name', 'phone', 'counts', 'people', 'total', 'status', 'reportedAt', 'paidAt', 'paidBy', 'entryAt', 'entryBy', 'entryOverride', 'tokenHash', 'requestHash', 'payloadHash', 'audit', 'proofId', 'proofMime', 'proofAt'];
+var HEADERS_ = ['id', 'createdAt', 'name', 'phone', 'counts', 'people', 'total', 'status', 'reportedAt', 'paidAt', 'paidBy', 'entryAt', 'entryBy', 'entryOverride', 'tokenHash', 'requestHash', 'payloadHash', 'audit', 'proofId', 'proofMime', 'proofAt', 'cancelledAt'];
 function props_() { return PropertiesService.getScriptProperties(); }
 function capacityForRows_(rows) {
   var p = props_(), raw = p.getProperty('MAX_PARTICIPANTS') || '';
   // Rejeitar valores parciais, decimais ou vazios; não assumir uma lotação.
   var limit = /^[1-9][0-9]*$/.test(raw) ? Number(raw) : null;
-  return capacity_(rows, limit, p.getProperty('SEAT_POLICY'));
+  return capacity_(rows, limit);
 }
 function spreadsheet_() {
   var id = props_().getProperty('SPREADSHEET_ID');
@@ -23,7 +23,7 @@ function readRows_(sheet) {
   return sheet.getRange(2, 1, sheet.getLastRow() - 1, HEADERS_.length).getValues().map(function(values, i) {
     var row = { _row: i + 2 };
     HEADERS_.forEach(function(key, col) { row[key] = values[col]; });
-    ['createdAt', 'reportedAt', 'paidAt', 'entryAt', 'proofAt'].forEach(function(key) { if (row[key] instanceof Date) row[key] = row[key].toISOString(); });
+    ['createdAt', 'reportedAt', 'paidAt', 'entryAt', 'proofAt', 'cancelledAt'].forEach(function(key) { if (row[key] instanceof Date) row[key] = row[key].toISOString(); });
     row.counts = JSON.parse(row.counts); row.audit = JSON.parse(row.audit || '[]');
     row.entryOverride = row.entryOverride === true || row.entryOverride === 'true';
     return row;
@@ -64,9 +64,9 @@ function safeEqual_(a, b) {
   return diff === 0;
 }
 function publicRow_(row) {
-  return { id: row.id, name: row.name, counts: row.counts, people: row.people, total: row.total,
-    status: row.status, reportedAt: row.reportedAt || '', proofAt: row.proofAt || '', paidAt: row.paidAt || '', entryAt: row.entryAt || '',
-    pix: row.status === 'PAID' ? '' : pix_(row.total, row.id), event: EVENT_ };
+  return { id: row.id, name: row.name, phone: row.phone, counts: row.counts, people: row.people, total: row.total,
+    status: registrationState_(row), createdAt: row.createdAt, reportedAt: row.reportedAt || '', entryAt: row.entryAt || '', cancelledAt: row.cancelledAt || '',
+    pix: row.cancelledAt || row.status === 'PAID' ? '' : pix_(row.total, row.id), event: EVENT_ };
 }
 function withErrors_(fn) {
   try { return { ok: true, data: fn() }; }

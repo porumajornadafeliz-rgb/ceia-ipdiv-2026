@@ -1,20 +1,19 @@
-# Entrega do sistema da Ceia IPDiv 2026
+# Entrega atual — Ceia IPDiv 2026
 
-Os arquivos desta pasta podem ser baixados pelo próprio GitHub, sem depender do visualizador de arquivos do ChatGPT.
+**Versão 6: início limpo, zero inscrições e 200 vagas disponíveis.**
 
-- **DEMONSTRACAO-IPDIV-v5.zip**: versão mais recente, com limite de **200 pessoas**, contador público de vagas, desconto apenas após confirmação do pagamento, aviso de inscrição pendente e mensagem detalhada para a secretaria. Inclui adultos e crianças. A demonstração começa com **194 vagas** por conter 6 participantes pagos fictícios nos exemplos. O conteúdo é o mesmo de `DEMONSTRACAO-IPDIV.zip`.
-- **DEMONSTRACAO-IPDIV-v4.zip**: versão anterior, com contato da secretaria pelo WhatsApp (37) 3212-4980 e máscara automática de telefone para digitar, apagar e colar. A demonstração simula o aviso sem abrir conversa real; a versão publicada abre o WhatsApp com mensagem para conferir e enviar.
-- **DEMONSTRACAO-IPDIV-v3.zip**: versão anterior, com os detalhes do culto concentrados no bloco de programação e o convite mais enxuto. Página inicial conferida de 320 a 1280 pixels e formulário de 320 a 768 pixels, sem rolagem lateral.
-- **DEMONSTRACAO-IPDIV-v2.zip**: versão anterior, com a categoria corrigida, prazo destacado, programação e textos mais escuros.
-- **DEMONSTRACAO-IPDIV.zip**: para analisar sem instalar nada. Extraia e dê dois cliques em **ABRIR-DEMONSTRACAO.html**. Os botões Inscrição, Tesouraria e Entrada permitem testar o fluxo com dados fictícios. Não se conecta ao Google, não gera pagamento real e descarta os testes ao fechar/recarregar.
-- **ABRIR-DEMONSTRACAO.html**: o mesmo arquivo da demonstração, em formato HTML autônomo.
-- **ceia-ipdiv-2026.zip**: pacote completo com código-fonte, logotipo oficial, documentação e os dois projetos Google Apps Script já gerados.
-- **pagina-com-logotipo.png**: captura da página no celular. É uma demonstração local com aviso de teste, não uma implantação pública.
+A vaga é reservada quando a inscrição é registrada, incluindo adultos e crianças. O link fica disponível imediatamente. Pagamentos são controlados diretamente pela secretaria no WhatsApp **(37) 3212-4980**; o site não exige confirmação financeira.
 
-No GitHub, abra o arquivo desejado e use **Download raw file** (ícone de download) ou **View raw**. Depois de baixar o ZIP no Windows, use o botão direito e **Extrair Tudo**.
+- **DEMONSTRACAO-IPDIV-v6.zip**: versão atual para analisar sem instalar nada. Extraia em uma nova pasta e abra **ABRIR-DEMONSTRACAO.html**. Não inclui famílias de exemplo. Tem o mesmo conteúdo de `DEMONSTRACAO-IPDIV.zip`.
+- **ABRIR-DEMONSTRACAO.html**: demonstração autônoma com as telas Inscrição, Inscrições e vagas e Entrada. Os testes ficam apenas na aba; reiniciar volta a zero registros e 200 vagas. WhatsApp e Pix são simulados, sem envio real ou pagamentos.
+- **COMO-ABRIR.txt**: instruções para Windows.
+- **ceia-ipdiv-2026.zip**: pacote completo com fontes, logo oficial, documentação e os projetos gerados em `dist/public` e `dist/admin`, prontos para publicação no Google da Igreja.
+- **pagina-com-logotipo.png**: captura da página no celular, com o contador inicial de 200 vagas.
 
-O pacote contém uma pasta `ceia-ipdiv-2026`. Dentro dela, `dist/public` e `dist/admin` são os arquivos para os dois projetos Apps Script. Siga `docs/PUBLICACAO.md` para publicar gratuitamente usando **porumajornadafeliz@gmail.com**.
+Os pacotes antigos de demonstração foram retirados desta pasta para evitar confusão com as famílias fictícias e as regras financeiras anteriores. O histórico do Git preserva as versões anteriores.
 
-O logotipo original foi obtido exclusivamente da página 1 do PDF fornecido pela Igreja. As páginas pública e administrativa já incluem a imagem, sem depender do Canva.
+No GitHub, use **Download raw file** ou **View raw** no arquivo desejado. No Windows, clique com o botão direito no ZIP e use **Extrair Tudo**.
 
-O código está disponível na raiz deste repositório. A publicação no Google e a conferência bancária do Pix ainda precisam ser feitas antes de receber inscrições reais.
+A publicação em **porumajornadafeliz@gmail.com** continua pendente. O e-mail não concede acesso automático à conta Google. Para uso real, siga `docs/PUBLICACAO.md` do pacote completo.
+
+A demonstração está vazia. Atualizar uma instalação Google existente preserva suas inscrições e históricos; não apaga dados reais. A nova política conta todos os registros não cancelados. A secretaria pode cancelar registros de teste identificados pelo painel, com motivo e histórico.

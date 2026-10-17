@@ -17,7 +17,7 @@ const commonManifest = { timeZone: 'America/Sao_Paulo', runtimeVersion: 'V8', ex
 for (const project of ['public', 'admin']) {
   const out = path.join(root, 'dist', project); await mkdir(out, { recursive: true });
   await writeFile(path.join(out, 'appsscript.json'), JSON.stringify({ ...commonManifest,
-    oauthScopes: project === 'public' ? ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/drive'] : ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/script.external_request']
+    oauthScopes: project === 'public' ? ['https://www.googleapis.com/auth/spreadsheets'] : ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/script.external_request']
   }, null, 2) + '\n');
   for (const name of ['Domain.gs', 'Styles.html', 'Client.html']) await copyFile(path.join(root, 'src/shared', name), path.join(out, name));
   await writeFile(path.join(out, 'Brand.html'), brand);

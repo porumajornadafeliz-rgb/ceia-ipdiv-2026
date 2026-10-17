@@ -12,15 +12,9 @@ let availability = null, capacityRequest = null;
 function renderAvailability() {
   const c = availability;
   $('capacity-summary').textContent = !c ? 'Não foi possível consultar as vagas.' : !c.configured ? 'Limite de vagas em definição' : c.remaining === 0 ? 'Vagas esgotadas' : c.remaining + (c.remaining === 1 ? ' vaga restante' : ' vagas restantes');
-  $('capacity-detail').textContent = c?.configured ? 'Limite de ' + c.limit + ' pessoas, incluindo crianças. ' + (c.policy === 'PAID' ? 'Inscrições pendentes não garantem lugar. As vagas são descontadas após a confirmação do pagamento.' : 'A inscrição reserva os lugares; a participação só é confirmada após a conferência do pagamento.') : 'Atualize a consulta antes de se inscrever. Se persistir, procure a secretaria.';
+  $('capacity-detail').textContent = c?.configured ? 'Limite de ' + c.limit + ' pessoas, incluindo crianças. As vagas são reservadas ao registrar a inscrição. Pagamento diretamente com a secretaria.' : 'Atualize a consulta antes de se inscrever. Se persistir, procure a secretaria.';
   $('begin').disabled = !CONFIG.open || !c?.configured || c.remaining === 0;
   $('begin').textContent = !CONFIG.open ? 'INSCRIÇÕES ENCERRADAS' : c?.configured && c.remaining === 0 ? 'VAGAS ESGOTADAS' : 'FAZER MINHA INSCRIÇÃO';
-  if (current?.status !== 'PAID') {
-    const cannotPay = !c?.configured || current && current.people > c.remaining;
-    $('pix-section').hidden = Boolean(cannotPay);
-    $('payment-capacity-warning').hidden = !current || !cannotPay;
-    $('payment-capacity-warning').textContent = c?.configured ? 'Não há vagas suficientes para todos os participantes desta inscrição. Não faça o Pix agora. Procure a secretaria pelo WhatsApp (37) 3212-4980 para orientação. Sua inscrição continua pendente.' : 'Consulte a disponibilidade de vagas antes de fazer o Pix. Não foi possível verificar a lotação neste momento.';
-  }
   renderCounts();
 }
 async function refreshCapacity() {
@@ -33,8 +27,8 @@ async function refreshCapacity() {
   try { await capacityRequest; } finally { capacityRequest = null; }
 }
 $('refresh-capacity').onclick = () => busy($('refresh-capacity'), refreshCapacity);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshCapacity(); });
-setInterval(() => { if (!document.hidden) refreshCapacity(); }, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { refreshCapacity(); if (access) refreshRegistration(); } });
+setInterval(() => { if (!document.hidden) { if (access && !$('payment-view').hidden) refreshRegistration(); else refreshCapacity(); } }, 30000);
 installPhoneMask($('phone'));
 const views = ['home', 'form', 'review', 'payment', 'lookup'];
 function show(view) {
@@ -110,49 +104,36 @@ $('confirm').onclick = () => busy($('confirm'), async () => {
 function baseUrl() { return (CONFIG.url || location.href.split('#')[0]).split('#')[0]; }
 function privateLink() { return baseUrl() + '#' + new URLSearchParams(access).toString(); }
 function updateHash() {
+  try { sessionStorage.setItem('ceia-active', JSON.stringify(access)); } catch {}
   const hash = new URLSearchParams(access).toString();
   if (window.CEIA_DEMO) history.replaceState(null, '', '#' + hash);
   else google.script.history.replace({}, {}, hash);
 }
 function renderPayment(data) {
-  current = data; const paid = data.status === 'PAID';
-  $('payment-status').textContent = paid ? 'PAGAMENTO CONFIRMADO' : 'AGUARDANDO CONFIRMAÇÃO'; $('payment-status').className = 'status' + (paid ? ' paid' : '');
-  $('payment-title').textContent = paid ? 'Sua presença está confirmada.' : 'Inscrição recebida!';
-  $('payment-description').textContent = paid ? 'Guarde a confirmação. Nos vemos na ceia!' : 'Agora é só fazer o Pix e aguardar a conferência da tesouraria.';
-  $('pending-payment-notice').hidden = paid;
-  $('payment-contact').hidden = paid;
-  $('payment-capacity-warning').hidden = paid;
+  current = data; const active = data.status === 'REGISTERED';
+  $('payment-status').textContent = active ? 'INSCRIÇÃO REGISTRADA' : 'INSCRIÇÃO CANCELADA';
+  $('payment-status').className = 'status' + (active ? ' paid' : '');
+  $('payment-title').textContent = active ? 'Sua inscrição foi registrada!' : 'Esta inscrição foi cancelada.';
+  $('payment-description').textContent = active ? 'Seus lugares já estão reservados. Guarde seu link e envie os dados para a secretaria.' : 'Os lugares foram liberados. Procure a secretaria se precisar de orientação.';
+  $('registration-notice').textContent = active ? 'As vagas desta inscrição já estão contabilizadas.' : 'Esta inscrição não ocupa vagas e não autoriza a entrada.';
   $('registration-id').textContent = data.id; $('receipt-name').textContent = data.name; summary('receipt-summary', data.counts);
-  $('pix-section').hidden = paid; $('confirmed-section').hidden = !paid;
   $('private-link').value = privateLink();
-  if (paid) $('paid-date').textContent = 'Confirmado pela tesouraria em ' + dateTime(data.paidAt) + '. Valor pago: ' + money(data.total) + '.';
-  else {
-    $('upload-proof').hidden = Boolean(data.proofAt); $('proof-file').disabled = Boolean(data.proofAt);
-    $('proof-status').textContent = data.proofAt ? 'Comprovante recebido em ' + dateTime(data.proofAt) + '. Aguardando conferência bancária.' : '';
+  $('confirmed-section').hidden = !active;
+  $('pix-section').hidden = !active || !data.pix;
+  if (active && data.pix) {
     $('pix-code').value = data.pix;
     const qr = qrcode(0, 'M'); qr.addData(data.pix, 'Byte'); qr.make();
-    $('qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 16, scalable: true }); // Somente SVG da biblioteca local, sem texto do usuário.
-    $('report-pix').href = secretariatWhatsAppLink(data);
-    $('whatsapp-message-preview').textContent = secretariatMessage(data);
-    $('reported-message').textContent = data.reportedAt ? 'Aviso registrado no sistema em ' + dateTime(data.reportedAt) + '. A mensagem no WhatsApp precisa ser enviada por você. O pagamento continua aguardando conferência bancária.' : 'Abra o WhatsApp, confira a mensagem e toque em Enviar. Avisar a secretaria não confirma o pagamento; o recebimento será conferido no banco.';
-  }
-  renderAvailability();
+    $('qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 16, scalable: true });
+  } else { $('qr').replaceChildren(); $('pix-code').value = ''; }
+  $('report-pix').href = secretariatWhatsAppLink(data);
+  $('whatsapp-message-preview').textContent = secretariatMessage(data);
+  $('reported-message').textContent = data.reportedAt ? 'Conversa preparada em ' + dateTime(data.reportedAt) + '. No WhatsApp, confira os dados e toque em Enviar. A secretaria fará o controle de pagamento.' : 'Abra o WhatsApp, confira os dados e toque em Enviar. Você pode anexar o comprovante na própria conversa com a secretaria.';
 }
-$('upload-proof').onclick = () => busy($('upload-proof'), async () => {
-  message('payment-error', '');
-  try {
-    const file = $('proof-file').files[0];
-    if (!file || file.size > 1048576 || !['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) throw new Error('Selecione PDF, JPG ou PNG de até 1 MB.');
-    const base64 = await new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(String(r.result).split(',')[1]); r.onerror = () => reject(new Error('Não foi possível ler o arquivo.')); r.readAsDataURL(file); });
-    renderPayment(await api('proof', { ...access, base64 })); $('proof-file').value = '';
-  } catch (e) { message('payment-error', e.message); }
-});
-$('copy-pix').onclick = () => copyText(current.pix, $('copy-pix'));
-$('copy-link').onclick = () => copyText(privateLink(), $('copy-link'));
+$('copy-pix').onclick = () => { if (current?.pix) copyText(current.pix, $('copy-pix')); };
+$('copy-link').onclick = () => { if (access) copyText(privateLink(), $('copy-link')); };
 function secretariatMessage(data) {
-  const status = data.status === 'PAID' ? 'PAGAMENTO CONFIRMADO em ' + dateTime(data.paidAt) + '.' : 'PENDENTE — aguardando conferência bancária. Este aviso não comprova o recebimento.';
-  const text = 'Olá, secretaria! Seguem os dados da minha inscrição para a Ceia de Confraternização IPDiv 2026:\n\nResponsável: ' + data.name + '\nInscrição: ' + data.id + '\nParticipantes: ' + data.people + '\nValor total: ' + money(data.total) + '\n\nInformação do participante: já fiz o Pix.\nSituação no sistema nesta consulta: ' + status + '\n\nSolicito a conferência do recebimento. Sei que a inscrição só será confirmada após o pagamento e a conferência no banco.';
-  return text;
+  const categories = CONFIG.event.categories.filter(c => data.counts[c.key]).map(c => data.counts[c.key] + ' × ' + c.label).join('\n');
+  return 'Olá, secretaria! Seguem os dados da minha inscrição para a Ceia de Confraternização IPDiv 2026:\n\nResponsável: ' + data.name + '\nWhatsApp: ' + formatPhone(data.phone) + '\nInscrição: ' + data.id + '\nParticipantes: ' + data.people + '\n' + categories + '\nValor da inscrição: ' + money(data.total) + '\n\nSituação: ' + (data.status === 'REGISTERED' ? 'INSCRIÇÃO REGISTRADA — vagas já contabilizadas.' : 'INSCRIÇÃO CANCELADA — vagas liberadas.') + '\nPagamento: controle diretamente com a secretaria. Esta mensagem não é comprovante de pagamento.';
 }
 function secretariatWhatsAppLink(data) {
   const text = secretariatMessage(data);
@@ -160,24 +141,29 @@ function secretariatWhatsAppLink(data) {
 }
 $('report-pix').onclick = () => {
   message('payment-error', '');
-  // O link abre pelo clique da pessoa. Registrar o aviso não envia WhatsApp
-  // automaticamente e não altera o estado do pagamento.
+  // Abertura da conversa não prova envio, entrega ou pagamento; as vagas já foram reservadas no cadastro.
   api('report', access).then(data => {
     renderPayment(data);
-    message('payment-success', 'Confira a mensagem no WhatsApp e toque em Enviar. O pagamento aguarda conferência bancária.', true);
-  }).catch(e => message('payment-error', 'O WhatsApp continua disponível, mas não foi possível registrar o aviso no sistema. ' + e.message));
+    message('payment-success', data.status === 'REGISTERED' ? 'Confira os dados no WhatsApp e toque em Enviar. As vagas desta inscrição já estão contabilizadas.' : 'Inscrição cancelada. Confira a mensagem no WhatsApp para falar com a secretaria.', true);
+  }).catch(e => message('payment-error', 'O WhatsApp continua disponível, mas não foi possível registrar a abertura da conversa. ' + e.message));
 };
-$('refresh-payment').onclick = () => busy($('refresh-payment'), async () => {
-  message('payment-error', ''); message('payment-success', '');
-  try { renderPayment(await api('lookup', access)); await refreshCapacity(); message('payment-success', 'Situação atualizada.', true); } catch (e) { message('payment-error', e.message); }
-});
+let registrationRequest = null;
+async function refreshRegistration(announce = false) {
+  if (!access || registrationRequest) return registrationRequest;
+  registrationRequest = (async () => {
+    try { renderPayment(await api('lookup', access)); await refreshCapacity(); if (announce) message('payment-success', 'Inscrição atualizada.', true); }
+    catch (e) { if (announce) message('payment-error', e.message); }
+  })();
+  try { await registrationRequest; } finally { registrationRequest = null; }
+}
+$('refresh-payment').onclick = () => busy($('refresh-payment'), async () => { message('payment-error', ''); message('payment-success', ''); await refreshRegistration(true); });
 function receiptText() {
-  return 'CEIA DE CONFRATERNIZAÇÃO 2026\nIgreja Presbiteriana de Divinópolis\n\nInscrição: ' + current.id + '\nResponsável: ' + current.name + '\nParticipantes: ' + current.people + '\nValor pago: ' + money(current.total) + '\nPAGAMENTO CONFIRMADO\nConferido em: ' + dateTime(current.paidAt) + '\n\n' + CONFIG.event.date + ' — ' + CONFIG.event.thanksgiving.name + ' às ' + CONFIG.event.thanksgiving.time + '\n' + CONFIG.event.thanksgiving.venue + ' — ' + CONFIG.event.thanksgiving.address + '\n\nCeia após o culto — ' + CONFIG.event.venue + '\n' + CONFIG.event.address + '\n\nConsulta privada: ' + privateLink();
+  return 'CEIA DE CONFRATERNIZAÇÃO 2026\nIgreja Presbiteriana de Divinópolis\n\nInscrição: ' + current.id + '\nResponsável: ' + current.name + '\nParticipantes: ' + current.people + '\nValor da inscrição: ' + money(current.total) + '\n' + (current.status === 'REGISTERED' ? 'INSCRIÇÃO REGISTRADA' : 'INSCRIÇÃO CANCELADA') + '\nRegistro em: ' + dateTime(current.createdAt) + '\nControle de pagamento diretamente com a secretaria. Não é comprovante de pagamento.\n\n' + CONFIG.event.date + ' — ' + CONFIG.event.thanksgiving.name + ' às ' + CONFIG.event.thanksgiving.time + '\n' + CONFIG.event.thanksgiving.venue + ' — ' + CONFIG.event.thanksgiving.address + '\n\nCeia após o culto — ' + CONFIG.event.venue + '\n' + CONFIG.event.address + '\n\nConsulta privada: ' + privateLink();
 }
 $('save-receipt').onclick = () => download(current.id + '.txt', receiptText(), 'text/plain;charset=utf-8');
 $('print-receipt').onclick = () => window.print();
 $('share-receipt').onclick = async () => {
-  const text = current.status === 'PAID' ? receiptText() : 'Minha inscrição para a Ceia IPDiv 2026: ' + current.id + '. Pagamento aguardando confirmação.\nLink particular: ' + privateLink();
+  const text = receiptText();
   try { if (navigator.share) await navigator.share({ title: CONFIG.event.name, text }); else await copyText(text, $('share-receipt')); }
   catch (e) { if (e.name !== 'AbortError') await copyText(text, $('share-receipt')); }
 };
@@ -192,11 +178,13 @@ $('lookup-form').onsubmit = e => { e.preventDefault(); busy($('lookup-button'), 
 async function initialLocation(hash) {
   if (hash && /(?:^#?|&)id=/.test(hash)) { show('lookup'); try { await loadAccess(hash); } catch (e) { message('lookup-error', e.message); } return; }
   try {
+    const active = JSON.parse(sessionStorage.getItem('ceia-active'));
+    if (active) { await loadAccess(new URLSearchParams(active).toString()); return; }
     const pending = JSON.parse(sessionStorage.getItem('ceia-pending'));
     if (pending && CONFIG.open) {
       requestId = pending.requestId; $('name').value = pending.name; $('phone').value = formatPhone(pending.phone);
       CONFIG.event.categories.forEach(c => counts[c.key] = pending.counts[c.key] || 0); renderCounts(); show('form');
-      message('form-error', 'Recuperamos seu último envio nesta aba. Confira os dados e tente confirmar novamente; ele não será duplicado.');
+      message('form-error', 'Recuperamos seu último envio nesta aba. Confira os dados e tente registrar novamente; ele não será duplicado.');
     }
   } catch {}
 }

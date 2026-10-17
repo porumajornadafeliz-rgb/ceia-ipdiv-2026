@@ -1,65 +1,45 @@
 # Segurança, arquitetura e limites
 
-## Fronteiras de confiança
+## Acesso
 
-```text
-Participante (sem login)
-  → Projeto público (executa como proprietário)
-      → Planilha privada / pasta privada de comprovantes
+O projeto público executa como proprietário e é o único que acessa a planilha privada. O projeto administrativo executa como o usuário que acessa, obtém o e-mail da conta Google no servidor e encaminha operações assinadas por HMAC-SHA256 ao público.
 
-Equipe (conta Google)
-  → Projeto administrativo (executa como o usuário que acessa)
-      → Identidade fornecida por Session.getActiveUser(), no servidor
-      → Requisição assinada HMAC-SHA256 ao projeto público
-          → Conferência da assinatura, prazo, conta e papel
-          → Mesma planilha / mesmo bloqueio de escrita
-```
+A lista `ADMIN_ACCOUNTS` é verificada em cada chamada. Papéis: `admin`, `treasury` (Secretaria) e `door`. Uma identidade enviada pelo navegador não concede privilégios. O painel não requer compartilhar o editor ou a planilha com os operadores.
 
-A implantação administrativa exige login Google; a identidade não é recebida de campos do HTML ou parâmetros de URL. E-mails vazios ou não permitidos falham de forma fechada. A lista de autorização fica em `ADMIN_ACCOUNTS` do projeto público e é relida em cada chamada. Não é suficiente esconder botões: todas as permissões também são aplicadas no servidor.
+A assinatura cobre ação, identidade, parâmetros, horário e nonce, com janela de 60 segundos. O nonce fica no histórico para impedir repetição de alterações após uma operação posterior. A comparação da assinatura é de tempo constante para conteúdos de mesmo comprimento.
 
-A comunicação entre projetos é necessária para que o conferencista não receba acesso de edição da planilha, o que permitiria contornar as regras do painel. O administrativo não possui escopo de Planilhas ou Drive. Apenas o projeto público acessa esses dados, executando como proprietário. A tesouraria também não precisa de acesso direto à planilha.
+## Vagas e registros
 
-A assinatura cobre o texto integral da requisição, incluindo identidade, ação, parâmetros, horário e nonce. A janela de aceitação é de 60 segundos; a comparação da assinatura percorre todo o conteúdo de mesmo comprimento. Mutações guardam o nonce no histórico da própria linha para não reaplicar uma operação recebida novamente. Todas as operações de escrita usam o `ScriptLock` do **mesmo projeto público**. Não se tenta coordenar duas planilhas com bloqueios de projetos diferentes.
+A capacidade é de 200 pessoas. Toda inscrição ativa ocupa lugares, sem depender de pagamento, cópia de link, envio de WhatsApp ou entrada. `SEAT_POLICY=REGISTERED` é gravado na inicialização; uma configuração antiga `PAID` não reativa o fluxo financeiro.
 
-Não compartilhe o editor ou as propriedades dos projetos com operadores. Um editor técnico autorizado pode alterar código, papéis e segredos e tem, portanto, privilégios de administrador técnico. A auditoria é operacional, não um livro imutável contra o proprietário da conta. Faça backups privados da planilha para a contabilidade sem editar o original em produção.
+Cadastro, cancelamento, reativação e entrada são executados sob o **mesmo ScriptLock** do projeto público. O cadastro valida disponibilidade para toda a família antes de gravar. A reativação também valida a lotação. O identificador de envio e o hash dos dados garantem idempotência de retentativas, inclusive depois do prazo ou do esgotamento.
 
-## Dados de participantes
+O contador público retorna somente agregados. A atualização periódica não constitui uma reserva no navegador: o servidor sempre confere novamente ao gravar. Inscrição cancelada não ocupa lugares nem autoriza entrada. Entrada registrada impede cancelamento e duplicação de entrada.
 
-- Apenas nome, WhatsApp, quantidades, situação e metadados necessários. Não exige CPF, e-mail, aniversário ou nomes de familiares.
-- O identificador de inscrição é aleatório, com verificação de colisão sob lock. O acesso público exige também token de 256 bits derivado por HMAC-SHA256 de um UUID aleatório. A planilha armazena apenas o hash SHA-256 do token, não o token de consulta em claro.
-- O token está no fragmento `#` do link, não em parâmetros enviados na requisição inicial. O Apps Script o lê pela API de localização e o envia para a operação de consulta. O HTML declara `no-referrer` e não usa scripts de CDN, fontes externas, analytics ou serviço remoto de QR Code.
-- Qualquer pessoa com o link individual pode consultar o nome e os dados daquela inscrição. O compartilhamento deve ser restrito ao responsável/pessoas de confiança. O link não é uma autenticação da identidade civil do portador.
-- O navegador guarda temporariamente um envio em andamento na `sessionStorage` da aba para retentativa; remove após sucesso. Não utiliza `localStorage` nem rastreadores. Uma aba compartilhada pode manter dados até ser fechada; evite preencher em dispositivo público.
-- Dados de inscrição são renderizados via `textContent`, não como HTML. Entradas livres que poderiam iniciar fórmulas são rejeitadas; campos de texto da planilha recebem formato literal. CSVs também neutralizam fórmulas.
+A planilha inicia sem inscrições. A atualização de uma planilha existente acrescenta a coluna `cancelledAt` ao cabeçalho compatível, preservando as demais colunas, registros e históricos. Os campos financeiros e referências privadas de versões anteriores são preservados para evitar perda de dados, mas não há operações financeiras ou de comprovantes nesta versão. Uma estrutura de cabeçalho diferente é recusada.
 
-## Comprovantes
+## Privacidade
 
-O arquivo é opcional e limitado a 1 MiB. A extensão informada pelo usuário não decide o tipo: o servidor verifica os bytes iniciais de PDF, PNG ou JPEG. Os nomes no Drive são gerados a partir da inscrição, sem reutilizar nomes recebidos. A pasta precisa ter acesso geral privado e não pode ter editores ou visualizadores adicionais.
+O ID é aleatório e o acesso público exige um token de 256 bits derivado por HMAC de um identificador aleatório. A planilha guarda apenas o hash do token. Não existe pesquisa pública por nome ou telefone. O link individual dá acesso aos dados daquela inscrição; compartilhe apenas com pessoas de confiança.
 
-O servidor só aceita um comprovante por inscrição. Repetir o envio retorna o já recebido. Não há substituição ou exclusão pelo participante, para preservar o primeiro arquivo e evitar perda involuntária. A tesouraria é avisada quando houver arquivo e pode baixá-lo por uma ação autenticada. O ID do arquivo não é enviado ao participante ou ao conferencista; não se cria um link público do Drive.
+O token fica no fragmento `#` do link. A consulta o transmite somente à API da própria aplicação. A página declara `no-referrer` e não usa analytics, CDN, fontes ou QR remotos. A mensagem WhatsApp contém os dados necessários para a secretaria, sem o token privado.
 
-A validação do formato não é antivírus. Não execute conteúdo de arquivos enviados por terceiros. Esta versão não inclui análise automatizada de documentos. O conteúdo é evidência auxiliar; somente o extrato bancário permite confirmar o recebimento.
+`sessionStorage` guarda temporariamente o envio em andamento e o acesso da inscrição na própria aba. Não há `localStorage` ou rastreamento. A demonstração autônoma substitui esse armazenamento por memória descartada ao fechar/recarregar.
 
-## Pagamentos e entrada
+Dados são renderizados por `textContent`. Nomes que poderiam iniciar fórmulas são rejeitados, campos livres da planilha têm formato de texto e CSVs neutralizam fórmulas. Valores monetários são inteiros em centavos, recalculados no servidor; quantidades são inteiras e limitadas a 100 pessoas por inscrição.
 
-Preços são inteiros em centavos e quantidades inteiras, sem confiar no total enviado pelo navegador. São permitidas de 1 a 100 pessoas por inscrição; o limite evita abuso e pode ser revisto em tarefa de código se a organização precisar de grupos maiores. O prazo é `2026-12-21T03:00:00Z`, limite exclusivo equivalente a 00h00 de 21/12 em Brasília.
+## Pagamento e WhatsApp
 
-A lotação é de 200 pessoas, incluindo crianças. A configuração inicial usa `MAX_PARTICIPANTS=200` e `SEAT_POLICY=PAID`; ausência ou valor inválido bloqueia novas inscrições e novas confirmações que precisem ocupar vagas. A consulta pública de disponibilidade retorna somente agregados. Cadastro, confirmação de pagamento e liberação excepcional de entrada usam o mesmo bloqueio de script, com nova leitura dos registros antes da validação. Uma lista desatualizada não permite ultrapassar a capacidade. Pagamentos pendentes não garantem lugar, e a capacidade não revoga um código Pix estático previamente copiado.
+O controle financeiro é feito pela secretaria fora do sistema. O Pix é estático, com chave CNPJ, valor exato e TxId da inscrição; o QR é gerado localmente. Não há leitura bancária, webhook, confirmação automática, upload de comprovante, crédito/devolução ou exigência de pagamento na entrada.
 
-O Pix usa chave CNPJ `20896270000130`, moeda BRL `986`, valor exato, identificador alfanumérico e CRC16/CCITT-FALSE. Ele é estático e não consulta o Itaú. Não há webhook, leitura bancária, confirmação automática ou cobrança recorrente.
+A aplicação nunca apresenta um registro de inscrição como comprovante de pagamento. Valores no painel são declarados pelas inscrições, não saldo recebido. Campos financeiros históricos não são usados como condição de inscrição ou entrada.
 
-Avisar ou anexar comprovante **não altera `PENDING` para `PAID`**. Confirmar/desfazer pagamento exige tesouraria/admin e referência/motivo, registrando usuário e horário. Depois de uma entrada, não é possível desfazer pagamento pelo painel. Uma exceção de entrada exige administrador e justificativa e mantém o débito pendente. Estado e histórico são gravados juntos na mesma linha, com lock, antes de responder ao cliente.
+Abrir o WhatsApp prepara uma mensagem. O participante confere e toca em Enviar. O horário de contato registrado indica apenas o acionamento do botão, sem garantir envio ou entrega. O sistema não usa uma API de envio de WhatsApp.
 
-## Disponibilidade e cotas gratuitas
+## Disponibilidade
 
-É uma solução para um evento comunitário, sem garantia de disponibilidade ou processamento bancário. Google Apps Script, Planilhas e Drive possuem limites de armazenamento, execução, simultaneidade e requisições, que variam por tipo de conta e podem mudar. Veja a fonte oficial: https://developers.google.com/apps-script/guides/services/quotas
+Apps Script e Planilhas possuem cotas de execução, simultaneidade e armazenamento: https://developers.google.com/apps-script/guides/services/quotas. As consultas leem a aba inteira, adequadas ao porte comunitário previsto; os testes locais não são testes de carga ou uma garantia de disponibilidade.
 
-Cada listagem lê a aba inteira; adequado para um evento de porte comunitário, sem alegação de teste de carga ou escala ilimitada. Não há atualização contínua automática no painel, para reduzir consumo. O lock espera até 20 segundos antes de retornar uma mensagem recuperável. Erros usuais de serviços/permissões/cotas são apresentados sem detalhes internos.
+O endpoint anônimo pode sofrer spam ou consumo excessivo de cotas. Esta versão não possui CAPTCHA ou proteção distribuída. Monitore a divulgação e as execuções. O bloqueio espera até 20 segundos antes de retornar uma falha recuperável; não exponha detalhes internos de serviços ou permissões.
 
-O endpoint público está sujeito a spam e esgotamento das cotas pelo acesso anônimo. As validações e limites por envio não equivalem a proteção contra ataques distribuídos. Nesta versão não há CAPTCHA, cobrança ou serviço externo antiabuso. Monitore execuções e cotas durante a divulgação. Se o volume exceder o previsto, suspenda a divulgação e reavalie a solução com a organização; não desabilite as regras ou publique dados para contornar limites.
-
-A Igreja define quem pode tratar os dados, como atender correções, a retenção e a eliminação de relatórios, inscrições e comprovantes. O repositório não substitui as decisões administrativas sobre proteção de dados e contabilidade. Não guarde senhas ou chaves em commits, capturas de tela, logs ou instruções de instalação.
-
-## O que exige validação na implantação real
-
-O simulador local substitui serviços Google e não atesta que a conta da Igreja consegue publicar, executar, fornecer identidade ou acessar os recursos. Antes de uso real, valide os dois `/exec`, o login de cada papel, a negação a uma conta não autorizada, os dados privados e o pagamento bancário autorizado. Políticas do domínio ou consentimento OAuth podem exigir configuração adicional da conta. Nenhum desses passos foi executado automaticamente na conta Google.
+A publicação real deve validar identidade Google, contas autorizadas, privacidade da planilha, fluxo no celular e integridade do Pix. O simulador local não comprova configuração ou acesso à conta Google. Nenhuma senha ou segredo da Igreja é incluído no pacote.

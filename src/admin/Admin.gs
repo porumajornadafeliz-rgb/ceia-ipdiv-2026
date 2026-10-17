@@ -32,7 +32,7 @@ function doGet() {
 function include_(name) { return HtmlService.createHtmlOutputFromFile(name).getContent(); }
 function adminApi(action, input) {
   try {
-    if (['list', 'payment', 'entry', 'getProof'].indexOf(action) < 0) throw new Error('Ação inválida.');
+    if (['list', 'entry', 'cancel'].indexOf(action) < 0) throw new Error('Ação inválida.');
     return { ok: true, data: relay_(action, input) };
   } catch (e) {
     var msg = String(e.message || '');

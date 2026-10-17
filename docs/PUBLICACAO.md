@@ -37,7 +37,7 @@ O logotipo oficial já está incorporado no arquivo `Brand.html` dos dois projet
 |---|---|
 | `SPREADSHEET_ID` | ID da planilha privada criada acima |
 | `MAX_PARTICIPANTS` | `200` — lotação total, contando adultos e crianças. A inicialização cria esse valor quando ausente. |
-| `SEAT_POLICY` | `PAID` — descontar vagas somente após a confirmação do pagamento; pendentes não garantem lugar. A inicialização cria esse valor quando ausente. |
+| `SEAT_POLICY` | `REGISTERED` — reservar lugares ao registrar a inscrição. A inicialização atualiza a regra antiga para esta nova regra, sem apagar registros. |
 | `ADMIN_ACCOUNTS` | Opcional no primeiro uso: a inicialização configura a conta abaixo como administradora. Se a propriedade já existir, confira ou acrescente a conta sem remover os demais acessos necessários. |
 
 Configuração inicial preparada para a Igreja:
@@ -48,13 +48,13 @@ Configuração inicial preparada para a Igreja:
 }
 ```
 
-`admin` confirma pagamentos, registra entradas e pode liberar uma entrada pendente com justificativa. `treasury` confere pagamentos e relatórios; `door` pesquisa e registra apenas a entrada de inscrições pagas. Uma conta precisa de somente um papel; use `admin` quando precisar das duas áreas.
+`admin` gerencia inscrições, cancelamentos, reativações e entradas. `treasury` corresponde à Secretaria: gerencia inscrições e relatórios. `door` pesquisa e registra a entrada das inscrições ativas, sem exigir confirmação de pagamento. Uma conta precisa de somente um papel; use `admin` quando precisar das duas áreas.
 
 Para outras pessoas, acrescente seus e-mails reais ao mesmo JSON com `treasury` ou `door`. Não é preciso fornecer senha. O arquivo `Config.gs` define os valores iniciais: após a primeira configuração, a lista efetiva é a propriedade `ADMIN_ACCOUNTS`, que nunca é sobrescrita pela inicialização.
 
-5. Salve tudo. Selecione **`initializePublic_`** no editor e clique em **Executar**, como proprietário. Autorize acesso a Planilhas e Drive. A função é privada para chamadas web, mas pode ser executada pelo proprietário no editor.
-6. Ela cria a aba `Inscricoes`, o cabeçalho e uma pasta privada **Ceia IPDiv 2026 — Comprovantes privados** no Drive. Não apaga dados existentes. Confere o cabeçalho e recusa estruturas diferentes.
-7. Confira as propriedades geradas: `TOKEN_SECRET`, `ADMIN_BRIDGE_SECRET`, `PROOF_FOLDER_ID`, **`MAX_PARTICIPANTS=200`** e **`SEAT_POLICY=PAID`**. **Não altere `TOKEN_SECRET` após iniciar inscrições**, pois ele é usado para repetir envios com segurança. Não exponha nenhum segredo nem compartilhe a pasta de comprovantes.
+5. Salve tudo. Selecione **`initializePublic_`** no editor e clique em **Executar**, como proprietário. Autorize acesso a Planilhas. A função é privada para chamadas web, mas pode ser executada pelo proprietário no editor.
+6. Ela cria a aba `Inscricoes` e o cabeçalho, sem incluir famílias de exemplo. Numa atualização, acrescenta a coluna `cancelledAt` ao cabeçalho anterior compatível. Não apaga nem altera os registros existentes; estruturas incompatíveis são recusadas.
+7. Confira as propriedades geradas: `TOKEN_SECRET`, `ADMIN_BRIDGE_SECRET`, **`MAX_PARTICIPANTS=200`** e **`SEAT_POLICY=REGISTERED`**. **Não altere `TOKEN_SECRET` após iniciar inscrições**, pois ele é usado para repetir envios com segurança. Não exponha nenhum segredo. Pastas e comprovantes privados de versões anteriores permanecem no Drive, sem uso pelo sistema atual e sem serem apagados.
 8. Vá a **Implantar → Nova implantação → Aplicativo da Web**:
    - **Executar como: Eu**, a conta proprietária da Igreja.
    - **Quem pode acessar: Qualquer pessoa**, incluindo quem não tem login Google. Não escolha apenas “qualquer pessoa com uma conta Google”.
@@ -89,18 +89,15 @@ Se o Google solicitar configuração da tela de consentimento OAuth ou usuários
 
 Siga a lista de [TESTES.md](TESTES.md), **incluindo contas de tesouraria e entrada separadas e uma conta não autorizada**. O teste local não substitui a conferência da implantação, da identidade Google e da conta bancária.
 
-Na conta bancária, a tesouraria precisa:
+A secretaria faz o controle de pagamento diretamente pelo WhatsApp. A reserva de lugares acontece no cadastro, sem confirmação financeira. Não é necessário contratar ou habilitar uma API Pix para este fluxo.
 
-1. Conferir que a chave **20.896.270/0001-30** pertence à **Igreja Presbiteriana de Divinópolis**, no Itaú, agência **0690**, conta **16405-8**.
-2. Conferir o destinatário e o valor ao ler um QR gerado pelo sistema.
-3. Fazer **um pagamento de teste expressamente autorizado pela Igreja**, conferir o crédito no extrato e só então confirmar pelo painel.
-4. Registrar e conciliar esse teste, preservando o histórico contábil. Não apagar linhas de inscrições reais.
+Confira os dados Pix opcionais antes de divulgar: chave **20.896.270/0001-30**, favorecido **Igreja Presbiteriana de Divinópolis**, Itaú, agência **0690**, conta **16405-8**, e valor correto no aplicativo do banco. O registro da inscrição não comprova pagamento.
 
-Somente após essas verificações, compartilhe o endereço público `/exec` pelo WhatsApp. O link administrativo não deve ir no convite.
+Depois dos testes, compartilhe apenas o endereço público `/exec` com os participantes. O link administrativo permanece restrito à equipe.
 
 ## 6. Atualizar e operar
 
-Para atualizar uma implantação anterior para o controle de vagas, copie os arquivos atualizados dos dois projetos e execute `initializePublic_` novamente no projeto público. Ela acrescenta as propriedades de capacidade sem apagar inscrições ou alterar segredos existentes. Confira `MAX_PARTICIPANTS=200` e `SEAT_POLICY=PAID` antes de publicar a nova versão.
+Para atualizar uma implantação anterior para a regra de vagas por inscrição, copie os arquivos atualizados dos dois projetos e execute `initializePublic_` novamente no projeto público. Ela acrescenta a coluna `cancelledAt`, configura `SEAT_POLICY=REGISTERED` e preserva registros, históricos, segredos e permissões. Confira `MAX_PARTICIPANTS=200` antes de publicar a nova versão. Todos os registros existentes não cancelados passam a ocupar lugares, independentemente do pagamento. Use o painel para cancelar inscrições de teste identificadas, sem apagar linhas manualmente.
 
 Após editar código, gere os arquivos novamente, copie os arquivos alterados no projeto correspondente e publique uma **nova versão da implantação existente** em **Implantar → Gerenciar implantações → Editar → Nova versão**. Isso preserva os endereços `/exec`. Salvar no editor sozinho não atualiza a versão pública.
 

@@ -1,86 +1,67 @@
 # Ceia de Confraternização IPDiv 2026
 
-Sistema de inscrição familiar, Pix, tesouraria e entrada para a **Igreja Presbiteriana de Divinópolis**, em **31/12/2026**. O **Culto de Ações de Graças será às 20h30min**, no **Templo da IPDiv — Av. Paraná, 1098 — Sidil**. A **ceia será após o culto, no Salão Imperatriz**. Inscrições até **20/12/2026, às 23h59 (Brasília)**.
+Sistema de inscrição familiar e entrada da **Igreja Presbiteriana de Divinópolis**, em **31/12/2026**. Culto de Ações de Graças às **20h30min**, no **Templo da IPDiv — Av. Paraná, 1098 — Sidil**. Ceia **após o culto, no Salão Imperatriz**, Rua Duarte, 70, Bairro Catalão, esquina com a Rua Paraná. Inscrições até **20/12/2026, às 23h59 (Brasília)**.
 
-Funciona no navegador do celular, sem instalar aplicativo. A hospedagem é o Google Apps Script, com Google Planilhas e Google Drive privados, dentro das cotas gratuitas de uma conta Google comum. Não usa serviço pago, cartão, API bancária nem serviço externo para gerar QR Codes.
+**Regra atual: registrar a inscrição já reserva as vagas.** A lotação é de **200 pessoas**, contando adultos e crianças. Não há confirmação financeira no sistema: a secretaria controla o pagamento pelo WhatsApp **(37) 3212-4980**. Copiar o link, abrir o WhatsApp ou registrar a entrada não desconta lugares novamente.
 
-**Código implementado e testado localmente. Ainda precisa ser publicado e validado na conta Google da Igreja antes de compartilhar o link. Não há uma implantação pública criada por este repositório.**
+O sistema inicia **sem inscrições e sem exemplos fictícios**, com **200 vagas disponíveis**. A inicialização de uma planilha existente preserva seus registros e históricos; não apaga inscrições reais.
 
-Conta informada para publicação e administração: **`porumajornadafeliz@gmail.com`**. A primeira inicialização prepara essa conta como administradora quando ainda não existe uma lista de contas permitidas. Permissões já configuradas são preservadas. O e-mail não substitui o login e a autorização Google na publicação.
+**Código implementado e testado localmente. A publicação no Google da Igreja ainda está pendente.** O pacote não cria uma implantação pública nem conecta a conta `porumajornadafeliz@gmail.com` automaticamente.
 
-- [Publicação gratuita, passo a passo](docs/PUBLICACAO.md)
-- [Operação da tesouraria e da entrada](docs/OPERACAO.md)
-- [Segurança, arquitetura e limites](docs/SEGURANCA.md)
-- [Testes e validação antes do uso](docs/TESTES.md)
+## Analisar sem instalar nada
 
-## Abrir para analisar, sem instalar nada
+Baixe **`entrega/DEMONSTRACAO-IPDIV-v6.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
 
-Baixe `entrega/DEMONSTRACAO-IPDIV.zip` pelo GitHub e use **Extrair Tudo** no Windows. Abra o arquivo **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Microsoft Edge ou no Google Chrome.
+A demonstração começa vazia. Você pode registrar uma família e ver a baixa imediata das vagas, visualizar a mensagem da secretaria, copiar o link, consultar inscrições, cancelar/reativar e registrar a entrada. O painel **Inscrições e vagas** substitui a antiga tesouraria.
 
-Os botões no topo alternam entre **Inscrição**, **Tesouraria** e **Entrada**. Há exemplos fictícios no painel; você também pode cadastrar uma família de teste, simular a conferência do pagamento e registrar a entrada. O logotipo oficial está incluído.
+É uma análise local: os testes ficam apenas na aba e são descartados ao fechar/recarregar. Não grava no Google, não envia WhatsApp real e não permite pagamento real. A versão publicada usa a mesma interface com armazenamento compartilhado no Google Planilhas e abre o WhatsApp com os dados para o participante conferir e enviar.
 
-Essa demonstração é um arquivo HTML autônomo e não precisa de internet, Node.js ou conta Google. Use dados fictícios. Fechar ou recarregar apaga os testes. O QR exibido nela contém apenas um aviso de demonstração, sem um Pix válido para pagamento. A versão real continua sendo publicada em Google Apps Script conforme o guia.
+## Funcionalidades
 
-## O que está incluído
+- Contador público visível ao abrir, atualizado após o cadastro, ao voltar à aba e a cada 30 segundos com a página visível.
+- Nome do responsável, telefone com máscara automática e quantidades em cinco categorias, com valores calculados no servidor.
+- Categoria **Cônjuge adulto não-membro da igreja**, R$ 80 por pessoa, limitada a um cônjuge e com adulto membro na inscrição.
+- Vagas verificadas no servidor sob o mesmo bloqueio da gravação; uma família inteira é aceita ou recusada, sem ultrapassar a lotação.
+- Repetir o mesmo envio não cria inscrição nem baixa vagas em duplicidade, mesmo após perda de conexão, prazo ou esgotamento.
+- Link privado disponível imediatamente; consulta sem login; registro para salvar ou imprimir, identificado como **não sendo comprovante de pagamento**.
+- WhatsApp preparado com nome, telefone, inscrição, participantes, categorias e valor. Não inclui o token privado nem afirma que houve pagamento.
+- Pix estático opcional para facilitar o pagamento, com conferência financeira diretamente pela secretaria. Não usa API bancária.
+- Administração com login Google e papéis autorizados; pesquisa, filtros, valores de referência, CSV, impressão e histórico.
+- Cancelamento e reativação com motivo e auditoria. Cancelar libera lugares; reativar exige disponibilidade para toda a família. Registros não são apagados.
+- Entrada familiar sem exigir pagamento confirmado; cancelamentos e entradas duplicadas são bloqueados no servidor.
 
-- Formulário público sem login Google; nome do responsável, WhatsApp com formatação automática ao digitar/apagar/colar e quantidades.
-- Limite de **200 pessoas**, incluindo crianças, com contador público de vagas restantes. Inscrições pendentes não garantem lugar; a vaga é descontada quando o pagamento é confirmado pela tesouraria.
-- Cinco categorias, contadores, preço calculado no servidor e resumo antes de confirmar.
-- Regra de um cônjuge não membro por inscrição, somente com adulto membro.
-- Encerramento automático de novas inscrições ao fim de 20/12/2026, horário de Brasília. Consultas, pagamentos e administração continuam funcionando.
-- Envios repetidos com o mesmo identificador não criam outra inscrição, inclusive após falha de conexão.
-- Pix BR Code com CNPJ, valor exato, TxId da inscrição e CRC16; QR gerado no próprio navegador, sem transmitir dados a terceiros.
-- Contato da secretaria pelo WhatsApp **(37) 3212-4980**, com mensagem preparada para o participante conferir e enviar: nome, inscrição, participantes, valor e situação pendente de conferência, sem incluir o token privado.
-- Link privado com token, aviso de Pix realizado e comprovante **opcional** em PDF/JPG/PNG de até 1 MB, guardado no Drive privado.
-- Confirmação **manual** do recebimento pela tesouraria. Nem o aviso nem o arquivo do participante mudam o pagamento para pago.
-- Confirmação de inscrição paga para salvar em texto, imprimir em PDF ou compartilhar pelo recurso do celular.
-- Login Google administrativo, lista de contas permitidas e papéis de tesouraria, entrada e administrador.
-- Pesquisa por responsável, telefone ou inscrição, filtros, check-in de toda a família com um clique, bloqueio de duplicação e exceção auditada exclusiva de administrador.
-- Indicadores, histórico de alterações, CSV e impressão da lista filtrada para contingência.
+## Publicação e operação
 
-## Preparar os arquivos
+- [Publicar gratuitamente no Google](docs/PUBLICACAO.md)
+- [Operar inscrições, secretaria e entrada](docs/OPERACAO.md)
+- [Segurança e limites](docs/SEGURANCA.md)
+- [Testes e validação](docs/TESTES.md)
 
-Requer Node.js 22 ou superior apenas para gerar e testar os arquivos. O sistema publicado não depende de Node.js.
+A hospedagem usa Google Apps Script e uma planilha privada, dentro das cotas gratuitas da conta Google. O painel administrativo não exige compartilhar a planilha com a equipe. Os segredos ficam nas propriedades dos projetos.
+
+## Desenvolvimento
+
+Node.js 22 ou superior para gerar/testar; o sistema publicado não depende de Node.js.
 
 ```sh
 npm ci
 npm run build
 npm test
+npm run test:browser
+npm run test:offline
 ```
 
-O build gera dois conjuntos independentes em `dist/public` e `dist/admin`, prontos para copiar no editor do Apps Script. A publicação pelo editor é gratuita e não exige CLI nem conta em outra plataforma.
+O build gera `dist/public`, `dist/admin` e o HTML autônomo. `npm run dev` oferece somente uma demonstração de loopback em memória, na porta 4173, com administração em `/admin`; não recebe inscrições reais.
 
-### Logotipo oficial
-
-O logotipo oficial já está incluído em **`assets/logo.png`**, convertido exclusivamente da **página 1** do PDF enviado pela Igreja. O original está preservado em `assets/logo-original.pdf`.
-
-O comando `npm run build` incorpora a imagem nas páginas pública e administrativa, sem depender do Canva, de um endereço público ou de um serviço de imagens. O desenho, as cores e as proporções originais foram preservados. Veja [assets/README.md](assets/README.md).
-
-### Desenvolvimento local
-
-```sh
-npm run build
-npm run dev
-```
-
-A demonstração atende somente à interface de loopback na porta 4173. A área administrativa fica em `/admin`. Usa dados em memória e identidade simulada, exibe um aviso de demonstração e **não pode receber inscrições ou pagamentos reais**. Reiniciar apaga os dados. O simulador não é incluído nas implantações Apps Script.
-
-```sh
-# Usa Chromium instalado no sistema; é possível indicar outro executável.
-CHROMIUM_PATH=/usr/bin/chromium npm run test:browser
-```
-
-## Organização do código
+O logotipo oficial da **página 1** do PDF fornecido está em `assets/logo.png`, com original preservado em `assets/logo-original.pdf`. É incorporado nas páginas sem depender do Canva ou de hospedagem externa.
 
 ```text
-src/shared/     Regras, Pix, armazenamento e recursos visuais compartilhados
-src/public/     Aplicação pública, arquivos privados e canal administrativo assinado
-src/admin/      Interface administrativa e autenticação Google no servidor
-scripts/        Build e demonstração local
-tests/          Testes de regras, APIs, permissões e navegador
-docs/           Publicação, operação, segurança e validação
+src/shared/   Regras, armazenamento, Pix e recursos visuais
+src/public/   Cadastro, consulta e canal administrativo assinado
+src/admin/    Interface administrativa e identidade Google
+scripts/      Build e demonstrações locais sem dados iniciais
+tests/        Verificações de regras, permissões, vagas e navegador
+docs/         Publicação, operação, segurança e validação
 ```
 
-O servidor público é o único que acessa a planilha e o Drive. O projeto administrativo identifica a conta Google no servidor e encaminha operações assinadas. Assim, nem o conferencista nem a tesouraria precisam de acesso de edição à planilha ou ao projeto público. Os segredos ficam nas propriedades dos scripts, nunca no HTML, no Git ou no navegador.
-
-Não é necessário criar worktrees: cada tarefa na nuvem já possui um ambiente isolado; use o checkout existente.
+Não é necessário criar worktrees: cada tarefa na nuvem possui ambiente isolado; use o checkout existente.

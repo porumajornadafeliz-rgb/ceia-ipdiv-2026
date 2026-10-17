@@ -60,54 +60,43 @@ function registrationInput_(input) {
 function assertOpen_(now) {
   if (new Date(now).getTime() >= Date.parse(EVENT_.deadline)) fail_('O prazo de inscrições encerrou em 20/12/2026, às 23h59 (Brasília). A consulta continua disponível.');
 }
-/** Capacidade conta pessoas, incluindo crianças. Sem configuração, novas inscrições ficam bloqueadas. */
-function capacity_(rows, limit, policy) {
-  var configured = Number.isSafeInteger(limit) && limit > 0 && ['REGISTERED', 'PAID'].indexOf(policy) >= 0;
-  var used = rows.reduce(function(n, r) {
-    return n + (policy === 'REGISTERED' || r.status === 'PAID' || r.entryAt ? r.people : 0);
-  }, 0);
-  return { configured: configured, limit: configured ? limit : null, policy: configured ? policy : '',
+/** Toda inscrição ativa ocupa lugares, independentemente do pagamento. */
+function registrationState_(row) { return row.cancelledAt ? 'CANCELLED' : 'REGISTERED'; }
+function capacity_(rows, limit) {
+  var configured = Number.isSafeInteger(limit) && limit > 0;
+  var used = rows.reduce(function(n, r) { return n + (r.cancelledAt ? 0 : r.people); }, 0);
+  return { configured: configured, limit: configured ? limit : null, policy: 'REGISTERED',
     used: configured ? used : null, remaining: configured ? Math.max(0, limit - used) : null };
 }
 function assertSeats_(capacity, people) {
   if (!capacity.configured) fail_('O limite de vagas está em definição. Aguarde a organização liberar as inscrições.');
-  if (people > capacity.remaining) fail_(capacity.remaining === 0 ? 'Vagas esgotadas. Não é possível confirmar novas inscrições. Procure a secretaria.' : 'Restam apenas ' + capacity.remaining + ' vaga(s). Não foi possível reservar lugar para toda esta inscrição.');
+  if (people > capacity.remaining) fail_(capacity.remaining === 0 ? 'Vagas esgotadas. Procure a secretaria para orientação.' : 'Restam apenas ' + capacity.remaining + ' vaga(s). Não há lugar para todos os participantes desta inscrição.');
 }
 function assertRole_(actor, roles) {
   if (!actor || roles.indexOf(actor.role) < 0) fail_('Acesso não autorizado para esta ação.');
 }
-function paymentTransition_(row, actor, paid, now, note) {
+function cancellationTransition_(row, actor, cancelled, now, note) {
   assertRole_(actor, ['treasury', 'admin']);
-  if (typeof paid !== 'boolean') fail_('Situação de pagamento inválida.');
-  if (row.status === 'PAID' && paid) return false;
-  if (row.status !== 'PAID' && !paid) return false;
-  if (!paid && row.entryAt) fail_('Uma inscrição com entrada registrada não pode ter seu pagamento desfeito.');
-  var reason = cleanText_(note, 250, 'a referência da conferência bancária ou motivo da alteração');
-  row.status = paid ? 'PAID' : 'PENDING';
-  row.paidAt = paid ? now : '';
-  row.paidBy = paid ? actor.email : '';
-  row.audit.push({ at: now, by: actor.email, action: paid ? 'PAYMENT_CONFIRMED' : 'PAYMENT_REVERSED', note: reason, amount: row.total });
+  if (typeof cancelled !== 'boolean') fail_('Situação de inscrição inválida.');
+  if (Boolean(row.cancelledAt) === cancelled) return false;
+  if (row.entryAt) fail_('Uma inscrição com entrada registrada não pode ser cancelada.');
+  var reason = cleanText_(note, 250, 'o motivo do cancelamento ou da reativação');
+  row.cancelledAt = cancelled ? now : '';
+  row.audit.push({ at: now, by: actor.email, action: cancelled ? 'REGISTRATION_CANCELLED' : 'REGISTRATION_RESTORED', note: reason });
   return true;
 }
-function entryTransition_(row, actor, now, overrideReason) {
+function entryTransition_(row, actor, now) {
   assertRole_(actor, ['door', 'admin']);
+  if (row.cancelledAt) fail_('Inscrição cancelada. A entrada não está autorizada.');
   if (row.entryAt) fail_('Entrada já registrada em ' + row.entryAt + '.');
-  var override = row.status !== 'PAID';
-  if (override) {
-    assertRole_(actor, ['admin']);
-    overrideReason = cleanText_(overrideReason, 250, 'o motivo da liberação excepcional');
-  }
-  row.entryAt = now;
-  row.entryBy = actor.email;
-  row.entryOverride = override;
-  row.audit.push({ at: now, by: actor.email, action: override ? 'ENTRY_OVERRIDE' : 'ENTRY_CONFIRMED', note: override ? overrideReason : '' });
+  row.entryAt = now; row.entryBy = actor.email; row.entryOverride = false;
+  row.audit.push({ at: now, by: actor.email, action: 'ENTRY_CONFIRMED', note: '' });
 }
 function metrics_(rows) {
   return rows.reduce(function(m, r) {
-    m.families++; m.people += r.people;
-    if (r.status === 'PAID') { m.paidPeople += r.people; m.received += r.total; }
-    else { m.pendingPeople += r.people; m.pending += r.total; }
+    if (r.cancelledAt) { m.cancelledFamilies++; return m; }
+    m.families++; m.people += r.people; m.declaredTotal += r.total;
     if (r.entryAt) { m.enteredFamilies++; m.enteredPeople += r.people; }
     return m;
-  }, { families: 0, people: 0, paidPeople: 0, pendingPeople: 0, received: 0, pending: 0, enteredFamilies: 0, enteredPeople: 0 });
+  }, { families: 0, people: 0, declaredTotal: 0, enteredFamilies: 0, enteredPeople: 0, cancelledFamilies: 0 });
 }

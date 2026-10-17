@@ -21,7 +21,7 @@ function doPost(e) {
       var sheet = sheet_(), rows = readRows_(sheet);
       if (request.action === 'list') {
         var metrics = metrics_(rows);
-        if (actor.role === 'door') { delete metrics.received; delete metrics.pending; }
+        if (actor.role === 'door') { delete metrics.declaredTotal; }
         return { actor: actor, rows: rows.map(function(r) { return adminRow_(r, actor); }), metrics: metrics, capacity: capacityForRows_(rows) };
       }
       var input = request.input;
@@ -30,21 +30,13 @@ function doPost(e) {
       if (!row) fail_('Inscrição não encontrada.');
       // Nonce também fica na auditoria: nem um replay após remoção de cache repete alterações.
       if (row.audit.some(function(a) { return a.operation === request.nonce; })) return adminRow_(row, actor);
-      if (request.action === 'getProof') {
-        assertRole_(actor, ['treasury', 'admin']);
-        if (!row.proofId) fail_('Não há comprovante nesta inscrição.');
-        var blob = DriveApp.getFileById(row.proofId).getBlob();
-        return { base64: Utilities.base64Encode(blob.getBytes()), mime: row.proofMime, name: row.id + (row.proofMime === 'application/pdf' ? '.pdf' : row.proofMime === 'image/png' ? '.png' : '.jpg') };
-      }
       var now = new Date().toISOString(), previousLength = row.audit.length;
-      // Na política de vagas por pagamento, conferir sob o mesmo lock da gravação.
-      // A liberação excepcional de entrada também ocupa lugar, mesmo sem pagamento.
-      var capacity = capacityForRows_(rows);
-      if ((!capacity.configured || capacity.policy === 'PAID') && row.status !== 'PAID' && !row.entryAt &&
-          ((request.action === 'payment' && input.paid === true) || request.action === 'entry')) assertSeats_(capacity, row.people);
-      if (request.action === 'payment') paymentTransition_(row, actor, input.paid, now, input.note);
-      else if (request.action === 'entry') entryTransition_(row, actor, now, input.reason);
-      else fail_('Ação inválida.');
+      if (request.action === 'entry') entryTransition_(row, actor, now);
+      else if (request.action === 'cancel') {
+        assertRole_(actor, ['treasury', 'admin']);
+        if (input.cancelled === false && row.cancelledAt) assertSeats_(capacityForRows_(rows), row.people);
+        cancellationTransition_(row, actor, input.cancelled, now, input.note);
+      } else fail_('Ação inválida.');
       if (row.audit.length > previousLength) {
         row.audit[row.audit.length - 1].operation = request.nonce;
         writeRow_(sheet, row); // Estado e histórico na mesma gravação, sob o mesmo lock.
@@ -55,11 +47,10 @@ function doPost(e) {
   return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
 }
 function adminRow_(r, actor) {
-  var out = { id: r.id, name: r.name, phone: r.phone, people: r.people, status: r.status,
-    entryAt: r.entryAt, entryOverride: r.entryOverride };
+  var out = { id: r.id, name: r.name, phone: r.phone, people: r.people, status: registrationState_(r),
+    entryAt: r.entryAt || '', cancelledAt: r.cancelledAt || '' };
   if (actor.role !== 'door') {
-    out.total = r.total; out.counts = r.counts; out.createdAt = r.createdAt; out.reportedAt = r.reportedAt;
-    out.proofAt = r.proofAt; out.paidAt = r.paidAt; out.paidBy = r.paidBy; out.audit = r.audit;
+    out.total = r.total; out.counts = r.counts; out.createdAt = r.createdAt; out.reportedAt = r.reportedAt || ''; out.audit = r.audit;
   }
   return out;
 }

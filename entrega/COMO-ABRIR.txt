@@ -1,30 +1,36 @@
-COMO ABRIR A DEMONSTRAÇÃO DA CEIA IPDIV 2026
+CEIA IPDIV 2026 — VERSÃO 6 — INÍCIO LIMPO
 
-1. Se o arquivo ainda está dentro do ZIP, clique com o botão direito no ZIP
-   e escolha "Extrair Tudo".
+1. Clique com o botão direito em DEMONSTRACAO-IPDIV-v6.zip e escolha
+   "Extrair Tudo". Use uma nova pasta, separada das versões antigas.
 
 2. Abra a pasta extraída e dê DOIS CLIQUES em:
 
    ABRIR-DEMONSTRACAO.html
 
-3. Ele abre no Microsoft Edge ou Google Chrome. Se o Windows perguntar
-   qual aplicativo usar, escolha um desses navegadores.
+3. Ele abre no Microsoft Edge ou Google Chrome, sem instalação e sem internet.
 
-4. Use os botões no topo da página:
-   - INSCRIÇÃO: faça uma inscrição com dados fictícios.
-   - TESOURARIA: encontre a família de teste e simule a confirmação do pagamento.
-   - ENTRADA: pesquise a família e confirme a entrada.
+4. O sistema começa SEM inscrições e com 200 VAGAS disponíveis.
+   Não há famílias ou pagamentos de exemplo.
 
-O limite é de 200 pessoas, incluindo crianças. Só pagamentos confirmados
-descontam vagas; inscrições pendentes não garantem lugar.
-Há três famílias fictícias como exemplos no painel, com 6 pessoas já pagas.
-Por isso, a demonstração começa mostrando 194 vagas. Você pode criar outras.
-Você pode voltar à inscrição e usar "Atualizar situação do pagamento".
+5. Use os botões do topo:
+   - INSCRIÇÃO: registre uma família para analisar as telas.
+   - INSCRIÇÕES E VAGAS: consulte, cancele ou reative uma inscrição de teste.
+   - ENTRADA: pesquise a família e registre sua chegada.
 
-Não precisa instalar nada e funciona sem internet.
+A VAGA É CONTABILIZADA AO REGISTRAR A INSCRIÇÃO.
+Uma família de 4 pessoas reduz o contador de 200 para 196.
+Não é preciso confirmar pagamento. Copiar o link ou abrir a mensagem da
+secretaria novamente não desconta outras vagas.
 
-ESTA É UMA DEMONSTRAÇÃO PARA ANÁLISE.
-Não recebe inscrições reais, não acessa o Google e não efetua pagamentos.
-O QR Code mostrado não é um Pix válido. Fechar ou recarregar apaga os testes.
-A publicação da versão real no Google Apps Script continua sendo necessária
-antes de compartilhar o link com a Igreja pelo WhatsApp.
+O botão COPIAR MEU LINK já fica disponível depois do registro.
+O controle de pagamento será feito diretamente pela secretaria via WhatsApp.
+
+ESTE ARQUIVO É UMA DEMONSTRAÇÃO PARA ANÁLISE.
+Os testes ficam apenas nesta aba. Fechar ou recarregar volta ao início vazio.
+O WhatsApp mostra uma prévia, sem enviar mensagens reais. O QR demonstrativo
+não permite pagamento. A demonstração não grava no Google.
+
+Antes de receber inscrições reais, publique os projetos Google Apps Script
+conforme docs/PUBLICACAO.md do pacote completo. A versão publicada terá os
+registros compartilhados, o contador da igreja e o WhatsApp para conferir
+e enviar os dados à secretaria.

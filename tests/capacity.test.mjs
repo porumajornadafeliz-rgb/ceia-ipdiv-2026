@@ -5,96 +5,65 @@ const value = response => { assert.equal(response.ok, true, response.error); ret
 const rejected = response => { assert.equal(response.ok, false); assert.match(response.error, /vaga|lotação/i); };
 const access = row => ({ id: row.id, token: row.token });
 const family = people => registration({ counts: { adultMembers: people, childMembers: 0, spouse: 0, adultGuests: 0, childGuests: 0 } });
-const pay = (p, row, paid = true) => p.adminApi('payment', { id: row.id, paid, note: 'Extrato conferido no teste' });
+const cancel = (p, row, cancelled = true) => p.adminApi('cancel', { id: row.id, cancelled, note: 'Solicitação do responsável' });
 
-test('lotação inicial: 200 pessoas; pendentes, avisos e comprovantes não ocupam vaga', () => {
+test('lotação inicia em 200 e baixa imediatamente ao registrar, sem pagamento ou WhatsApp', () => {
   const p = platform();
-  const start = value(p.publicApi('capacity'));
-  assert.deepEqual(start, { configured: true, limit: 200, policy: 'PAID', used: 0, remaining: 200 });
-  const row = value(p.publicApi('create', family(2)));
-  value(p.publicApi('report', access(row)));
-  value(p.publicApi('proof', { ...access(row), base64: Buffer.from('%PDF-1.4\nfixture').toString('base64') }));
-  assert.equal(value(p.publicApi('capacity')).remaining, 200);
-  assert.equal(value(p.publicApi('lookup', access(row))).status, 'PENDING');
-  value(pay(p, row));
-  assert.equal(value(p.publicApi('capacity')).remaining, 198);
-  assert.equal(value(p.adminApi('list')).capacity.remaining, 198);
+  assert.deepEqual(value(p.publicApi('capacity')), { configured: true, limit: 200, policy: 'REGISTERED', used: 0, remaining: 200 });
+  const row = value(p.publicApi('create', family(4)));
+  assert.equal(value(p.publicApi('capacity')).remaining, 196);
+  value(p.publicApi('report', access(row))); value(p.publicApi('report', access(row)));
+  value(p.publicApi('confirmation', access(row))); value(p.publicApi('lookup', access(row)));
+  assert.equal(value(p.publicApi('capacity')).remaining, 196, 'contato, cópia e consulta não descontam novamente');
 });
-
-test('adultos e crianças de todas as categorias contam na capacidade; estorno devolve vagas', () => {
+test('adultos e crianças de todas as categorias ocupam lugares; cancelamento devolve os lugares', () => {
   const p = platform();
   const row = value(p.publicApi('create', registration({ counts: { adultMembers: 1, childMembers: 2, spouse: 1, adultGuests: 2, childGuests: 3 } })));
-  value(pay(p, row)); assert.equal(value(p.publicApi('capacity')).remaining, 191);
-  value(pay(p, row)); assert.equal(value(p.publicApi('capacity')).remaining, 191, 'confirmar novamente não desconta duas vezes');
-  value(pay(p, row, false)); assert.equal(value(p.publicApi('capacity')).remaining, 200);
-  assert.equal(value(p.publicApi('lookup', access(row))).status, 'PENDING');
+  assert.equal(value(p.publicApi('capacity')).remaining, 191);
+  value(cancel(p, row)); value(cancel(p, row)); assert.equal(value(p.publicApi('capacity')).remaining, 200);
+  value(cancel(p, row, false)); value(cancel(p, row, false)); assert.equal(value(p.publicApi('capacity')).remaining, 191);
 });
-
-test('última vaga: duas inscrições pendentes vistas antes da confirmação não causam excesso', () => {
+test('última vaga: apenas o primeiro envio ocupa o lugar, mesmo com duas consultas anteriores', () => {
   const p = platform(); p.properties.MAX_PARTICIPANTS = '1';
-  const first = value(p.publicApi('create', family(1))), second = value(p.publicApi('create', family(1)));
-  assert.equal(value(p.publicApi('capacity')).remaining, 1);
-  value(pay(p, first));
-  rejected(pay(p, second));
-  const pending = value(p.publicApi('lookup', access(second)));
-  assert.equal(pending.status, 'PENDING'); assert.equal(pending.paidAt, '');
-  const admin = value(p.adminApi('list'));
-  assert.equal(admin.metrics.paidPeople, 1); assert.equal(admin.rows.find(r => r.id === second.id).audit.length, 0);
-  assert.equal(admin.capacity.remaining, 0);
-});
-
-test('família maior que as vagas restantes é recusada integralmente sem gravar pagamento parcial', () => {
-  const p = platform(); p.properties.MAX_PARTICIPANTS = '3';
-  const large = value(p.publicApi('create', family(3))), small = value(p.publicApi('create', family(1)));
-  value(pay(p, small)); rejected(pay(p, large));
-  assert.equal(value(p.publicApi('lookup', access(large))).status, 'PENDING');
-  rejected(p.publicApi('create', family(3)));
-  assert.equal(value(p.adminApi('list')).rows.length, 2);
-  const exact = value(p.publicApi('create', family(2))); value(pay(p, exact));
-  assert.equal(value(p.publicApi('capacity')).remaining, 0);
-});
-
-test('lotação esgotada bloqueia novo cadastro; consulta, aviso, retry e estorno continuam disponíveis', () => {
-  const p = platform(); p.properties.MAX_PARTICIPANTS = '1';
+  assert.equal(value(p.publicApi('capacity')).remaining, 1); assert.equal(value(p.publicApi('capacity')).remaining, 1);
   const input = family(1), row = value(p.publicApi('create', input));
-  value(pay(p, row)); rejected(p.publicApi('create', family(1)));
-  const retry = value(p.publicApi('create', input)); assert.equal(retry.id, row.id); assert.equal(retry.token, row.token);
-  value(p.publicApi('report', access(row)));
-  assert.equal(value(p.publicApi('lookup', access(row))).status, 'PAID');
-  value(pay(p, row, false)); value(p.publicApi('create', family(1)));
+  rejected(p.publicApi('create', family(1)));
+  assert.equal(value(p.adminApi('list')).rows.length, 1); assert.equal(value(p.publicApi('capacity')).remaining, 0);
+  assert.equal(value(p.publicApi('create', input)).id, row.id, 'retry é idempotente mesmo esgotado');
 });
-
-test('limite ausente, inválido ou política desconhecida bloqueiam cadastro; retorno público só contém agregados', () => {
+test('família acima das vagas restantes é recusada inteira, sem registro parcial', () => {
+  const p = platform(); p.properties.MAX_PARTICIPANTS = '3';
+  value(p.publicApi('create', family(1))); rejected(p.publicApi('create', family(3)));
+  assert.equal(value(p.adminApi('list')).rows.length, 1); assert.equal(value(p.publicApi('capacity')).remaining, 2);
+  value(p.publicApi('create', family(2))); assert.equal(value(p.publicApi('capacity')).remaining, 0);
+});
+test('lotação esgotada bloqueia novo cadastro, mas mantém consulta, contato e entrada dos inscritos', () => {
+  const p = platform({ actor: 'admin@example.test' }); p.properties.MAX_PARTICIPANTS = '1';
+  const row = value(p.publicApi('create', family(1)));
+  rejected(p.publicApi('create', family(1))); value(p.publicApi('report', access(row))); value(p.publicApi('lookup', access(row)));
+  value(p.adminApi('entry', { id: row.id })); assert.equal(value(p.publicApi('capacity')).remaining, 0);
+});
+test('limite inválido bloqueia novas inscrições; estado público só contém agregados', () => {
   const p = platform();
   for (const limit of ['', '0', '-2', '2.5', '200pessoas', '999999999999999999999']) {
     p.properties.MAX_PARTICIPANTS = limit;
     assert.equal(value(p.publicApi('capacity')).configured, false); rejected(p.publicApi('create', family(1)));
   }
-  p.properties.MAX_PARTICIPANTS = '200'; p.properties.SEAT_POLICY = 'UNKNOWN';
-  rejected(p.publicApi('create', family(1)));
-  p.properties.SEAT_POLICY = 'PAID'; const row = value(p.publicApi('create', family(1)));
+  p.properties.MAX_PARTICIPANTS = '200'; p.properties.SEAT_POLICY = 'PAID';
+  value(p.publicApi('create', family(1))); assert.equal(value(p.publicApi('capacity')).remaining, 199, 'propriedade antiga não restaura a regra financeira');
   assert.deepEqual(Object.keys(value(p.publicApi('capacity'))).sort(), ['configured', 'limit', 'policy', 'used', 'remaining'].sort());
-  delete p.properties.MAX_PARTICIPANTS; rejected(pay(p, row));
-  p.properties.MAX_PARTICIPANTS = '150'; p.public.initializePublic_();
-  assert.equal(p.properties.MAX_PARTICIPANTS, '150', 'inicialização preserva a lotação previamente configurada');
 });
-
-test('liberação excepcional ocupa vaga física, não confirma pagamento e não é contada duas vezes', () => {
-  const p = platform({ actor: 'admin@example.test' }); p.properties.MAX_PARTICIPANTS = '1';
-  const first = value(p.publicApi('create', family(1))), second = value(p.publicApi('create', family(1)));
-  value(p.adminApi('entry', { id: first.id, reason: 'Liberação presencial da organização' }));
-  assert.equal(value(p.publicApi('capacity')).remaining, 0);
-  assert.equal(value(p.publicApi('lookup', access(first))).status, 'PENDING');
-  rejected(p.adminApi('entry', { id: second.id, reason: 'Não pode exceder lotação' }));
-  rejected(pay(p, second)); value(pay(p, first));
-  assert.equal(value(p.publicApi('capacity')).used, 1);
+test('reativação respeita lotação e não ocupa duas vezes a vaga de outra família', () => {
+  const p = platform(); p.properties.MAX_PARTICIPANTS = '1';
+  const first = value(p.publicApi('create', family(1))); value(cancel(p, first));
+  const second = value(p.publicApi('create', family(1)));
+  rejected(cancel(p, first, false)); assert.equal(value(p.publicApi('lookup', access(first))).status, 'CANCELLED');
+  value(cancel(p, second)); value(cancel(p, first, false)); assert.equal(value(p.publicApi('capacity')).used, 1);
 });
-
-test('checagem da lotação participa do mesmo bloqueio que grava o pagamento', () => {
-  const p = platform(); const row = value(p.publicApi('create', family(1)));
-  p.lock(true); const blocked = pay(p, row); assert.equal(blocked.ok, false); assert.match(blocked.error, /Muitos acessos/);
-  p.lock(false);
-  assert.equal(value(p.publicApi('lookup', access(row))).status, 'PENDING');
-  assert.equal(value(p.publicApi('capacity')).remaining, 200);
-  value(pay(p, row)); assert.equal(value(p.publicApi('capacity')).remaining, 199);
+test('bloqueio serializa cadastro e reativação sem escrita parcial', () => {
+  const p = platform(), row = value(p.publicApi('create', family(1))); value(cancel(p, row));
+  p.lock(true);
+  assert.equal(p.publicApi('create', family(1)).ok, false); assert.equal(cancel(p, row, false).ok, false);
+  p.lock(false); assert.equal(value(p.publicApi('capacity')).remaining, 200);
+  value(cancel(p, row, false)); assert.equal(value(p.publicApi('capacity')).remaining, 199);
 });
