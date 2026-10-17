@@ -4,6 +4,12 @@ A publicação é feita por um responsável autorizado na própria conta Google.
 
 **Conta informada para este projeto: `porumajornadafeliz@gmail.com`.** Use essa conta para criar a planilha e os dois projetos Apps Script. O código já prepara essa conta com o papel `admin` na primeira inicialização; informar o e-mail não conecta ou autoriza a conta Google automaticamente.
 
+## Instalação do zero com poucos arquivos
+
+Use **`entrega/PUBLICAR-CEIA-IPDIV-2026.zip`** e o guia [COLOCAR-NO-AR.md](COLOCAR-NO-AR.md). Cada projeto está consolidado em um `Code.gs` e um `appsscript.json`. Execute **`prepararPublicacao_`** no editor do projeto público para criar a planilha vazia automaticamente, sem precisar copiar seu ID. A função usa a planilha já configurada se for executada novamente e nunca inclui exemplos.
+
+Não misture o `Code.gs` consolidado com os arquivos separados abaixo no mesmo projeto, pois isso duplicaria funções. Os dois formatos usam as mesmas regras e interfaces.
+
 ## 1. Gerar os arquivos e incorporar a marca
 
 No projeto local, com Node.js 22 ou superior:

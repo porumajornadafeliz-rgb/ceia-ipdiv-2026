@@ -9,7 +9,7 @@ npm run test:browser
 npm run test:offline
 ```
 
-`npm test` executa **28 testes** com o código `.gs` real num simulador das APIs Google.
+`npm test` executa **33 testes** com o código `.gs` real num simulador das APIs Google.
 
 | Área | Cobertura |
 |---|---|
@@ -24,6 +24,7 @@ npm run test:offline
 | Autorização | Conta ausente/desconhecida e identidade adulterada; papel door sem poderes de cancelamento ou valores |
 | Canal assinado | Assinatura inválida/alterada, expiração e replay depois de reativação |
 | Migração | Cabeçalho compatível ampliado; registros, campos financeiros antigos, segredos e permissões preservados |
+| Publicação simplificada | Modelos HTML e manifestos preservados; renderização pública e administrativa; canal assinado, vagas, criação inicial sem exemplos e reexecução sem duplicar planilha |
 | Limpeza | Inicialização sem inscrições, sem exemplos, com 200 vagas; ações financeiras antigas recusadas |
 
 O teste de navegador percorre o fluxo público e administrativo: início vazio, logo, telefone ao digitar/apagar/colar, resumo, registro com baixa imediata, cópia do link, mensagem WhatsApp sem token e sem afirmar pagamento, Pix decodificado, consulta, cancelamento/reativação, entrada sem etapa financeira, pesquisa, filtros e CSV. Confere telas de 320 a 1280 pixels e ausência de erros JavaScript. A navegação WhatsApp é interceptada localmente; não acessa o serviço nem envia mensagens reais.

@@ -81,3 +81,20 @@ function initializePublic_() {
   }
   sheet_();
 }
+
+/** Executar somente pelo proprietário no editor. Cria a planilha se ainda não foi indicada. */
+function prepararPublicacao_() {
+  return locked_(function() {
+    var p = props_();
+    if (!p.getProperty('SPREADSHEET_ID')) {
+      var book = SpreadsheetApp.create('Ceia IPDiv 2026 — Inscrições');
+      p.setProperty('SPREADSHEET_ID', book.getId());
+    }
+    initializePublic_();
+    var rows = readRows_(sheet_()), capacity = capacityForRows_(rows);
+    var result = { planilha: spreadsheet_().getUrl(), inscricoesAtivas: rows.filter(function(r) { return !r.cancelledAt; }).length,
+      limite: capacity.limit, vagasRestantes: capacity.remaining };
+    console.log('Configuração concluída. Planilha: ' + result.planilha + '. Inscrições ativas: ' + result.inscricoesAtivas + '. Vagas restantes: ' + result.vagasRestantes + '.');
+    return result;
+  });
+}

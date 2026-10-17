@@ -32,6 +32,10 @@ A demonstração começa vazia. Você pode registrar uma família e ver a baixa 
 
 ## Publicação e operação
 
+Para a instalação do zero, baixe **`entrega/PUBLICAR-CEIA-IPDIV-2026.zip`**. Ele contém os dois projetos consolidados, cada um com apenas `Code.gs` e `appsscript.json`, e o guia **`COMECE-AQUI.txt`**. A função privada `prepararPublicacao_`, executada no editor pelo proprietário, cria a planilha vazia automaticamente e preserva registros em novas execuções. Leia também [Colocar no ar, passo a passo](docs/COLOCAR-NO-AR.md).
+
+Depois da publicação, haverá um **link público** para os membros e um **link administrativo** para a equipe. Ambos abrem no navegador, sem instalar aplicativo. O endereço público só é criado pelo Google ao implantar; nenhum link de download ou de demonstração deve ser divulgado como inscrição real.
+
 - [Publicar gratuitamente no Google](docs/PUBLICACAO.md)
 - [Operar inscrições, secretaria e entrada](docs/OPERACAO.md)
 - [Segurança e limites](docs/SEGURANCA.md)
@@ -51,7 +55,7 @@ npm run test:browser
 npm run test:offline
 ```
 
-O build gera `dist/public`, `dist/admin` e o HTML autônomo. `npm run dev` oferece somente uma demonstração de loopback em memória, na porta 4173, com administração em `/admin`; não recebe inscrições reais.
+O build gera `dist/public`, `dist/admin`, `dist/publicacao` e o HTML autônomo. `npm run dev` oferece somente uma demonstração de loopback em memória, na porta 4173, com administração em `/admin`; não recebe inscrições reais.
 
 O logotipo oficial da **página 1** do PDF fornecido está em `assets/logo.png`, com original preservado em `assets/logo-original.pdf`. É incorporado nas páginas sem depender do Canva ou de hospedagem externa.
 

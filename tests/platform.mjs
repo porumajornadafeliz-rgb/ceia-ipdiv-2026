@@ -24,7 +24,7 @@ class Sheet {
 export function platform({ now = '2026-10-17T15:00:00Z', actor = 'tesouraria@example.test' } = {}) {
   let clock = new Date(now).getTime(), email = actor, lock = false;
   const sheets = new Map(), files = new Map();
-  let sharedFolder = false;
+  let sharedFolder = false, createdSpreadsheets = 0;
   const properties = { SPREADSHEET_ID: 'test-sheet', TOKEN_SECRET: 'test-secret-never-production', ADMIN_BRIDGE_SECRET: 'bridge-test-never-production', ADMIN_ACCOUNTS: JSON.stringify({ 'admin@example.test': 'admin', 'tesouraria@example.test': 'treasury', 'entrada@example.test': 'door' }) };
   const getProps = store => ({ getProperty: key => store[key] ?? null, setProperty: (key, value) => { store[key] = value; } });
   class Clock extends Date { constructor(...args) { super(...(args.length ? args : [clock])); } static now() { return clock; } }
@@ -37,10 +37,12 @@ export function platform({ now = '2026-10-17T15:00:00Z', actor = 'tesouraria@exa
     newBlob: (bytes, mime, name) => ({ getBytes: () => bytes, mime, name }),
     base64EncodeWebSafe: bytes => Buffer.from(bytes).toString('base64').replaceAll('+', '-').replaceAll('/', '_')
   };
+  const book = { getId: () => 'test-sheet', getUrl: () => 'https://docs.google.com/spreadsheets/d/test-sheet/edit',
+    getSheetByName: name => sheets.get(name), insertSheet: name => { const s = new Sheet(); sheets.set(name, s); return s; } };
   const publicContext = vm.createContext({ Date: Clock, console, Utilities: utilities,
     PropertiesService: { getScriptProperties: () => getProps(properties) },
     DriveApp: { Access: { PRIVATE: 'private' }, createFolder: () => ({ getId: () => 'test-folder' }), getFolderById: () => ({ getSharingAccess: () => sharedFolder ? 'public' : 'private', getEditors: () => [], getViewers: () => [], createFile: blob => { const id = randomUUID(); files.set(id, blob); return { getId: () => id, setTrashed: () => files.delete(id) }; } }), getFileById: id => ({ getBlob: () => files.get(id) }) },
-    SpreadsheetApp: { openById: () => ({ getSheetByName: name => sheets.get(name), insertSheet: name => { const s = new Sheet(); sheets.set(name, s); return s; } }), flush() {} },
+    SpreadsheetApp: { openById: () => book, create: () => { createdSpreadsheets++; return book; }, flush() {} },
     LockService: { getScriptLock: () => ({ tryLock() { if (lock) return false; lock = true; return true; }, releaseLock() { lock = false; } }) },
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: text => ({ text, setMimeType() { return this; } }) }
   });
@@ -59,6 +61,7 @@ export function platform({ now = '2026-10-17T15:00:00Z', actor = 'tesouraria@exa
   vm.runInContext(readFileSync(path.join(root, 'src/admin/Admin.gs'), 'utf8'), adminContext);
   return {
     public: publicContext, admin: adminContext, properties, adminProperties, sheets, files,
+    createdSpreadsheets: () => createdSpreadsheets,
     shareFolder(value) { sharedFolder = value; },
     publicApi: (action, input) => clone(publicContext.publicApi(action, input)),
     adminApi: (action, input) => clone(adminContext.adminApi(action, input)),
