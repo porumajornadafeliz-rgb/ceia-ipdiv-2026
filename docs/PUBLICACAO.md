@@ -6,7 +6,7 @@ A publicação é feita por um responsável autorizado na própria conta Google.
 
 ## Instalação do zero com poucos arquivos
 
-Use **`entrega/PUBLICAR-CEIA-IPDIV-2026.zip`** e o guia [COLOCAR-NO-AR.md](COLOCAR-NO-AR.md). Cada projeto está consolidado em um `Code.gs` e um `appsscript.json`. Execute **`prepararPublicacao_`** no editor do projeto público para criar a planilha vazia automaticamente, sem precisar copiar seu ID. A função usa a planilha já configurada se for executada novamente e nunca inclui exemplos.
+Use **`entrega/PUBLICAR-CEIA-IPDIV-2026-v2.zip`** e o guia [COLOCAR-NO-AR.md](COLOCAR-NO-AR.md). Cada projeto está consolidado em um `Code.gs` e um `appsscript.json`. Execute **`prepararPublicacao`** no editor do projeto público para criar a planilha vazia automaticamente, sem precisar copiar seu ID. A função usa a planilha já configurada se for executada novamente e nunca inclui exemplos.
 
 Não misture o `Code.gs` consolidado com os arquivos separados abaixo no mesmo projeto, pois isso duplicaria funções. Os dois formatos usam as mesmas regras e interfaces.
 
@@ -58,7 +58,7 @@ Configuração inicial preparada para a Igreja:
 
 Para outras pessoas, acrescente seus e-mails reais ao mesmo JSON com `treasury` ou `door`. Não é preciso fornecer senha. O arquivo `Config.gs` define os valores iniciais: após a primeira configuração, a lista efetiva é a propriedade `ADMIN_ACCOUNTS`, que nunca é sobrescrita pela inicialização.
 
-5. Salve tudo. Selecione **`initializePublic_`** no editor e clique em **Executar**, como proprietário. Autorize acesso a Planilhas. A função é privada para chamadas web, mas pode ser executada pelo proprietário no editor.
+5. Salve tudo. Selecione **`prepararPublicacao`** no editor e clique em **Executar**, como proprietário. Autorize o acesso a Planilhas e a identificação da conta proprietária. A função verifica a identidade da conta proprietária no servidor antes de configurar; visitantes não podem executá-la.
 6. Ela cria a aba `Inscricoes` e o cabeçalho, sem incluir famílias de exemplo. Numa atualização, acrescenta a coluna `cancelledAt` ao cabeçalho anterior compatível. Não apaga nem altera os registros existentes; estruturas incompatíveis são recusadas.
 7. Confira as propriedades geradas: `TOKEN_SECRET`, `ADMIN_BRIDGE_SECRET`, **`MAX_PARTICIPANTS=200`** e **`SEAT_POLICY=REGISTERED`**. **Não altere `TOKEN_SECRET` após iniciar inscrições**, pois ele é usado para repetir envios com segurança. Não exponha nenhum segredo. Pastas e comprovantes privados de versões anteriores permanecem no Drive, sem uso pelo sistema atual e sem serem apagados.
 8. Vá a **Implantar → Nova implantação → Aplicativo da Web**:
@@ -103,7 +103,7 @@ Depois dos testes, compartilhe apenas o endereço público `/exec` com os partic
 
 ## 6. Atualizar e operar
 
-Para atualizar uma implantação anterior para a regra de vagas por inscrição, copie os arquivos atualizados dos dois projetos e execute `initializePublic_` novamente no projeto público. Ela acrescenta a coluna `cancelledAt`, configura `SEAT_POLICY=REGISTERED` e preserva registros, históricos, segredos e permissões. Confira `MAX_PARTICIPANTS=200` antes de publicar a nova versão. Todos os registros existentes não cancelados passam a ocupar lugares, independentemente do pagamento. Use o painel para cancelar inscrições de teste identificadas, sem apagar linhas manualmente.
+Para atualizar uma implantação anterior para a regra de vagas por inscrição, copie os arquivos atualizados dos dois projetos e execute `prepararPublicacao` novamente no projeto público. Ela acrescenta a coluna `cancelledAt`, configura `SEAT_POLICY=REGISTERED` e preserva registros, históricos, segredos e permissões. Confira `MAX_PARTICIPANTS=200` antes de publicar a nova versão. Todos os registros existentes não cancelados passam a ocupar lugares, independentemente do pagamento. Use o painel para cancelar inscrições de teste identificadas, sem apagar linhas manualmente.
 
 Após editar código, gere os arquivos novamente, copie os arquivos alterados no projeto correspondente e publique uma **nova versão da implantação existente** em **Implantar → Gerenciar implantações → Editar → Nova versão**. Isso preserva os endereços `/exec`. Salvar no editor sozinho não atualiza a versão pública.
 

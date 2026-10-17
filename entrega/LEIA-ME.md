@@ -4,7 +4,7 @@
 
 A vaga é reservada quando a inscrição é registrada, incluindo adultos e crianças. O link fica disponível imediatamente. Pagamentos são controlados diretamente pela secretaria no WhatsApp **(37) 3212-4980**; o site não exige confirmação financeira.
 
-- **PUBLICAR-CEIA-IPDIV-2026.zip**: aplicação real pronta para publicar na conta Google. Contém `PUBLICO` e `ADMINISTRACAO`, cada um com `Code.gs` e manifesto, além de `COMECE-AQUI.txt`. A configuração cria a planilha vazia automaticamente. O Google fornecerá o link público depois da implantação.
+- **PUBLICAR-CEIA-IPDIV-2026-v2.zip** (também disponível como `PUBLICAR-CEIA-IPDIV-2026.zip`): aplicação real pronta para publicar na conta Google. Contém `PUBLICO` e `ADMINISTRACAO`, cada um com `Code.gs` e manifesto, além de `COMECE-AQUI.txt`. A configuração cria a planilha vazia automaticamente. Esta revisão corrige a seleção no editor: execute `prepararPublicacao`, sem sublinhado no final; a função verifica a identidade da conta proprietária. O Google fornecerá o link público depois da implantação.
 - **DEMONSTRACAO-IPDIV-v6.zip**: versão atual para analisar sem instalar nada. Extraia em uma nova pasta e abra **ABRIR-DEMONSTRACAO.html**. Não inclui famílias de exemplo. Tem o mesmo conteúdo de `DEMONSTRACAO-IPDIV.zip`.
 - **ABRIR-DEMONSTRACAO.html**: demonstração autônoma com as telas Inscrição, Inscrições e vagas e Entrada. Os testes ficam apenas na aba; reiniciar volta a zero registros e 200 vagas. WhatsApp e Pix são simulados, sem envio real ou pagamentos.
 - **COMO-ABRIR.txt**: instruções para Windows.

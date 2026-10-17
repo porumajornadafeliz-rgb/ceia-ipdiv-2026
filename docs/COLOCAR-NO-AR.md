@@ -21,7 +21,7 @@ executar comandos ou contratar hospedagem.
 
 PASSO 1 — BAIXAR E EXTRAIR
 
-Extraia o ZIP PUBLICAR-CEIA-IPDIV-2026.zip em uma nova pasta.
+Extraia o ZIP PUBLICAR-CEIA-IPDIV-2026-v2.zip em uma nova pasta.
 Você encontrará:
 
   PUBLICO/Code.gs
@@ -46,8 +46,8 @@ PASSO 2 — CRIAR O PROJETO PÚBLICO
    mostrar o arquivo de manifesto appsscript.json no editor.
 5. Volte ao Editor. Abra appsscript.json e substitua seu conteúdo pelo
    conteúdo de PUBLICO/appsscript.json deste pacote. Salve.
-6. Na lista de funções, perto de Executar, selecione prepararPublicacao_
-   (o nome termina com sublinhado). Clique em Executar e autorize seu
+6. Na lista de funções, perto de Executar, selecione prepararPublicacao
+   (sem sublinhado no final). Clique em Executar e autorize seu
    próprio projeto a criar/acessar a planilha.
 7. A execução cria a planilha "Ceia IPDiv 2026 — Inscrições", configura a
    conta da igreja como administradora e prepara os acessos. No registro
@@ -133,3 +133,13 @@ Salvar apenas no editor não atualiza a versão acessada pelos membros.
 Se já houver uma instalação com arquivos separados, mantenha-a como
 explicado em docs/PUBLICACAO.md do pacote completo. Não misture os arquivos
 separados com o Code.gs consolidado no mesmo projeto: isso duplicaria funções.
+
+CORREÇÃO DO PACOTE ANTERIOR
+
+Se você já copiou o pacote anterior e só aparecem doGet, publicApi e doPost
+na lista, a função com sublinhado no final foi ocultada pelo editor.
+O pacote v2 já inclui prepararPublicacao (sem sublinhado), protegida pela
+verificação da conta proprietária no servidor. Substitua o Código.gs público
+e o manifesto pelos arquivos PUBLICO do pacote v2 e salve antes de executar.
+A configuração pedirá autorização para identificar a conta e usar Planilhas.
+Não é necessário recriar o projeto.

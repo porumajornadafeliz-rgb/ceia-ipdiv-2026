@@ -72,3 +72,25 @@ test('configuração respeita bloqueio e não cria planilhas duplicadas em conte
   assert.throws(() => p.public.prepararPublicacao_(), /Muitos acessos/); assert.equal(p.createdSpreadsheets(), 0);
   p.lock(false); p.public.console = { log() {} }; p.public.prepararPublicacao_(); assert.equal(p.createdSpreadsheets(), 1);
 });
+
+test('função de configuração visível bloqueia visitantes e confere conta e proprietário antes de qualquer alteração', () => {
+  const p = bundled(); delete p.properties.SPREADSHEET_ID; p.public.console = { log() {} };
+  for (const [user, owner] of [
+    ['', 'porumajornadafeliz@gmail.com'],
+    ['intruso@example.test', 'porumajornadafeliz@gmail.com'],
+    ['porumajornadafeliz@gmail.com', 'outro@example.test']
+  ]) {
+    p.setPublicIdentity(user, owner);
+    assert.throws(() => p.public.prepararPublicacao(), /conta proprietária/);
+    assert.equal(p.createdSpreadsheets(), 0); assert.equal(p.properties.SPREADSHEET_ID, undefined);
+  }
+  p.setPublicIdentity('porumajornadafeliz@gmail.com');
+  assert.equal(p.public.prepararPublicacao().vagasRestantes, 200);
+  assert.equal(p.createdSpreadsheets(), 1);
+  assert.equal(p.public.prepararPublicacao().vagasRestantes, 200);
+  assert.equal(p.createdSpreadsheets(), 1);
+  const code = read('dist/publicacao/PUBLICO/Code.gs');
+  assert.match(code, /^function prepararPublicacao\(\)/m);
+  const manifest = JSON.parse(read('dist/publicacao/PUBLICO/appsscript.json'));
+  assert.ok(manifest.oauthScopes.includes('https://www.googleapis.com/auth/userinfo.email'));
+});

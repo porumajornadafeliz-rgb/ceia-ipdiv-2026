@@ -8,6 +8,8 @@ A lista `ADMIN_ACCOUNTS` é verificada em cada chamada. Papéis: `admin`, `treas
 
 A assinatura cobre ação, identidade, parâmetros, horário e nonce, com janela de 60 segundos. O nonce fica no histórico para impedir repetição de alterações após uma operação posterior. A comparação da assinatura é de tempo constante para conteúdos de mesmo comprimento.
 
+A função visível `prepararPublicacao` existe para execução no editor. Ela exige a conta ativa `porumajornadafeliz@gmail.com` igual à identidade efetiva do proprietário. Visitantes anônimos, outras contas e execução sob outro proprietário são recusados antes de criar planilha ou alterar propriedades. O manifesto público inclui identificação de e-mail para essa verificação; a rotina interna continua privada.
+
 ## Vagas e registros
 
 A capacidade é de 200 pessoas. Toda inscrição ativa ocupa lugares, sem depender de pagamento, cópia de link, envio de WhatsApp ou entrada. `SEAT_POLICY=REGISTERED` é gravado na inicialização; uma configuração antiga `PAID` não reativa o fluxo financeiro.

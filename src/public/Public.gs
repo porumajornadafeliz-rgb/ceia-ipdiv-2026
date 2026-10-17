@@ -83,6 +83,16 @@ function initializePublic_() {
 }
 
 /** Executar somente pelo proprietário no editor. Cria a planilha se ainda não foi indicada. */
+function prepararPublicacao() {
+  var usuario = Session.getActiveUser().getEmail().toLowerCase().trim();
+  var proprietario = Session.getEffectiveUser().getEmail().toLowerCase().trim();
+  if (usuario !== 'porumajornadafeliz@gmail.com' || usuario !== proprietario) {
+    fail_('Execute esta configuração no editor com a conta proprietária porumajornadafeliz@gmail.com.');
+  }
+  return prepararPublicacao_();
+}
+
+/** Rotina privada; a função visível acima confere a identidade antes de chamá-la. */
 function prepararPublicacao_() {
   return locked_(function() {
     var p = props_();
