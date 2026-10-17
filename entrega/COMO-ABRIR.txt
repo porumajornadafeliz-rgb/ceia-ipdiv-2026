@@ -1,0 +1,27 @@
+COMO ABRIR A DEMONSTRAÇÃO DA CEIA IPDIV 2026
+
+1. Se o arquivo ainda está dentro do ZIP, clique com o botão direito no ZIP
+   e escolha "Extrair Tudo".
+
+2. Abra a pasta extraída e dê DOIS CLIQUES em:
+
+   ABRIR-DEMONSTRACAO.html
+
+3. Ele abre no Microsoft Edge ou Google Chrome. Se o Windows perguntar
+   qual aplicativo usar, escolha um desses navegadores.
+
+4. Use os botões no topo da página:
+   - INSCRIÇÃO: faça uma inscrição com dados fictícios.
+   - TESOURARIA: encontre a família de teste e simule a confirmação do pagamento.
+   - ENTRADA: pesquise a família e confirme a entrada.
+
+Há três famílias fictícias como exemplos no painel. Você pode criar outras.
+Você pode voltar à inscrição e usar "Atualizar situação do pagamento".
+
+Não precisa instalar nada e funciona sem internet.
+
+ESTA É UMA DEMONSTRAÇÃO PARA ANÁLISE.
+Não recebe inscrições reais, não acessa o Google e não efetua pagamentos.
+O QR Code mostrado não é um Pix válido. Fechar ou recarregar apaga os testes.
+A publicação da versão real no Google Apps Script continua sendo necessária
+antes de compartilhar o link com a Igreja pelo WhatsApp.

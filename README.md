@@ -13,6 +13,14 @@ Conta informada para publicação e administração: **`porumajornadafeliz@gmail
 - [Segurança, arquitetura e limites](docs/SEGURANCA.md)
 - [Testes e validação antes do uso](docs/TESTES.md)
 
+## Abrir para analisar, sem instalar nada
+
+Baixe `entrega/DEMONSTRACAO-IPDIV.zip` pelo GitHub e use **Extrair Tudo** no Windows. Abra o arquivo **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Microsoft Edge ou no Google Chrome.
+
+Os botões no topo alternam entre **Inscrição**, **Tesouraria** e **Entrada**. Há exemplos fictícios no painel; você também pode cadastrar uma família de teste, simular a conferência do pagamento e registrar a entrada. O logotipo oficial está incluído.
+
+Essa demonstração é um arquivo HTML autônomo e não precisa de internet, Node.js ou conta Google. Use dados fictícios. Fechar ou recarregar apaga os testes. O QR exibido nela contém apenas um aviso de demonstração, sem um Pix válido para pagamento. A versão real continua sendo publicada em Google Apps Script conforme o guia.
+
 ## O que está incluído
 
 - Formulário público sem login Google; nome do responsável, WhatsApp e quantidades.

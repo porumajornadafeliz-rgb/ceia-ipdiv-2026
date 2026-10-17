@@ -35,6 +35,14 @@ O teste de navegador usa Chromium em modo headless, executa as páginas e APIs l
 
 São testes funcionais locais; **não são um teste de carga, uma auditoria de segurança independente, uma implantação Google ou uma validação bancária**.
 
+## Demonstração autônoma para análise
+
+`npm run build` também gera `entrega/ABRIR-DEMONSTRACAO.html`. O comando `npm run test:offline` verifica esse HTML completo em Chromium com toda a rede desativada, incluindo logotipo, cadastro, valores, QR sem Pix válido, aviso pendente, confirmação simulada na tesouraria, retorno à consulta, check-in, bloqueio de duplicação, bloqueio de não pago, responsividade e descarte dos dados ao recarregar.
+
+A política do navegador no ambiente de execução bloqueia a navegação direta a URLs `file://`; por isso o teste injeta o mesmo HTML completo em uma página vazia, sem servidor ou requisições de rede. O teste não executa o Windows nem o gesto de duplo clique do usuário. O arquivo entregue é HTML autônomo para abrir no Edge ou Chrome, sem instalação.
+
+A demonstração usa os mesmos formulários e as mesmas funções de cálculo e transição de pagamento/entrada do projeto. O armazenamento e os papéis são simulados no navegador para permitir análise sem Google. Ela não valida autenticação Google, assinatura entre projetos, prazo real de inscrição, gravação em Planilhas ou cotas de produção. O simulador é separado e não é incluído nos arquivos Apps Script publicados.
+
 ## Lista obrigatória antes de abrir inscrições reais
 
 Faça estes testes nas versões `/exec`, com uma inscrição e um pagamento de teste autorizados pela Igreja. Use dados identificados como teste e mantenha a rastreabilidade contábil.
