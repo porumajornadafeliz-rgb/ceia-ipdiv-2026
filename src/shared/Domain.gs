@@ -12,6 +12,7 @@ var EVENT_ = Object.freeze({
     address: 'Av. Paraná, 1098 — Sidil, Divinópolis, MG'
   },
   mealTiming: 'Após o culto',
+  secretariat: { phone: '(37) 3212-4980', whatsapp: '553732124980' },
   deadline: '2026-12-21T03:00:00.000Z', // 21/12 00h00 em Brasília (UTC−3), limite exclusivo.
   categories: [
     { key: 'adultMembers', label: 'Adultos membros', price: 8000 },

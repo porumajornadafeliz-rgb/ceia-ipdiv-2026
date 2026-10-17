@@ -88,7 +88,7 @@ function proof_(input) {
     else if (unsigned.slice(0, 5).join(',') === '37,80,68,70,45') { mime = 'application/pdf'; extension = '.pdf'; }
     else fail_('Formato não permitido. Use PDF, JPG ou PNG.');
     var folderId = props_().getProperty('PROOF_FOLDER_ID');
-    if (!folderId) fail_('O envio de comprovantes ainda não está configurado. Você pode apenas avisar a tesouraria.');
+    if (!folderId) fail_('O envio de comprovantes ainda não está configurado. Você pode avisar a secretaria pelo WhatsApp (37) 3212-4980.');
     var folder = DriveApp.getFolderById(folderId);
     if (folder.getSharingAccess() !== DriveApp.Access.PRIVATE || folder.getEditors().length || folder.getViewers().length) fail_('Pasta de comprovantes não está privada. Procure a organização.');
     var file = folder.createFile(Utilities.newBlob(bytes, mime, row.id + extension));

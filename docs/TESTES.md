@@ -31,7 +31,7 @@ npm run test:browser
 | Indicadores | Famílias, pessoas, valores e entradas coerentes |
 | Comprovante opcional | Token, formato, pasta privada, um arquivo por inscrição e download restrito |
 
-O teste de navegador usa Chromium em modo headless, executa as páginas e APIs locais e gera capturas em `test-results/` (não versionadas). Confere o carregamento local do logotipo oficial nas páginas pública e administrativa, visualização sem transbordamento entre 320 e 1280 pixels, botões +/−, regra do cônjuge, resumo, geração e decodificação do QR renderizado, aviso sem confirmação, upload/download opcional, pagamento manual, consulta pelo link privado, recibo, pesquisa por nome/telefone/número, filtros, check-in e CSV. Verifica ausência de erros JavaScript e de envio a serviços externos nesse fluxo.
+O teste de navegador usa Chromium em modo headless, executa as páginas e APIs locais e gera capturas em `test-results/` (não versionadas). Confere o carregamento local do logotipo oficial nas páginas pública e administrativa, visualização sem transbordamento entre 320 e 1280 pixels, máscara de telefone ao digitar/apagar/colar, destino WhatsApp da secretaria (interceptado no teste, sem contato real e sem token privado), botões +/−, regra do cônjuge, resumo, geração e decodificação do QR renderizado, aviso sem confirmação, upload/download opcional, pagamento manual, consulta pelo link privado, recibo, pesquisa por nome/telefone/número, filtros, check-in e CSV. Verifica ausência de erros JavaScript e de envios externos; a abertura do WhatsApp é respondida localmente no teste, sem acessar o serviço ou enviar mensagem.
 
 São testes funcionais locais; **não são um teste de carga, uma auditoria de segurança independente, uma implantação Google ou uma validação bancária**.
 
@@ -40,6 +40,8 @@ São testes funcionais locais; **não são um teste de carga, uma auditoria de s
 `npm run build` também gera `entrega/ABRIR-DEMONSTRACAO.html`. O comando `npm run test:offline` verifica esse HTML completo em Chromium com toda a rede desativada, incluindo logotipo, prazo destacado, programação do culto e da ceia, categoria de cônjuge corrigida, cadastro, valores, QR sem Pix válido, aviso pendente, confirmação simulada na tesouraria, retorno à consulta, programação no recibo salvo, check-in, bloqueio de duplicação, bloqueio de não pago, responsividade e descarte dos dados ao recarregar.
 
 A política do navegador no ambiente de execução bloqueia a navegação direta a URLs `file://`; por isso o teste injeta o mesmo HTML completo em uma página vazia, sem servidor ou requisições de rede. O teste não executa o Windows nem o gesto de duplo clique do usuário. O arquivo entregue é HTML autônomo para abrir no Edge ou Chrome, sem instalação.
+
+O botão de secretaria na demonstração registra apenas um aviso fictício e não abre WhatsApp nem envia mensagens reais. A máscara de telefone é a mesma da versão publicada.
 
 A demonstração usa os mesmos formulários e as mesmas funções de cálculo e transição de pagamento/entrada do projeto. O armazenamento e os papéis são simulados no navegador para permitir análise sem Google. Ela não valida autenticação Google, assinatura entre projetos, prazo real de inscrição, gravação em Planilhas ou cotas de produção. O simulador é separado e não é incluído nos arquivos Apps Script publicados.
 
@@ -57,6 +59,8 @@ Faça estes testes nas versões `/exec`, com uma inscrição e um pagamento de t
 - [ ] Na homologação, confira a lógica de prazo já testada localmente. Não altere a data em produção para simular o fechamento; use uma cópia privada separada se precisar de teste temporal no Google.
 - [ ] QR e Copia e Cola são lidos pelo banco com a chave, favorecido e valor corretos.
 - [ ] Tesouraria verificou a titularidade da chave no banco e um pagamento autorizado realmente creditou a conta.
+- [ ] O telefone se organiza ao digitar, apagar e colar, tanto como `(37) 99999-9999` quanto como `(37) 3212-4980`.
+- [ ] “Avisar a secretaria” abre o WhatsApp **(37) 3212-4980** com os dados da inscrição, sem token privado; o participante precisa tocar em Enviar.
 - [ ] “Já fiz o Pix” e upload opcional deixam o pagamento pendente.
 - [ ] Comprovante fica privado; só tesouraria/admin conseguem baixá-lo; conferencista é recusado.
 - [ ] Conta de tesouraria entra com Google, confirma pelo extrato e gera histórico com a conta correta.

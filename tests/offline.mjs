@@ -25,7 +25,8 @@ try {
   await registration.getByRole('button', { name: 'FAZER MINHA INSCRIÇÃO' }).click();
   await registration.getByText('Cônjuge adulto não-membro da igreja', { exact: true }).waitFor();
   await registration.getByLabel('Nome do responsável', { exact: true }).fill('Família de Teste');
-  await registration.getByLabel('WhatsApp com DDD', { exact: true }).fill('37999991234');
+  await registration.getByLabel('WhatsApp com DDD', { exact: true }).pressSequentially('37999991234');
+  assert.equal(await registration.getByLabel('WhatsApp com DDD', { exact: true }).inputValue(), '(37) 99999-1234');
   await registration.locator('#plus-adultGuests').click();
   await registration.getByRole('button', { name: 'CONFERIR INSCRIÇÃO' }).click();
   assert.match(await registration.locator('#review-summary').innerText(), /200,00/);
@@ -35,8 +36,8 @@ try {
   const qrImage = PNG.sync.read(await registration.locator('#qr').screenshot());
   const qrData = jsQR(new Uint8ClampedArray(qrImage.data), qrImage.width, qrImage.height)?.data;
   assert.equal(qrData, 'DEMONSTRACAO IPDIV 2026 - SEM VALIDADE PARA PAGAMENTO');
-  await registration.getByRole('button', { name: 'JÁ FIZ O PIX' }).click();
-  await registration.getByText('Aviso recebido. Aguarde a conferência bancária pela tesouraria.').waitFor();
+  await registration.getByRole('link', { name: /JÁ FIZ O PIX — AVISAR A SECRETARIA/ }).click();
+  await registration.getByText('Demonstração: aviso registrado. Na versão publicada, o WhatsApp da secretaria abrirá com uma mensagem para você conferir e enviar.').waitFor();
   assert.equal(await registration.locator('#payment-status').innerText(), 'AGUARDANDO CONFIRMAÇÃO');
   await page.getByRole('button', { name: '2. TESOURARIA', exact: true }).click();
   await admin.getByLabel('Pesquisar inscrição').fill('Familia de Teste');

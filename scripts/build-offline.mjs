@@ -19,6 +19,11 @@ for (const [panel, project, role] of [['registration', 'public', 'admin'], ['tre
   html = html.replace('<?!= config ?>', safeJson({ event, open: true, mode: project, url: 'DEMONSTRACAO', actor: { email: 'demonstracao@exemplo.invalid', role } }));
   html = html.replace('<body>', '<body><script>window.CEIA_DEMO = true;</script>');
   html = html.replace('    if (window.CEIA_DEMO) {\n      fetch(', `    if (window.CEIA_DEMO) {\n      ok(parent.ceiaOfflineApi(CONFIG.mode, action, input, CONFIG.actor.role));\n    } else if (false) {\n      fetch(`);
+  html = html.replace("$('report-pix').onclick = () => {", "$('report-pix').onclick = event => {\n  event.preventDefault();");
+  html = html.replace("return 'https://wa.me/' + CONFIG.event.secretariat.whatsapp + '?text=' + encodeURIComponent(text);", "return '#whatsapp-demo';");
+  html = html.replaceAll('Confira a mensagem no WhatsApp e toque em Enviar. O pagamento aguarda conferência bancária.', 'Demonstração: aviso registrado. Na versão publicada, o WhatsApp da secretaria abrirá com uma mensagem para você conferir e enviar.');
+  html = html.replaceAll('Abra o WhatsApp, confira a mensagem e toque em Enviar. Avisar a secretaria não confirma o pagamento; o recebimento será conferido no banco.', 'Demonstração: o aviso é fictício e não abre uma conversa real. Na versão publicada, você poderá avisar a secretaria pelo WhatsApp.');
+  html = html.replaceAll('A mensagem no WhatsApp precisa ser enviada por você. O pagamento continua aguardando conferência bancária.', 'Nesta demonstração, nenhuma mensagem real foi enviada. O pagamento continua aguardando conferência simulada.');
   html = html.replaceAll('sessionStorage.', 'parent.ceiaDemoSession.');
   html = html.replace("if (window.CEIA_DEMO) history.replaceState(null, '', '#' + hash);", "if (window.CEIA_DEMO) { /* Link simulado válido apenas nesta análise. */ }");
   html = html.replace('Pague com Pix</h3>', 'Simulação do Pix</h3>')

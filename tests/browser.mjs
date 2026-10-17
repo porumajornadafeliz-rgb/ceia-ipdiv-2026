@@ -11,7 +11,12 @@ let browser;
 try {
   browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', headless: true, args: ['--no-sandbox'] });
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
-  const errors = [], requests = [];
+  const errors = [], requests = [], whatsappRequests = [];
+  // Conferir o destino sem acessar o WhatsApp ou enviar mensagem à secretaria.
+  await context.route('https://wa.me/**', route => {
+    whatsappRequests.push(route.request().url());
+    return route.fulfill({ status: 200, contentType: 'text/html', body: '<title>WhatsApp simulado no teste</title>Destino conferido, sem envio.' });
+  });
   context.on('page', page => page.on('pageerror', e => errors.push(e.message)));
   context.on('request', request => requests.push(request.url()));
   const page = await context.newPage();
@@ -27,7 +32,16 @@ try {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole('button', { name: 'FAZER MINHA INSCRIÇÃO' }).click();
   await page.getByLabel('Nome do responsável', { exact: true }).fill('José da Silva');
-  await page.getByLabel('WhatsApp com DDD', { exact: true }).fill('(37) 99999-1234');
+  const phone = page.getByLabel('WhatsApp com DDD', { exact: true });
+  await phone.pressSequentially('37999991234');
+  assert.equal(await phone.inputValue(), '(37) 99999-1234');
+  await phone.press('Backspace'); assert.equal(await phone.inputValue(), '(37) 99999-123');
+  await phone.fill('+55 (37) 99999-1234'); assert.equal(await phone.inputValue(), '(37) 99999-1234');
+  await phone.evaluate(input => { const pos = input.value.indexOf('-') + 1; input.setSelectionRange(pos, pos); });
+  await phone.press('Backspace'); assert.equal((await phone.inputValue()).replace(/\D/g, '').length, 10, 'Apagar junto ao hífen remove um dígito sem prender o cursor');
+  await phone.fill('3732124980'); assert.equal(await phone.inputValue(), '(37) 3212-4980');
+  await phone.fill(''); await phone.pressSequentially('37999991234');
+  assert.equal(await phone.inputValue(), '(37) 99999-1234');
   const plus = key => page.locator('#plus-' + key).click();
   await plus('spouse'); await plus('adultGuests'); await plus('childGuests'); await plus('childGuests');
   await page.locator('#minus-childGuests').click();
@@ -54,8 +68,18 @@ try {
   await page.getByRole('button', { name: 'ENVIAR COMPROVANTE', exact: true }).click();
   await page.getByText(/Comprovante recebido em/).waitFor();
   assert.equal(await page.locator('#payment-status').innerText(), 'AGUARDANDO CONFIRMAÇÃO');
-  await page.getByRole('button', { name: 'JÁ FIZ O PIX' }).click();
-  await page.getByText('Aviso recebido. Aguarde a conferência bancária pela tesouraria.').waitFor();
+  const whatsappPromise = page.waitForEvent('popup');
+  await page.getByRole('link', { name: /JÁ FIZ O PIX — AVISAR A SECRETARIA/ }).click();
+  const whatsappPage = await whatsappPromise; await whatsappPage.waitForLoadState();
+  const whatsappUrl = new URL(whatsappPage.url());
+  assert.equal(whatsappUrl.hostname, 'wa.me'); assert.equal(whatsappUrl.pathname, '/553732124980');
+  assert.match(whatsappUrl.searchParams.get('text'), /José da Silva/);
+  assert.ok(whatsappUrl.searchParams.get('text').includes(id));
+  const token = new URLSearchParams(new URL(link).hash.slice(1)).get('token');
+  assert.ok(!whatsappUrl.searchParams.get('text').includes(token), 'Token privado não é enviado ao WhatsApp');
+  await whatsappPage.close();
+  await page.getByText('Confira a mensagem no WhatsApp e toque em Enviar. O pagamento aguarda conferência bancária.').waitFor();
+  assert.equal(await page.locator('#report-pix').isVisible(), true, 'Contato continua disponível para repetir a abertura do WhatsApp');
   assert.equal(await page.locator('#payment-status').innerText(), 'AGUARDANDO CONFIRMAÇÃO');
   const admin = await context.newPage(); await admin.goto(base + '/admin');
   const adminLogo = admin.getByRole('img', { name: 'Igreja Presbiteriana de Divinópolis', exact: true });
@@ -87,6 +111,6 @@ try {
   const csvPromise = admin.waitForEvent('download'); await admin.getByRole('button', { name: 'EXPORTAR RELATÓRIO CSV' }).click();
   assert.match(await readFile(await (await csvPromise).path(), 'utf8'), /José da Silva/);
   assert.deepEqual(errors, [], 'Nenhum erro JavaScript');
-  assert.ok(requests.every(url => url.startsWith(base) || url.startsWith('data:')), 'Sem QR ou dados enviados a serviços externos');
+  assert.ok(requests.every(url => url.startsWith(base) || url.startsWith('data:') || whatsappRequests.includes(url)), 'Sem serviços externos: a única navegação WhatsApp é interceptada localmente no teste');
   console.log('Navegador: responsividade 320–1280px, contadores, resumo, Pix decodificado, aviso pendente, tesouraria, consulta por token, recibo, pesquisa por nome/telefone/número, check-in e CSV verificados.');
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }

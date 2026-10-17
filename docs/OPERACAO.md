@@ -5,11 +5,11 @@ Em **31/12/2026**, o **Culto de Ações de Graças** será às **20h30min**, no 
 ## Participante
 
 1. Abre o link público recebido pelo WhatsApp.
-2. Toca **FAZER MINHA INSCRIÇÃO**, informa nome e WhatsApp com DDD e ajusta as quantidades.
+2. Toca **FAZER MINHA INSCRIÇÃO**, informa nome e WhatsApp com DDD e ajusta as quantidades. O telefone se organiza automaticamente enquanto digita, como `(37) 99999-9999`, aceitando também números fixos, como `(37) 3212-4980`.
 3. Confere o resumo. Crianças têm até 12 anos inclusive em 31/12/2026; com 13 anos ou mais aplica-se a tarifa adulta. Filhos não membros usam a tarifa de não membro. Um cônjuge adulto não membro pode pagar R$ 80 se houver um adulto membro na mesma inscrição.
 4. Confirma e gera o Pix. O sistema calcula valores no servidor; mudar o código no navegador não muda o preço aceito.
 5. Guarda o **link individual**. Ele contém um token privado e permite acompanhar a situação sem login. Não publique esse link em grupos.
-6. Confere o favorecido no banco, faz o Pix e, se quiser, toca **JÁ FIZ O PIX**. Pode anexar PDF, JPG ou PNG de até 1 MB. O arquivo não é obrigatório e não confirma pagamento.
+6. Confere o favorecido no banco, faz o Pix e, se quiser, toca **JÁ FIZ O PIX — AVISAR A SECRETARIA — (37) 3212-4980 (ZAP)**. O sistema registra o aviso e abre uma mensagem no WhatsApp da secretaria; o participante precisa conferir a mensagem e tocar em **Enviar**. A mensagem contém nome, número da inscrição e valor, sem incluir o token privado de consulta. O contato continua disponível para nova tentativa se a pessoa fechar o WhatsApp sem enviar. Pode anexar PDF, JPG ou PNG de até 1 MB. O arquivo não é obrigatório e não confirma pagamento.
 7. Aguarda a tesouraria. Quando confirmado, salva, imprime em PDF ou compartilha a confirmação pelo recurso do celular.
 
 O prazo inclui todo o minuto 23h59 de 20/12/2026 em Brasília; bloqueia a partir de 00h00 de 21/12. A consulta pelo link continua disponível. Não basta deixar uma página aberta antes do prazo para se inscrever depois.

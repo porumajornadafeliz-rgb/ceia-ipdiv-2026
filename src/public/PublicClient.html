@@ -8,6 +8,7 @@ function newRequestId() {
   return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16) + '-' + hex.slice(16, 20) + '-' + hex.slice(20);
 }
 let requestId = newRequestId(), draft = null, current = null, access = null;
+installPhoneMask($('phone'));
 const views = ['home', 'form', 'review', 'payment', 'lookup'];
 function show(view) {
   views.forEach(v => $(v + '-view').hidden = v !== view);
@@ -96,8 +97,8 @@ function renderPayment(data) {
     $('pix-code').value = data.pix;
     const qr = qrcode(0, 'M'); qr.addData(data.pix, 'Byte'); qr.make();
     $('qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 16, scalable: true }); // Somente SVG da biblioteca local, sem texto do usuário.
-    $('report-pix').hidden = Boolean(data.reportedAt);
-    $('reported-message').textContent = data.reportedAt ? 'Aviso enviado em ' + dateTime(data.reportedAt) + '. Aguardando conferência da tesouraria; o pagamento ainda não está confirmado.' : 'Avisar não confirma o pagamento. A tesouraria precisa conferir o recebimento no banco.';
+    $('report-pix').href = secretariatWhatsAppLink(data);
+    $('reported-message').textContent = data.reportedAt ? 'Aviso registrado no sistema em ' + dateTime(data.reportedAt) + '. A mensagem no WhatsApp precisa ser enviada por você. O pagamento continua aguardando conferência bancária.' : 'Abra o WhatsApp, confira a mensagem e toque em Enviar. Avisar a secretaria não confirma o pagamento; o recebimento será conferido no banco.';
   }
 }
 $('upload-proof').onclick = () => busy($('upload-proof'), async () => {
@@ -111,11 +112,19 @@ $('upload-proof').onclick = () => busy($('upload-proof'), async () => {
 });
 $('copy-pix').onclick = () => copyText(current.pix, $('copy-pix'));
 $('copy-link').onclick = () => copyText(privateLink(), $('copy-link'));
-$('report-pix').onclick = () => busy($('report-pix'), async () => {
+function secretariatWhatsAppLink(data) {
+  const text = 'Olá, secretaria! Sou ' + data.name + '. Realizei o Pix da inscrição ' + data.id + ' para a Ceia de Confraternização IPDiv 2026, no valor de ' + money(data.total) + '. Solicito a conferência do recebimento.';
+  return 'https://wa.me/' + CONFIG.event.secretariat.whatsapp + '?text=' + encodeURIComponent(text);
+}
+$('report-pix').onclick = () => {
   message('payment-error', '');
-  try { renderPayment(await api('report', access)); message('payment-success', 'Aviso recebido. Aguarde a conferência bancária pela tesouraria.', true); }
-  catch (e) { message('payment-error', e.message); }
-});
+  // O link abre pelo clique da pessoa. Registrar o aviso não envia WhatsApp
+  // automaticamente e não altera o estado do pagamento.
+  api('report', access).then(data => {
+    renderPayment(data);
+    message('payment-success', 'Confira a mensagem no WhatsApp e toque em Enviar. O pagamento aguarda conferência bancária.', true);
+  }).catch(e => message('payment-error', 'O WhatsApp continua disponível, mas não foi possível registrar o aviso no sistema. ' + e.message));
+};
 $('refresh-payment').onclick = () => busy($('refresh-payment'), async () => {
   message('payment-error', ''); message('payment-success', '');
   try { renderPayment(await api('lookup', access)); message('payment-success', 'Situação atualizada.', true); } catch (e) { message('payment-error', e.message); }
@@ -143,7 +152,7 @@ async function initialLocation(hash) {
   try {
     const pending = JSON.parse(sessionStorage.getItem('ceia-pending'));
     if (pending && CONFIG.open) {
-      requestId = pending.requestId; $('name').value = pending.name; $('phone').value = pending.phone;
+      requestId = pending.requestId; $('name').value = pending.name; $('phone').value = formatPhone(pending.phone);
       CONFIG.event.categories.forEach(c => counts[c.key] = pending.counts[c.key] || 0); renderCounts(); show('form');
       message('form-error', 'Recuperamos seu último envio nesta aba. Confira os dados e tente confirmar novamente; ele não será duplicado.');
     }
