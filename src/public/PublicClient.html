@@ -1,0 +1,154 @@
+<script>
+const counts = Object.fromEntries(CONFIG.event.categories.map(c => [c.key, 0]));
+counts.adultMembers = 1;
+function newRequestId() {
+  if (crypto.randomUUID) return crypto.randomUUID();
+  const bytes = crypto.getRandomValues(new Uint8Array(16)); bytes[6] = (bytes[6] & 15) | 64; bytes[8] = (bytes[8] & 63) | 128;
+  const hex = Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
+  return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16) + '-' + hex.slice(16, 20) + '-' + hex.slice(20);
+}
+let requestId = newRequestId(), draft = null, current = null, access = null;
+const views = ['home', 'form', 'review', 'payment', 'lookup'];
+function show(view) {
+  views.forEach(v => $(v + '-view').hidden = v !== view);
+  const title = $(view + '-title');
+  if (title) { title.focus({ preventScroll: true }); title.scrollIntoView({ block: 'start' }); } else window.scrollTo(0, 0);
+}
+function sum() { return CONFIG.event.categories.reduce((s, c) => ({ people: s.people + counts[c.key], total: s.total + counts[c.key] * c.price }), { people: 0, total: 0 }); }
+function summary(target, quantities) {
+  const root = $(target); root.replaceChildren(); let total = 0, people = 0;
+  CONFIG.event.categories.forEach(c => {
+    const n = quantities[c.key]; if (!n) return;
+    const line = el('div', undefined, 'summary-line'); line.append(el('span', n + ' × ' + c.label), el('strong', money(n * c.price))); root.append(line);
+    total += n * c.price; people += n;
+  });
+  const family = el('div', undefined, 'summary-line'); family.append(el('span', 'Total de participantes'), el('strong', people + (people === 1 ? ' pessoa' : ' pessoas'))); root.append(family);
+  const line = el('div', undefined, 'total'); line.append(el('span', 'Total geral'), el('strong', money(total))); root.append(line);
+}
+function renderCounts() {
+  CONFIG.event.categories.forEach(c => {
+    $('quantity-' + c.key).value = counts[c.key]; $('quantity-' + c.key).textContent = counts[c.key];
+    $('minus-' + c.key).disabled = counts[c.key] === 0;
+    $('plus-' + c.key).disabled = sum().people >= 100 || (c.key === 'spouse' && (!counts.adultMembers || counts.spouse >= 1));
+  });
+  summary('live-summary', counts);
+}
+CONFIG.event.categories.forEach(c => {
+  const row = el('div', undefined, 'category'), description = el('div');
+  description.append(el('span', c.label, 'category-label'), el('span', money(c.price) + ' por pessoa', 'category-price'));
+  const counter = el('div', undefined, 'counter');
+  const minus = el('button', '−'), plus = el('button', '+'), value = el('output', '0');
+  value.id = 'quantity-' + c.key; value.setAttribute('aria-label', 'Quantidade: ' + c.label);
+  for (const [button, delta, verb] of [[minus, -1, 'Diminuir'], [plus, 1, 'Aumentar']]) {
+    button.type = 'button'; button.id = (delta < 0 ? 'minus-' : 'plus-') + c.key; button.setAttribute('aria-label', verb + ' ' + c.label.toLowerCase());
+    button.addEventListener('click', () => {
+      counts[c.key] = Math.max(0, counts[c.key] + delta);
+      if (!counts.adultMembers && counts.spouse) { counts.spouse = 0; message('form-error', 'A tarifa de cônjuge foi removida porque exige um adulto membro.'); }
+      else message('form-error', '');
+      renderCounts();
+    });
+  }
+  counter.append(minus, value, plus); row.append(description, counter); $('categories').append(row);
+});
+renderCounts();
+if (!CONFIG.open) { $('begin').disabled = true; $('begin').textContent = 'INSCRIÇÕES ENCERRADAS'; $('deadline-home').textContent = 'O prazo encerrou em 20/12/2026. A consulta de pagamentos continua disponível.'; }
+$('begin').onclick = () => show('form');
+$('open-lookup').onclick = () => show('lookup');
+$('brand-home').onclick = e => { e.preventDefault(); show('home'); };
+$('registration-form').onsubmit = e => {
+  e.preventDefault(); message('form-error', '');
+  if (!sum().people) { message('form-error', 'Inclua pelo menos uma pessoa na inscrição.'); return; }
+  const phone = $('phone').value.replace(/\D/g, '');
+  if (phone.length < 10 || phone.length > 13) { message('form-error', 'Confira o número de WhatsApp com DDD.'); return; }
+  draft = { name: $('name').value.trim(), phone: $('phone').value, counts: { ...counts }, requestId };
+  $('review-name').textContent = draft.name; $('review-phone').textContent = 'WhatsApp: ' + formatPhone(draft.phone);
+  summary('review-summary', draft.counts); show('review');
+};
+$('edit').onclick = () => show('form');
+$('confirm').onclick = () => busy($('confirm'), async () => {
+  message('review-error', ''); $('edit').disabled = true;
+  try {
+    try { sessionStorage.setItem('ceia-pending', JSON.stringify(draft)); } catch {}
+    const result = await api('create', draft); access = { id: result.id, token: result.token };
+    try { sessionStorage.removeItem('ceia-pending'); } catch {}
+    updateHash(); renderPayment(result); show('payment');
+  } catch (e) { message('review-error', e.message); } finally { $('edit').disabled = false; }
+});
+function baseUrl() { return (CONFIG.url || location.href.split('#')[0]).split('#')[0]; }
+function privateLink() { return baseUrl() + '#' + new URLSearchParams(access).toString(); }
+function updateHash() {
+  const hash = new URLSearchParams(access).toString();
+  if (window.CEIA_DEMO) history.replaceState(null, '', '#' + hash);
+  else google.script.history.replace({}, {}, hash);
+}
+function renderPayment(data) {
+  current = data; const paid = data.status === 'PAID';
+  $('payment-status').textContent = paid ? 'PAGAMENTO CONFIRMADO' : 'AGUARDANDO CONFIRMAÇÃO'; $('payment-status').className = 'status' + (paid ? ' paid' : '');
+  $('payment-title').textContent = paid ? 'Sua presença está confirmada.' : 'Inscrição recebida!';
+  $('payment-description').textContent = paid ? 'Guarde a confirmação. Nos vemos na ceia!' : 'Agora é só fazer o Pix e aguardar a conferência da tesouraria.';
+  $('registration-id').textContent = data.id; $('receipt-name').textContent = data.name; summary('receipt-summary', data.counts);
+  $('pix-section').hidden = paid; $('confirmed-section').hidden = !paid;
+  $('private-link').value = privateLink();
+  if (paid) $('paid-date').textContent = 'Confirmado pela tesouraria em ' + dateTime(data.paidAt) + '. Valor pago: ' + money(data.total) + '.';
+  else {
+    $('upload-proof').hidden = Boolean(data.proofAt); $('proof-file').disabled = Boolean(data.proofAt);
+    $('proof-status').textContent = data.proofAt ? 'Comprovante recebido em ' + dateTime(data.proofAt) + '. Aguardando conferência bancária.' : '';
+    $('pix-code').value = data.pix;
+    const qr = qrcode(0, 'M'); qr.addData(data.pix, 'Byte'); qr.make();
+    $('qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 16, scalable: true }); // Somente SVG da biblioteca local, sem texto do usuário.
+    $('report-pix').hidden = Boolean(data.reportedAt);
+    $('reported-message').textContent = data.reportedAt ? 'Aviso enviado em ' + dateTime(data.reportedAt) + '. Aguardando conferência da tesouraria; o pagamento ainda não está confirmado.' : 'Avisar não confirma o pagamento. A tesouraria precisa conferir o recebimento no banco.';
+  }
+}
+$('upload-proof').onclick = () => busy($('upload-proof'), async () => {
+  message('payment-error', '');
+  try {
+    const file = $('proof-file').files[0];
+    if (!file || file.size > 1048576 || !['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) throw new Error('Selecione PDF, JPG ou PNG de até 1 MB.');
+    const base64 = await new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(String(r.result).split(',')[1]); r.onerror = () => reject(new Error('Não foi possível ler o arquivo.')); r.readAsDataURL(file); });
+    renderPayment(await api('proof', { ...access, base64 })); $('proof-file').value = '';
+  } catch (e) { message('payment-error', e.message); }
+});
+$('copy-pix').onclick = () => copyText(current.pix, $('copy-pix'));
+$('copy-link').onclick = () => copyText(privateLink(), $('copy-link'));
+$('report-pix').onclick = () => busy($('report-pix'), async () => {
+  message('payment-error', '');
+  try { renderPayment(await api('report', access)); message('payment-success', 'Aviso recebido. Aguarde a conferência bancária pela tesouraria.', true); }
+  catch (e) { message('payment-error', e.message); }
+});
+$('refresh-payment').onclick = () => busy($('refresh-payment'), async () => {
+  message('payment-error', ''); message('payment-success', '');
+  try { renderPayment(await api('lookup', access)); message('payment-success', 'Situação atualizada.', true); } catch (e) { message('payment-error', e.message); }
+});
+function receiptText() {
+  return 'CEIA DE CONFRATERNIZAÇÃO 2026\nIgreja Presbiteriana de Divinópolis\n\nInscrição: ' + current.id + '\nResponsável: ' + current.name + '\nParticipantes: ' + current.people + '\nValor pago: ' + money(current.total) + '\nPAGAMENTO CONFIRMADO\nConferido em: ' + dateTime(current.paidAt) + '\n\n31/12/2026 — Salão Imperatriz\n' + CONFIG.event.address + '\n\nConsulta privada: ' + privateLink();
+}
+$('save-receipt').onclick = () => download(current.id + '.txt', receiptText(), 'text/plain;charset=utf-8');
+$('print-receipt').onclick = () => window.print();
+$('share-receipt').onclick = async () => {
+  const text = current.status === 'PAID' ? receiptText() : 'Minha inscrição para a Ceia IPDiv 2026: ' + current.id + '. Pagamento aguardando confirmação.\nLink particular: ' + privateLink();
+  try { if (navigator.share) await navigator.share({ title: CONFIG.event.name, text }); else await copyText(text, $('share-receipt')); }
+  catch (e) { if (e.name !== 'AbortError') await copyText(text, $('share-receipt')); }
+};
+function parseAccess(raw) {
+  const hash = raw.includes('#') ? raw.slice(raw.indexOf('#') + 1) : raw.replace(/^#/, ''); const params = new URLSearchParams(hash);
+  const id = params.get('id'), token = params.get('token');
+  if (!/^IPD26[A-F0-9]{16}$/.test(id || '') || !/^[a-zA-Z0-9_-]{43}$/.test(token || '')) throw new Error('Cole o link individual completo, incluindo a parte depois de #.');
+  return { id, token };
+}
+async function loadAccess(raw) { access = parseAccess(raw); const result = await api('lookup', access); renderPayment(result); updateHash(); show('payment'); }
+$('lookup-form').onsubmit = e => { e.preventDefault(); busy($('lookup-button'), async () => { message('lookup-error', ''); try { await loadAccess($('lookup-link').value); } catch (e) { message('lookup-error', e.message); } }); };
+async function initialLocation(hash) {
+  if (hash && /(?:^#?|&)id=/.test(hash)) { show('lookup'); try { await loadAccess(hash); } catch (e) { message('lookup-error', e.message); } return; }
+  try {
+    const pending = JSON.parse(sessionStorage.getItem('ceia-pending'));
+    if (pending && CONFIG.open) {
+      requestId = pending.requestId; $('name').value = pending.name; $('phone').value = pending.phone;
+      CONFIG.event.categories.forEach(c => counts[c.key] = pending.counts[c.key] || 0); renderCounts(); show('form');
+      message('form-error', 'Recuperamos seu último envio nesta aba. Confira os dados e tente confirmar novamente; ele não será duplicado.');
+    }
+  } catch {}
+}
+if (window.CEIA_DEMO) initialLocation(location.hash);
+else google.script.url.getLocation(loc => initialLocation(loc.hash || ''));
+</script>

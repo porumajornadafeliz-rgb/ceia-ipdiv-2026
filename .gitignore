@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+.env.*
+.clasp.json
+.clasprc.json
+playwright-report/
+test-results/

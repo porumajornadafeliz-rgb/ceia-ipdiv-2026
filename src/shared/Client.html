@@ -1,0 +1,36 @@
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const money = (n) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n / 100);
+const dateTime = (v) => v ? new Date(v).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—';
+function el(tag, text, className) { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (className) e.className = className; return e; }
+function message(id, text, success = false) { const e = $(id); e.textContent = text || ''; e.className = success ? 'success' : 'error'; e.hidden = !text; if (text && !success) e.focus(); }
+function api(action, input = {}) {
+  return new Promise((resolve, reject) => {
+    const ok = (result) => result && result.ok ? resolve(result.data) : reject(new Error(result?.error || 'Resposta indisponível. Tente novamente.'));
+    const bad = () => reject(new Error('Não foi possível conectar. Confira sua conexão e tente novamente; o mesmo envio não será duplicado.'));
+    if (window.CEIA_DEMO) {
+      fetch('/api/' + CONFIG.mode, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, input }) }).then(r => r.json()).then(ok).catch(bad);
+    } else {
+      const runner = google.script.run.withSuccessHandler(ok).withFailureHandler(bad);
+      if (CONFIG.mode === 'admin') runner.adminApi(action, input); else runner.publicApi(action, input);
+    }
+  });
+}
+async function busy(button, fn) {
+  if (button.disabled) return;
+  const text = button.textContent; button.disabled = true; button.textContent = 'Aguarde…'; button.setAttribute('aria-busy', 'true');
+  try { await fn(); } finally { button.textContent = text; button.disabled = false; button.removeAttribute('aria-busy'); }
+}
+async function copyText(text, button) {
+  try {
+    if (navigator.clipboard) await navigator.clipboard.writeText(text);
+    else { const a = el('textarea'); a.value = text; a.style.position = 'fixed'; a.style.opacity = '0'; document.body.append(a); a.select(); if (!document.execCommand('copy')) throw new Error(); a.remove(); }
+    const original = button.textContent; button.textContent = 'Copiado!'; setTimeout(() => button.textContent = original, 2300);
+  } catch { window.prompt('Copie o texto abaixo:', text); }
+}
+function download(name, text, type) {
+  const url = URL.createObjectURL(new Blob([text], { type })); const a = el('a'); a.href = url; a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+function formatPhone(value) { const n = value.replace(/\D/g, ''); return n.length === 11 ? '(' + n.slice(0, 2) + ') ' + n.slice(2, 7) + '-' + n.slice(7) : value; }
+</script>
