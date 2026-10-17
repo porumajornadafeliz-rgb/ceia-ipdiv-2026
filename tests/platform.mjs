@@ -25,6 +25,7 @@ export function platform({ now = '2026-10-17T15:00:00Z', actor = 'tesouraria@exa
   let clock = new Date(now).getTime(), email = actor, lock = false;
   let publicUser = '', publicOwner = 'porumajornadafeliz@gmail.com';
   const sheets = new Map(), files = new Map();
+  const cache = new Map();
   let sharedFolder = false, createdSpreadsheets = 0;
   const properties = { SPREADSHEET_ID: 'test-sheet', TOKEN_SECRET: 'test-secret-never-production', ADMIN_BRIDGE_SECRET: 'bridge-test-never-production', ADMIN_ACCOUNTS: JSON.stringify({ 'admin@example.test': 'admin', 'tesouraria@example.test': 'treasury', 'entrada@example.test': 'door' }) };
   const getProps = store => ({ getProperty: key => store[key] ?? null, setProperty: (key, value) => { store[key] = value; } });
@@ -41,6 +42,10 @@ export function platform({ now = '2026-10-17T15:00:00Z', actor = 'tesouraria@exa
   const book = { getId: () => 'test-sheet', getUrl: () => 'https://docs.google.com/spreadsheets/d/test-sheet/edit',
     getSheetByName: name => sheets.get(name), insertSheet: name => { const s = new Sheet(); sheets.set(name, s); return s; } };
   const publicContext = vm.createContext({ Date: Clock, console, Utilities: utilities,
+    CacheService: { getScriptCache: () => ({
+      get(key) { const item = cache.get(key); return item && item.until > clock ? item.value : null; },
+      put(key, value, seconds) { cache.set(key, { value, until: clock + seconds * 1000 }); }
+    }) },
     Session: { getActiveUser: () => ({ getEmail: () => publicUser }), getEffectiveUser: () => ({ getEmail: () => publicOwner }) },
     PropertiesService: { getScriptProperties: () => getProps(properties) },
     DriveApp: { Access: { PRIVATE: 'private' }, createFolder: () => ({ getId: () => 'test-folder' }), getFolderById: () => ({ getSharingAccess: () => sharedFolder ? 'public' : 'private', getEditors: () => [], getViewers: () => [], createFile: blob => { const id = randomUUID(); files.set(id, blob); return { getId: () => id, setTrashed: () => files.delete(id) }; } }), getFileById: id => ({ getBlob: () => files.get(id) }) },

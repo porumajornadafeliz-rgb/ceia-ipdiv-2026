@@ -28,7 +28,24 @@
     <button class="text-btn no-print" id="refresh-payment" style="width:100%;margin-top:15px">Atualizar inscrição</button>
   </div>
 </section>
-<section id="lookup-view" class="section centered" hidden><p class="eyebrow">Acompanhe sua inscrição</p><h2 id="lookup-title" tabindex="-1">Consultar inscrição</h2><p class="muted">Abra o link individual recebido ao finalizar a inscrição ou cole esse link abaixo. Não é necessário fazer login Google.</p><form id="lookup-form" class="card"><div id="lookup-error" role="alert" tabindex="-1" hidden></div><div class="field"><label for="lookup-link">Seu link individual</label><input id="lookup-link" required type="text" placeholder="Cole o link completo da inscrição" autocomplete="off"></div><button type="submit" class="btn full" id="lookup-button" style="margin-top:22px">CONSULTAR INSCRIÇÃO</button><p class="small muted" style="margin:18px 0 0">Perdeu o link? Procure a organização da Igreja. Não divulgamos inscrições por nome ou telefone.</p></form></section>
+<section id="lookup-view" class="section centered" hidden aria-labelledby="lookup-title">
+  <p class="eyebrow">Acompanhe sua inscrição</p><h2 id="lookup-title" tabindex="-1">Consultar inscrição</h2>
+  <p class="muted">Informe o nome do responsável e o WhatsApp usados no cadastro. Você pode consultar a situação sem guardar um link e sem fazer login Google.</p>
+  <form id="status-lookup-form" class="card">
+    <div id="status-lookup-error" role="alert" tabindex="-1" hidden></div>
+    <div class="fields">
+      <div class="field"><label for="status-name">Nome do responsável na inscrição</label><input id="status-name" name="status-name" autocomplete="name" required minlength="3" maxlength="120" placeholder="Digite como informou no cadastro"></div>
+      <div class="field"><label for="status-phone">WhatsApp informado na inscrição</label><input id="status-phone" name="status-phone" autocomplete="tel-national" inputmode="tel" type="tel" required maxlength="20" placeholder="(37) 99999-9999"></div>
+    </div>
+    <button type="submit" class="btn full" id="status-lookup-button" style="margin-top:22px">CONSULTAR INSCRIÇÃO</button>
+    <p class="small muted" style="margin-top:18px">A consulta mostra a situação e a quantidade de participantes. O pagamento é acompanhado diretamente pela secretaria.</p>
+  </form>
+  <div id="status-results" tabindex="-1" aria-live="polite" style="margin-top:24px" hidden></div>
+  <details class="card" style="margin-top:24px"><summary>Já tenho meu link individual</summary>
+    <p class="small muted">O link individual permite abrir os dados completos, copiar o endereço e baixar sua inscrição em PDF.</p>
+    <form id="lookup-form"><div id="lookup-error" role="alert" tabindex="-1" hidden></div><div class="field"><label for="lookup-link">Seu link individual</label><input id="lookup-link" required type="text" placeholder="Cole o link completo da inscrição" autocomplete="off"></div><button type="submit" class="btn secondary full" id="lookup-button" style="margin-top:22px">ABRIR INSCRIÇÃO PELO LINK</button></form>
+  </details>
+</section>
 </main><footer><div class="container footer-inner"><span>Igreja Presbiteriana de Divinópolis · Ceia 2026</span><span>Feito para estarmos juntos.</span></div></footer>
 <script>const CONFIG = <?!= config ?>;</script>
 <?!= include_('Client'); ?>

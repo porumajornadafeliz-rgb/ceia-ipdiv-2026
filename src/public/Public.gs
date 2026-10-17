@@ -9,8 +9,22 @@ function publicApi(action, input) {
   return withErrors_(function() {
     if (action === 'capacity') return locked_(function() { return capacityForRows_(readRows_(sheet_())); });
     if (action === 'create') return create_(input);
+    if (action === 'status') return registrationStatus_(input);
     if (action === 'lookup' || action === 'report' || action === 'confirmation') return accessRegistration_(action, input);
     fail_('Ação inválida.');
+  });
+}
+function registrationStatus_(input) {
+  var contact = contactInput_(input);
+  return locked_(function() {
+    // Limite por telefone também vale para tentativas com nomes diferentes.
+    // CacheService é proteção de melhor esforço; não é autenticação de identidade.
+    var cache = CacheService.getScriptCache();
+    var key = 'status:' + Math.floor(Date.now() / 60000) + ':' + digest_(contact.phone);
+    var attempts = Number(cache.get(key) || 0);
+    if (attempts >= 8) fail_('Muitas consultas para este WhatsApp. Aguarde um minuto e tente novamente.');
+    cache.put(key, String(attempts + 1), 90);
+    return statusResults_(readRows_(sheet_()), contact);
   });
 }
 function create_(input) {

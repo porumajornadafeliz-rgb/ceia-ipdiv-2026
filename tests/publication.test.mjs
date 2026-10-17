@@ -39,6 +39,7 @@ test('Code.gs consolidado executa cadastro, baixa de vagas, cancelamento e entra
   const p = bundled();
   assert.equal(value(p.publicApi('capacity')).remaining, 200);
   const row = value(p.publicApi('create', registration()));
+  assert.equal(value(p.publicApi('status', { name: row.name, phone: row.phone })).registrations[0].status, 'REGISTERED');
   assert.equal(value(p.publicApi('capacity')).remaining, 199);
   assert.equal(value(p.adminApi('list')).rows[0].id, row.id);
   value(p.adminApi('cancel', { id: row.id, cancelled: true, note: 'Teste de publicação' }));

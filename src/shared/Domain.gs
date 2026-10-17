@@ -45,7 +45,7 @@ function calculate_(counts) {
   if (normalized.spouse > 1 || (normalized.spouse && !normalized.adultMembers)) fail_('A tarifa especial permite um cônjuge e exige pelo menos um adulto membro.');
   return { counts: normalized, people: people, total: total };
 }
-function registrationInput_(input) {
+function contactInput_(input) {
   if (!input || typeof input !== 'object') fail_('Dados inválidos.');
   var name = cleanText_(input.name, 120, 'o nome do responsável');
   if (name.length < 3) fail_('Informe o nome do responsável com pelo menos 3 letras.');
@@ -53,9 +53,22 @@ function registrationInput_(input) {
   var phone = input.phone.replace(/\D/g, '');
   if ((phone.length === 12 || phone.length === 13) && phone.indexOf('55') === 0) phone = phone.slice(2);
   if (!/^[1-9][0-9](?:[2-8][0-9]{7}|9[0-9]{8})$/.test(phone)) fail_('Informe um telefone brasileiro válido com DDD.');
+  return { name: name, phone: phone };
+}
+function registrationInput_(input) {
+  var contact = contactInput_(input);
   if (typeof input.requestId !== 'string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(input.requestId)) fail_('Atualize a página e tente novamente.');
   var calculated = calculate_(input.counts);
-  return { name: name, phone: phone, counts: calculated.counts, people: calculated.people, total: calculated.total, requestId: input.requestId };
+  return { name: contact.name, phone: contact.phone, counts: calculated.counts, people: calculated.people, total: calculated.total, requestId: input.requestId };
+}
+function statusName_(name) { return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
+/** Consulta limitada: nunca retorna contato, ID, token, valores ou dados administrativos. */
+function statusResults_(rows, contact) {
+  var name = statusName_(contact.name);
+  var matches = rows.filter(function(row) { return statusName_(row.name) === name && row.phone === contact.phone; });
+  return { more: matches.length > 20, registrations: matches.slice(-20).reverse().map(function(row) {
+    return { status: registrationState_(row), people: row.people, createdAt: row.createdAt, entered: Boolean(row.entryAt) };
+  }) };
 }
 function assertOpen_(now) {
   if (new Date(now).getTime() >= Date.parse(EVENT_.deadline)) fail_('O prazo de inscrições encerrou em 20/12/2026, às 23h59 (Brasília). A consulta continua disponível.');

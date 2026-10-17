@@ -22,7 +22,9 @@ A planilha inicia sem inscrições. A atualização de uma planilha existente ac
 
 ## Privacidade
 
-O ID é aleatório e o acesso público exige um token de 256 bits derivado por HMAC de um identificador aleatório. A planilha guarda apenas o hash do token. Não existe pesquisa pública por nome ou telefone. O link individual dá acesso aos dados daquela inscrição; compartilhe apenas com pessoas de confiança.
+O ID é aleatório e o acesso aos dados completos exige um token de 256 bits derivado por HMAC de um identificador aleatório. A planilha guarda apenas o hash do token. Há uma consulta limitada de situação por nome completo e telefone juntos, normalizados conforme o cadastro. Ela retorna somente situação registrada/cancelada, quantidade, data de cadastro e indicador de entrada. Não retorna ID, nome, telefone, valores, categorias, token, link ou histórico administrativo. Não aceita busca parcial nem telefone sozinho. Isso não verifica a posse do telefone: alguém que conheça ambos os dados pode consultar essa situação limitada. O link individual continua necessário para os dados completos daquela inscrição; compartilhe apenas com pessoas de confiança.
+
+A consulta limitada retorna no máximo as 20 inscrições mais recentes com os mesmos contatos. Há limite de oito tentativas por telefone por minuto, atualizado sob ScriptLock. CacheService é uma proteção de melhor esforço e pode descartar entradas antes do prazo; esse limite não substitui autenticação nem proteção distribuída. Não são adicionadas colunas, alterados tokens ou descontadas vagas pela consulta.
 
 O token fica no fragmento `#` do link. A consulta o transmite somente à API da própria aplicação. A página declara `no-referrer` e não usa analytics, CDN, fontes ou QR remotos. A mensagem WhatsApp contém os dados necessários para a secretaria, sem o token privado.
 

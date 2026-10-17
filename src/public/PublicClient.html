@@ -30,6 +30,7 @@ $('refresh-capacity').onclick = () => busy($('refresh-capacity'), refreshCapacit
 document.addEventListener('visibilitychange', () => { if (!document.hidden) { refreshCapacity(); if (access) refreshRegistration(); } });
 setInterval(() => { if (!document.hidden) { if (access && !$('payment-view').hidden) refreshRegistration(); else refreshCapacity(); } }, 30000);
 installPhoneMask($('phone'));
+installPhoneMask($('status-phone'));
 const views = ['home', 'form', 'review', 'payment', 'lookup'];
 function show(view) {
   views.forEach(v => $(v + '-view').hidden = v !== view);
@@ -273,6 +274,38 @@ function parseAccess(raw) {
   if (!/^IPD26[A-F0-9]{16}$/.test(id || '') || !/^[a-zA-Z0-9_-]{43}$/.test(token || '')) throw new Error('Cole o link individual completo, incluindo a parte depois de #.');
   return { id, token };
 }
+function renderStatusResults(result) {
+  const root = $('status-results'); root.replaceChildren(); root.hidden = false;
+  if (!result.registrations.length) {
+    root.append(el('p', 'Nenhuma inscrição encontrada com esses dados. Confira o nome e o WhatsApp exatamente como foram informados no cadastro.', 'notice'));
+    return;
+  }
+  root.append(el('h3', 'Resultado da consulta'));
+  result.registrations.forEach(row => {
+    const card = el('div', undefined, 'card'); card.style.marginTop = '16px';
+    const active = row.status === 'REGISTERED';
+    card.append(el('strong', active ? 'INSCRIÇÃO REGISTRADA' : 'INSCRIÇÃO CANCELADA', 'status' + (active ? ' paid' : '')));
+    card.append(el('p', active ? 'Os lugares desta inscrição estão reservados.' : 'Os lugares desta inscrição foram liberados.'));
+    card.append(el('p', row.people + (row.people === 1 ? ' participante' : ' participantes')));
+    card.append(el('p', 'Cadastro em: ' + dateTime(row.createdAt), 'small muted'));
+    if (row.entered) card.append(el('p', 'Entrada já registrada.', 'small'));
+    card.append(el('p', 'O pagamento é tratado diretamente com a secretaria. Esta consulta não confirma pagamento.', 'small muted'));
+    root.append(card);
+  });
+  if (result.more) root.append(el('p', 'Exibindo as 20 inscrições mais recentes com esses dados.', 'small muted'));
+}
+$('status-lookup-form').onsubmit = e => {
+  e.preventDefault();
+  busy($('status-lookup-button'), async () => {
+    message('status-lookup-error', ''); $('status-results').hidden = true;
+    try {
+      const result = await api('status', { name: $('status-name').value.trim(), phone: $('status-phone').value });
+      renderStatusResults(result);
+      $('status-results').focus({ preventScroll: true }); $('status-results').scrollIntoView({ block: 'start' });
+    } catch (error) { message('status-lookup-error', error.message); }
+  });
+};
+for (const id of ['status-name', 'status-phone']) $(id).addEventListener('input', () => { $('status-results').hidden = true; message('status-lookup-error', ''); });
 async function loadAccess(raw) { access = parseAccess(raw); const result = await api('lookup', access); renderPayment(result); updateHash(); show('payment'); await refreshCapacity(); }
 $('lookup-form').onsubmit = e => { e.preventDefault(); busy($('lookup-button'), async () => { message('lookup-error', ''); try { await loadAccess($('lookup-link').value); } catch (e) { message('lookup-error', e.message); } }); };
 async function initialLocation(hash) {

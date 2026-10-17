@@ -52,6 +52,14 @@ try {
   const receiptPromise = page.waitForEvent('download');
   await registration.getByRole('button', { name: 'SALVAR INSCRIÇÃO EM PDF', exact: true }).click();
   await checkReceiptPdf(await receiptPromise, [/INSCRIÇÃO REGISTRADA/, /Família de Teste/, /20h30min/, /Av\. Paraná, 1098/]);
+  // Esquecer o link no cliente não apaga o cadastro: a consulta limitada continua disponível.
+  await registration.locator('body').evaluate(() => { access = null; current = null; });
+  await registration.getByRole('button', { name: 'Consultar minha inscrição', exact: true }).click();
+  await registration.getByLabel('Nome do responsável na inscrição', { exact: true }).fill('FAMILIA DE TESTE');
+  await registration.getByLabel('WhatsApp informado na inscrição', { exact: true }).fill('37999991234');
+  await registration.getByRole('button', { name: 'CONSULTAR INSCRIÇÃO', exact: true }).click();
+  await registration.locator('#status-results').getByText('INSCRIÇÃO REGISTRADA', { exact: true }).waitFor();
+  assert.match(await registration.locator('#status-results').innerText(), /2 participantes/);
   await page.getByRole('button', { name: '2. INSCRIÇÕES E VAGAS', exact: true }).click();
   await admin.getByLabel('Pesquisar inscrição').fill('Familia de Teste');
   await admin.getByRole('button', { name: 'CANCELAR INSCRIÇÃO', exact: true }).click();

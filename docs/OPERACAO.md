@@ -23,7 +23,7 @@ O site não consegue saber se uma mensagem aberta foi efetivamente enviada ou re
 
 Não há API bancária, confirmação financeira, upload de comprovante ou exigência de pagamento no sistema. A secretaria faz esse controle diretamente, conforme definido pela Igreja. O valor exibido no painel/CSV representa o valor das inscrições, não dinheiro recebido.
 
-O acesso de consulta é guardado temporariamente na mesma aba para retomada, além do fragmento do link. Não publique o link em grupos. Se perder o link, procure a organização; não há pesquisa pública por nome ou telefone nem recuperação automática do token.
+O acesso de consulta é guardado temporariamente na mesma aba para retomada, além do fragmento do link. Não publique o link em grupos. Mesmo sem o link, use Consultar minha inscrição e informe nome do responsável e WhatsApp cadastrados para ver situação, quantidade e data do cadastro. Essa consulta não recupera o token nem abre dados completos. O link individual continua sendo usado para os detalhes e o PDF.
 
 ## Painel Inscrições e vagas
 

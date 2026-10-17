@@ -110,6 +110,25 @@ try {
   assert.equal(await page.locator('#private-link').inputValue(), link, 'Consulta na mesma aba usa o link já conhecido');
   assert.equal(app.publicApi('capacity').data.remaining, 196, 'Consultar e baixar PDFs não descontam novas vagas');
   const consulta = await context.newPage(); await consulta.goto(link); await consulta.getByText('Sua inscrição foi registrada!', { exact: true }).waitFor();
+  const statusPage = await context.newPage(); await statusPage.goto(base);
+  await statusPage.getByRole('button', { name: 'Consultar minha inscrição', exact: true }).click();
+  await statusPage.getByLabel('Nome do responsável na inscrição', { exact: true }).fill('JOSE DA SILVA');
+  await statusPage.getByLabel('WhatsApp informado na inscrição', { exact: true }).pressSequentially('37999991234');
+  assert.equal(await statusPage.locator('#status-phone').inputValue(), '(37) 99999-1234');
+  async function queryStatus(name = 'JOSE DA SILVA') {
+    await statusPage.locator('#status-name').fill(name);
+    await statusPage.getByRole('button', { name: 'CONSULTAR INSCRIÇÃO', exact: true }).click();
+    await statusPage.locator('#status-results').waitFor({ state: 'visible' });
+  }
+  await queryStatus();
+  await statusPage.locator('#status-results').getByText('INSCRIÇÃO REGISTRADA', { exact: true }).waitFor();
+  assert.match(await statusPage.locator('#status-results').innerText(), /4 participantes/);
+  assert.equal(await statusPage.locator('#private-link').isVisible(), false, 'Busca por contato não abre os dados completos');
+  await statusPage.setViewportSize({ width: 320, height: 844 });
+  assert.ok(await statusPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
+  await statusPage.screenshot({ path: 'test-results/consulta-sem-link-mobile.png', fullPage: true });
+  await queryStatus('Nome que não foi cadastrado');
+  assert.match(await statusPage.locator('#status-results').innerText(), /Nenhuma inscrição encontrada/);
   const admin = await context.newPage(); await admin.goto(base + '/admin');
   const adminLogo = admin.getByRole('img', { name: 'Igreja Presbiteriana de Divinópolis', exact: true });
   assert.ok(await adminLogo.evaluate(img => img.complete && img.naturalWidth > 0));
@@ -123,6 +142,8 @@ try {
   await page.bringToFront(); await page.getByRole('button', { name: 'Atualizar inscrição', exact: true }).click();
   await page.getByText('Esta inscrição foi cancelada.', { exact: true }).waitFor();
   await page.getByText('200 vagas restantes', { exact: true }).waitFor();
+  await queryStatus();
+  await statusPage.locator('#status-results').getByText('INSCRIÇÃO CANCELADA', { exact: true }).waitFor();
   assert.equal(await page.locator('#pix-section').isVisible(), false);
   await admin.getByLabel('Inscrição', { exact: true }).selectOption('CANCELLED');
   await admin.getByRole('button', { name: 'REATIVAR INSCRIÇÃO', exact: true }).click();
@@ -144,7 +165,7 @@ try {
   }
   const full = await context.newPage(); await full.goto(base);
   await full.getByText('Vagas esgotadas', { exact: true }).waitFor(); assert.equal(await full.locator('#begin').isDisabled(), true);
-  await full.getByRole('button', { name: 'Consultar minha inscrição' }).click(); await full.locator('#lookup-form').waitFor();
+  await full.getByRole('button', { name: 'Consultar minha inscrição' }).click(); await full.locator('#status-lookup-form').waitFor();
   await consulta.bringToFront(); await consulta.getByRole('button', { name: 'Atualizar inscrição', exact: true }).click();
   await consulta.getByText('Vagas esgotadas', { exact: true }).waitFor();
   assert.equal(await consulta.locator('#payment-status').innerText(), 'INSCRIÇÃO REGISTRADA');

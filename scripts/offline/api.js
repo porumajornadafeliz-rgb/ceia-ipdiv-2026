@@ -1,5 +1,6 @@
 // Simulador exclusivo da demonstração offline. Inicia vazio e nunca é publicado no Apps Script.
 const demoRows = [], demoRequests = new Map();
+const demoStatusAttempts = new Map();
 const demoCapacity = () => capacity_(demoRows, DEMO_CAPACITY.limit);
 const cloneDemo = value => JSON.parse(JSON.stringify(value));
 const demoNow = () => new Date().toISOString();
@@ -38,6 +39,13 @@ function demoApi(mode, action, input = {}, role = 'admin') {
     if (mode === 'public') {
       if (action === 'capacity') result = demoCapacity();
       else if (action === 'create') result = demoCreate(input);
+      else if (action === 'status') {
+        const contact = contactInput_(input), key = Math.floor(Date.now() / 60000) + ':' + contact.phone;
+        const attempts = demoStatusAttempts.get(key) || 0;
+        if (attempts >= 8) fail_('Muitas consultas para este WhatsApp. Aguarde um minuto e tente novamente.');
+        demoStatusAttempts.set(key, attempts + 1);
+        result = statusResults_(demoRows, contact);
+      }
       else if (['lookup', 'report', 'confirmation'].includes(action)) {
         const row = demoAuthorizedRow(input);
         if (action === 'report' && !row.reportedAt) row.reportedAt = demoNow();
