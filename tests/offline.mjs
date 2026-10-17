@@ -15,10 +15,15 @@ try {
   await loadDemo();
   const registration = page.frameLocator('#registration-app'), admin = page.frameLocator('#app');
   await registration.getByRole('button', { name: 'FAZER MINHA INSCRIÇÃO' }).waitFor();
+  assert.match(await registration.locator('#deadline-home').innerText(), /20\/12\/2026/);
+  await registration.getByRole('heading', { name: 'Culto de Ações de Graças', exact: true }).waitFor();
+  await registration.getByText('20h30min', { exact: true }).waitFor();
+  await registration.getByText('Após o culto', { exact: true }).waitFor();
   assert.ok(await registration.getByRole('img', { name: 'Igreja Presbiteriana de Divinópolis', exact: true }).evaluate(img => img.complete && img.naturalWidth > 0));
   await mkdir('test-results', { recursive: true });
   await page.screenshot({ path: 'test-results/demonstracao-desktop.png', fullPage: true });
   await registration.getByRole('button', { name: 'FAZER MINHA INSCRIÇÃO' }).click();
+  await registration.getByText('Cônjuge adulto não-membro da igreja', { exact: true }).waitFor();
   await registration.getByLabel('Nome do responsável', { exact: true }).fill('Família de Teste');
   await registration.getByLabel('WhatsApp com DDD', { exact: true }).fill('37999991234');
   await registration.locator('#plus-adultGuests').click();
@@ -41,6 +46,15 @@ try {
   await page.getByRole('button', { name: '1. INSCRIÇÃO', exact: true }).click();
   await registration.getByRole('button', { name: 'Atualizar situação do pagamento' }).click();
   await registration.getByText('Sua presença está confirmada.').waitFor();
+  assert.match(await registration.locator('#confirmed-section').innerText(), /Av\. Paraná, 1098/);
+  assert.match(await registration.locator('#confirmed-section').innerText(), /Ceia após o culto/);
+  const receiptPromise = page.waitForEvent('download');
+  await registration.getByRole('button', { name: 'SALVAR CONFIRMAÇÃO', exact: true }).click();
+  const receipt = await receiptPromise;
+  const receiptText = await readFile(await receipt.path(), 'utf8');
+  assert.match(receiptText, /Culto de Ações de Graças às 20h30min/);
+  assert.match(receiptText, /Av\. Paraná, 1098 — Sidil/);
+  assert.match(receiptText, /Ceia após o culto — Salão Imperatriz/);
   await page.getByRole('button', { name: '3. ENTRADA', exact: true }).click();
   await admin.getByLabel('Pesquisar inscrição').fill('Familia de Teste');
   await admin.getByRole('button', { name: 'CONFIRMAR ENTRADA', exact: true }).click();
@@ -55,7 +69,7 @@ try {
   }
   await page.getByRole('button', { name: '1. INSCRIÇÃO', exact: true }).click();
   await page.screenshot({ path: 'test-results/demonstracao-mobile.png', fullPage: true });
-  assert.ok(requests.every(url => /^(file:|data:|about:)/.test(url)), 'Nenhuma requisição de rede');
+  assert.ok(requests.every(url => /^(file:|data:|about:|blob:)/.test(url)), 'Nenhuma requisição de rede');
   assert.deepEqual(errors, [], 'Nenhum erro JavaScript');
   await loadDemo(); await registration.getByRole('button', { name: 'FAZER MINHA INSCRIÇÃO' }).waitFor();
   await page.getByRole('button', { name: '2. TESOURARIA', exact: true }).click();

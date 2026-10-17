@@ -1,5 +1,7 @@
 # Operação da ceia
 
+Em **31/12/2026**, o **Culto de Ações de Graças** será às **20h30min**, no **Templo da IPDiv — Av. Paraná, 1098 — Sidil, Divinópolis, MG**. A **ceia será após o culto, no Salão Imperatriz**, na Rua Duarte, 70, Bairro Catalão, esquina com a Rua Paraná. O aviso de inscrição até **20/12/2026, às 23h59 (Brasília)** aparece em destaque antes do botão principal e no formulário. A programação também consta da confirmação para salvar ou imprimir.
+
 ## Participante
 
 1. Abre o link público recebido pelo WhatsApp.

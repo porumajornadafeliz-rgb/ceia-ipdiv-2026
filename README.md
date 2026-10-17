@@ -1,6 +1,6 @@
 # Ceia de Confraternização IPDiv 2026
 
-Sistema de inscrição familiar, Pix, tesouraria e entrada para a **Igreja Presbiteriana de Divinópolis**, em **31/12/2026**, no Salão Imperatriz.
+Sistema de inscrição familiar, Pix, tesouraria e entrada para a **Igreja Presbiteriana de Divinópolis**, em **31/12/2026**. O **Culto de Ações de Graças será às 20h30min**, no **Templo da IPDiv — Av. Paraná, 1098 — Sidil**. A **ceia será após o culto, no Salão Imperatriz**. Inscrições até **20/12/2026, às 23h59 (Brasília)**.
 
 Funciona no navegador do celular, sem instalar aplicativo. A hospedagem é o Google Apps Script, com Google Planilhas e Google Drive privados, dentro das cotas gratuitas de uma conta Google comum. Não usa serviço pago, cartão, API bancária nem serviço externo para gerar QR Codes.
 

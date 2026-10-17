@@ -2,6 +2,7 @@
 
 Os arquivos desta pasta podem ser baixados pelo próprio GitHub, sem depender do visualizador de arquivos do ChatGPT.
 
+- **DEMONSTRACAO-IPDIV-v2.zip**: versão atualizada com o nome da categoria de cônjuge corrigido, prazo destacado, programação do culto e da ceia e textos mais escuros. O conteúdo é o mesmo do arquivo `DEMONSTRACAO-IPDIV.zip`.
 - **DEMONSTRACAO-IPDIV.zip**: para analisar sem instalar nada. Extraia e dê dois cliques em **ABRIR-DEMONSTRACAO.html**. Os botões Inscrição, Tesouraria e Entrada permitem testar o fluxo com dados fictícios. Não se conecta ao Google, não gera pagamento real e descarta os testes ao fechar/recarregar.
 - **ABRIR-DEMONSTRACAO.html**: o mesmo arquivo da demonstração, em formato HTML autônomo.
 - **ceia-ipdiv-2026.zip**: pacote completo com código-fonte, logotipo oficial, documentação e os dois projetos Google Apps Script já gerados.

@@ -5,11 +5,18 @@ var EVENT_ = Object.freeze({
   date: '31/12/2026',
   venue: 'Salão Imperatriz',
   address: 'Rua Duarte, 70, Bairro Catalão, esquina com a Rua Paraná, Divinópolis, MG',
+  thanksgiving: {
+    name: 'Culto de Ações de Graças',
+    time: '20h30min',
+    venue: 'Templo da IPDiv',
+    address: 'Av. Paraná, 1098 — Sidil, Divinópolis, MG'
+  },
+  mealTiming: 'Após o culto',
   deadline: '2026-12-21T03:00:00.000Z', // 21/12 00h00 em Brasília (UTC−3), limite exclusivo.
   categories: [
     { key: 'adultMembers', label: 'Adultos membros', price: 8000 },
     { key: 'childMembers', label: 'Crianças membros até 12 anos', price: 4000 },
-    { key: 'spouse', label: 'Cônjuge adulto não membro de membro', price: 8000 },
+    { key: 'spouse', label: 'Cônjuge adulto não-membro da igreja', price: 8000 },
     { key: 'adultGuests', label: 'Adultos não membros, incluindo filhos com 13 anos ou mais', price: 12000 },
     { key: 'childGuests', label: 'Crianças não membros até 12 anos', price: 6000 }
   ]

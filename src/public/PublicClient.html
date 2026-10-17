@@ -121,7 +121,7 @@ $('refresh-payment').onclick = () => busy($('refresh-payment'), async () => {
   try { renderPayment(await api('lookup', access)); message('payment-success', 'Situação atualizada.', true); } catch (e) { message('payment-error', e.message); }
 });
 function receiptText() {
-  return 'CEIA DE CONFRATERNIZAÇÃO 2026\nIgreja Presbiteriana de Divinópolis\n\nInscrição: ' + current.id + '\nResponsável: ' + current.name + '\nParticipantes: ' + current.people + '\nValor pago: ' + money(current.total) + '\nPAGAMENTO CONFIRMADO\nConferido em: ' + dateTime(current.paidAt) + '\n\n31/12/2026 — Salão Imperatriz\n' + CONFIG.event.address + '\n\nConsulta privada: ' + privateLink();
+  return 'CEIA DE CONFRATERNIZAÇÃO 2026\nIgreja Presbiteriana de Divinópolis\n\nInscrição: ' + current.id + '\nResponsável: ' + current.name + '\nParticipantes: ' + current.people + '\nValor pago: ' + money(current.total) + '\nPAGAMENTO CONFIRMADO\nConferido em: ' + dateTime(current.paidAt) + '\n\n' + CONFIG.event.date + ' — ' + CONFIG.event.thanksgiving.name + ' às ' + CONFIG.event.thanksgiving.time + '\n' + CONFIG.event.thanksgiving.venue + ' — ' + CONFIG.event.thanksgiving.address + '\n\nCeia após o culto — ' + CONFIG.event.venue + '\n' + CONFIG.event.address + '\n\nConsulta privada: ' + privateLink();
 }
 $('save-receipt').onclick = () => download(current.id + '.txt', receiptText(), 'text/plain;charset=utf-8');
 $('print-receipt').onclick = () => window.print();

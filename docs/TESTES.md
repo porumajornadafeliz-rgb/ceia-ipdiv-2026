@@ -37,7 +37,7 @@ São testes funcionais locais; **não são um teste de carga, uma auditoria de s
 
 ## Demonstração autônoma para análise
 
-`npm run build` também gera `entrega/ABRIR-DEMONSTRACAO.html`. O comando `npm run test:offline` verifica esse HTML completo em Chromium com toda a rede desativada, incluindo logotipo, cadastro, valores, QR sem Pix válido, aviso pendente, confirmação simulada na tesouraria, retorno à consulta, check-in, bloqueio de duplicação, bloqueio de não pago, responsividade e descarte dos dados ao recarregar.
+`npm run build` também gera `entrega/ABRIR-DEMONSTRACAO.html`. O comando `npm run test:offline` verifica esse HTML completo em Chromium com toda a rede desativada, incluindo logotipo, prazo destacado, programação do culto e da ceia, categoria de cônjuge corrigida, cadastro, valores, QR sem Pix válido, aviso pendente, confirmação simulada na tesouraria, retorno à consulta, programação no recibo salvo, check-in, bloqueio de duplicação, bloqueio de não pago, responsividade e descarte dos dados ao recarregar.
 
 A política do navegador no ambiente de execução bloqueia a navegação direta a URLs `file://`; por isso o teste injeta o mesmo HTML completo em uma página vazia, sem servidor ou requisições de rede. O teste não executa o Windows nem o gesto de duplo clique do usuário. O arquivo entregue é HTML autônomo para abrir no Edge ou Chrome, sem instalação.
 
