@@ -2,15 +2,15 @@
 
 Sistema de inscrição familiar e entrada da **Igreja Presbiteriana de Divinópolis**, em **31/12/2026**. Culto de Ações de Graças às **20h30min**, no **Templo da IPDiv — Av. Paraná, 1098 — Sidil**. Ceia **após o culto, no Salão Imperatriz**, Rua Duarte, 70, Bairro Catalão, esquina com a Rua Paraná. Inscrições até **20/12/2026, às 23h59 (Brasília)**.
 
-**Regra atual: registrar a inscrição já reserva as vagas.** A lotação é de **200 pessoas**, contando adultos e crianças. Não há confirmação financeira no sistema: a secretaria controla o pagamento pelo WhatsApp **(37) 3212-4980**. Copiar o link, abrir o WhatsApp ou registrar a entrada não desconta lugares novamente.
+**Registrar reserva as vagas; pagar e ter o comprovante conferido garante os lugares.** São 200 pessoas, incluindo crianças. Reservas pendentes ocupam vagas até **20/12/2026, às 23h59 (Brasília)**; depois deixam de ocupar automaticamente, preservando os registros. O participante paga por Pix e envia o comprovante privado. A secretaria confere o recebimento e confirma no painel. WhatsApp **(37) 3212-4980** recebe uma mensagem preparada, enviada pela própria pessoa. Não há envio automático pelo aplicativo comum nem confirmação bancária automática.
 
 O sistema inicia **sem inscrições e sem exemplos fictícios**, com **200 vagas disponíveis**. A inicialização de uma planilha existente preserva seus registros e históricos; não apaga inscrições reais.
 
-**Projetos Público e Administração publicados pelo proprietário e conferidos por imagens nesta sessão em 17/10/2026.** O cadastro no celular reservou quatro vagas. A melhoria de PDF e a consulta da situação sem link foram validadas localmente e ainda precisam ser aplicadas à implantação pública existente. O pacote não altera a conta Google automaticamente.
+**A atualização de Pix e comprovantes foi preparada para as implantações existentes.** Precisa ser aplicada nos dois projetos pelo proprietário, incluindo o manifesto Público e a autorização do Drive. Use [o guia de atualização](docs/ATUALIZAR-PAGAMENTO.md) e o pacote `entrega/ATUALIZAR-PIX-E-COMPROVANTES-IPDIV-2026.zip`. Os testes locais não publicam alterações na conta Google.
 
 ## Analisar sem instalar nada
 
-Baixe **`entrega/DEMONSTRACAO-IPDIV-v8.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
+Baixe **`entrega/DEMONSTRACAO-IPDIV-v9.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
 
 A demonstração começa vazia. Você pode registrar uma família e ver a baixa imediata das vagas, visualizar a mensagem da secretaria, copiar o link, consultar inscrições, cancelar/reativar e registrar a entrada. O painel **Inscrições e vagas** substitui a antiga tesouraria.
 
@@ -25,10 +25,10 @@ A demonstração começa vazia. Você pode registrar uma família e ver a baixa 
 - Repetir o mesmo envio não cria inscrição nem baixa vagas em duplicidade, mesmo após perda de conexão, prazo ou esgotamento.
 - Link privado disponível imediatamente; consulta sem login; consulta da situação por nome e WhatsApp, consulta completa por link privado e registro para salvar em PDF legível no celular ou imprimir, identificado como **não sendo comprovante de pagamento**.
 - WhatsApp preparado com nome, telefone, inscrição, participantes, categorias e valor. Não inclui o token privado nem afirma que houve pagamento.
-- Pix estático opcional para facilitar o pagamento, com conferência financeira diretamente pela secretaria. Não usa API bancária.
+- Área Pix com QR, chave e Copia e Cola; envio privado de comprovante e conferência financeira no painel. Não usa API bancária.
 - Administração com login Google e papéis autorizados; pesquisa, filtros, valores de referência, CSV, impressão e histórico.
 - Cancelamento e reativação com motivo e auditoria. Cancelar libera lugares; reativar exige disponibilidade para toda a família. Registros não são apagados.
-- Entrada familiar sem exigir pagamento confirmado; cancelamentos e entradas duplicadas são bloqueados no servidor.
+- Entrada familiar exige pagamento confirmado; cancelamentos e entradas duplicadas são bloqueados no servidor.
 
 ## Publicação e operação
 

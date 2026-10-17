@@ -21,6 +21,7 @@ try {
   });
   context.on('page', page => page.on('pageerror', e => errors.push(e.message)));
   context.on('request', request => requests.push(request.url()));
+  context.setDefaultTimeout(15000);
   const page = await context.newPage();
   await mkdir('test-results', { recursive: true });
   await page.goto(base); await page.getByText('200 vagas restantes', { exact: true }).waitFor(); await page.screenshot({ path: 'test-results/home-mobile.png', fullPage: true });
@@ -60,8 +61,8 @@ try {
   await page.locator('#review-view').waitFor({ state: 'visible' });
   assert.match(await page.locator('#review-summary').innerText(), /340,00/);
   assert.match(await page.locator('#review-summary').innerText(), /4 pessoas/);
-  await page.getByRole('button', { name: 'REGISTRAR MINHA INSCRIÇÃO' }).click();
-  await page.getByText('Sua inscrição foi registrada!', { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'CONFIRMAR E PAGAR COM PIX' }).click();
+  await page.getByText('Sua reserva foi registrada!', { exact: true }).waitFor();
   await page.getByText('196 vagas restantes', { exact: true }).waitFor();
   const id = await page.locator('#registration-id').innerText(), link = await page.locator('#private-link').inputValue();
   assert.match(id, /^IPD26[A-F0-9]{16}$/); assert.match(link, /#id=.*&token=/);
@@ -71,24 +72,24 @@ try {
   await page.waitForFunction(async expected => (await navigator.clipboard.readText()) === expected, link);
   assert.equal(app.publicApi('capacity').data.remaining, 196);
   await page.screenshot({ path: 'test-results/registration-mobile.png', fullPage: true });
-  await page.getByText('Dados para pagamento com Pix', { exact: true }).click();
+  await page.locator('#pix-section').screenshot({ path:'test-results/pix-mobile.png' });
   const png = PNG.sync.read(await page.locator('#qr').screenshot());
   assert.equal(jsQR(new Uint8ClampedArray(png.data), png.width, png.height)?.data, await page.locator('#pix-code').inputValue());
   const whatsappPromise = page.waitForEvent('popup');
-  await page.getByRole('link', { name: /ENVIAR INSCRIÇÃO À SECRETARIA/ }).click();
+  await page.getByRole('link', { name: /ENVIAR RESUMO PELO WHATSAPP/ }).click();
   const whatsappPage = await whatsappPromise; await whatsappPage.waitForLoadState();
   const whatsappUrl = new URL(whatsappPage.url()), text = whatsappUrl.searchParams.get('text');
   assert.equal(whatsappUrl.hostname, 'wa.me'); assert.equal(whatsappUrl.pathname, '/553732124980');
   assert.match(text, /José da Silva/); assert.ok(text.includes(id)); assert.match(text, /Participantes: 4/);
-  assert.match(text, /340,00/); assert.match(text, /INSCRIÇÃO REGISTRADA/); assert.match(text, /não é comprovante de pagamento/);
+  assert.match(text, /340,00/); assert.match(text, /RESERVA PROVISÓRIA/); assert.match(text, /comprovante|recebimento/);
   const token = new URLSearchParams(new URL(link).hash.slice(1)).get('token');
   assert.ok(!text.includes(token)); await whatsappPage.close(); await page.bringToFront();
-  await page.getByText('Confira os dados no WhatsApp e toque em Enviar. As vagas desta inscrição já estão contabilizadas.', { exact: true }).waitFor();
-  assert.equal(await page.locator('#payment-status').innerText(), 'INSCRIÇÃO REGISTRADA');
+  await page.getByText('Confira os dados no WhatsApp e toque em Enviar. O pagamento só será confirmado após a conferência do comprovante.', { exact: true }).waitFor();
+  assert.equal(await page.locator('#payment-status').innerText(), 'RESERVA PROVISÓRIA');
   assert.equal(app.publicApi('capacity').data.remaining, 196);
   const receiptPromise = page.waitForEvent('download'); await page.getByRole('button', { name: 'SALVAR INSCRIÇÃO EM PDF', exact: true }).click();
   const receipt = await checkReceiptPdf(await receiptPromise, [/José da Silva/, /Valor da inscrição: R\$\s340,00/, /Av\. Paraná, 1098/, /20h30min/]);
-  assert.match(receipt.text, /IPDiv · Registro de inscrição · 2\/2/);
+  assert.match(receipt.text, /IPDiv · Registro de inscrição/);
   await copyFile(receipt.path, 'test-results/inscricao-mobile.pdf');
   assert.ok(receipt.bytes.includes(Buffer.from(link)), 'PDF conserva o link individual clicável');
   // Dados extensos e caracteres fora de Latin-1 também precisam gerar um PDF válido.
@@ -109,7 +110,7 @@ try {
   await page.locator('#payment-view').waitFor({ state: 'visible' });
   assert.equal(await page.locator('#private-link').inputValue(), link, 'Consulta na mesma aba usa o link já conhecido');
   assert.equal(app.publicApi('capacity').data.remaining, 196, 'Consultar e baixar PDFs não descontam novas vagas');
-  const consulta = await context.newPage(); await consulta.goto(link); await consulta.getByText('Sua inscrição foi registrada!', { exact: true }).waitFor();
+  const consulta = await context.newPage(); await consulta.goto(link); await consulta.getByText('Sua reserva foi registrada!', { exact: true }).waitFor();
   const statusPage = await context.newPage(); await statusPage.goto(base);
   await statusPage.getByRole('button', { name: 'Consultar minha inscrição', exact: true }).click();
   await statusPage.getByLabel('Nome do responsável na inscrição', { exact: true }).fill('JOSE DA SILVA');
@@ -121,7 +122,7 @@ try {
     await statusPage.locator('#status-results').waitFor({ state: 'visible' });
   }
   await queryStatus();
-  await statusPage.locator('#status-results').getByText('INSCRIÇÃO REGISTRADA', { exact: true }).waitFor();
+  await statusPage.locator('#status-results').getByText('RESERVA PROVISÓRIA', { exact: true }).waitFor();
   assert.match(await statusPage.locator('#status-results').innerText(), /4 participantes/);
   assert.equal(await statusPage.locator('#private-link').isVisible(), false, 'Busca por contato não abre os dados completos');
   await statusPage.setViewportSize({ width: 320, height: 844 });
@@ -150,6 +151,24 @@ try {
   await admin.getByLabel('Motivo obrigatório').fill('Retorno da família no teste');
   await admin.locator('#submit-action').click(); await admin.getByText('Nenhuma inscrição encontrada.', { exact: true }).waitFor();
   await admin.getByLabel('Inscrição', { exact: true }).selectOption('REGISTERED');
+  // Sem o link privado, o participante paga e envia comprovante pelo resultado da consulta.
+  await queryStatus();
+  await statusPage.getByRole('button', { name: 'PAGAR COM PIX / ENVIAR COMPROVANTE', exact:true }).click();
+  await statusPage.getByLabel('Comprovante desta inscrição').setInputFiles({ name:'comprovante.pdf', mimeType:'application/pdf', buffer:Buffer.from('%PDF-1.4\nSynthetic test receipt\n%%EOF') });
+  await statusPage.locator('.lookup-payment-box').getByRole('button', { name:'ENVIAR COMPROVANTE', exact:true }).click();
+  await statusPage.getByText(/Comprovante recebido/).waitFor();
+  assert.equal(app.publicApi('lookup', { id,token }).data.paymentStatus,'PROOF_SUBMITTED');
+  assert.equal(app.publicApi('capacity').data.remaining,196);
+  await admin.locator('#reload').click();
+  const proofDownload = admin.waitForEvent('download'); await admin.getByRole('button', { name:'BAIXAR COMPROVANTE', exact:true }).click();
+  assert.match(await readFile(await (await proofDownload).path(),'utf8'), /Synthetic test receipt/);
+  await admin.getByRole('button', { name:'CONFERIR PAGAMENTO', exact:true }).click();
+  await admin.getByLabel('Motivo obrigatório').fill('Recebimento e comprovante conferidos no teste');
+  await admin.locator('#submit-action').click();
+  await admin.locator('#table-body').getByText('PAGO — COMPROVANTE CONFERIDO', { exact:true }).waitFor();
+  await admin.setViewportSize({width:1280,height:900}); await admin.screenshot({path:'test-results/pagamento-confirmado-admin.png',fullPage:true});
+  const financialCsv = admin.waitForEvent('download'); await admin.locator('#export').click();
+  assert.match(await readFile(await (await financialCsv).path(),'utf8'), /PAGO.*COMPROVANTE CONFERIDO/);
   await admin.getByRole('tab', { name: 'Conferência de entrada' }).click();
   await admin.getByRole('button', { name: 'CONFIRMAR ENTRADA', exact: true }).click();
   await admin.getByText('ENTRADA REGISTRADA', { exact: true }).waitFor();
@@ -168,11 +187,11 @@ try {
   await full.getByRole('button', { name: 'Consultar minha inscrição' }).click(); await full.locator('#status-lookup-form').waitFor();
   await consulta.bringToFront(); await consulta.getByRole('button', { name: 'Atualizar inscrição', exact: true }).click();
   await consulta.getByText('Vagas esgotadas', { exact: true }).waitFor();
-  assert.equal(await consulta.locator('#payment-status').innerText(), 'INSCRIÇÃO REGISTRADA');
+  assert.equal(await consulta.locator('#payment-status').innerText(), 'VAGA GARANTIDA');
   assert.equal(await consulta.locator('#copy-link').isDisabled(), false, 'Inscrito mantém o link quando lota');
   await consulta.setViewportSize({ width: 320, height: 800 });
   assert.ok(await consulta.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   assert.deepEqual(errors, [], 'Nenhum erro JavaScript');
   assert.ok(requests.every(url => url.startsWith(base) || url.startsWith('data:') || whatsappRequests.includes(url)));
-  console.log('Navegador: início vazio, 200 vagas, baixa no cadastro, link imediato, telefone, WhatsApp sem token, Pix, cancelamento, reativação, entrada sem pagamento, lotação e celular aprovados.');
+  console.log('Navegador: início vazio, 200 vagas, baixa no cadastro, link imediato, telefone, WhatsApp sem token, Pix, cancelamento, reativação, comprovante privado, conferência financeira, CSV, entrada após pagamento, lotação e celular aprovados.');
 } finally { await browser?.close(); await new Promise(resolve => server.close(resolve)); }

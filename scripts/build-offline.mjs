@@ -26,15 +26,18 @@ for (const [panel, project, role] of [['registration', 'public', 'admin'], ['reg
   html = html.replaceAll('Confira os dados no WhatsApp e toque em Enviar. As vagas desta inscrição já estão contabilizadas.', 'Demonstração: veja abaixo a mensagem para a secretaria. Nenhuma mensagem real é enviada; as vagas já foram contabilizadas nesta análise.');
   html = html.replaceAll('Abra o WhatsApp, confira os dados e toque em Enviar. Você pode anexar o comprovante na própria conversa com a secretaria.', 'Demonstração: o botão permite visualizar a mensagem, sem abrir uma conversa real. Na versão publicada, o WhatsApp abrirá para você conferir e enviar.');
   html = html.replaceAll('No WhatsApp, confira os dados e toque em Enviar. A secretaria fará o controle de pagamento.', 'Nenhuma mensagem real foi enviada nesta demonstração. Na versão publicada, a secretaria tratará o pagamento pelo WhatsApp.');
+  html = html.replaceAll('Confira os dados no WhatsApp e toque em Enviar. O pagamento só será confirmado após a conferência do comprovante.', 'Demonstração: nenhuma mensagem foi enviada. O pagamento só será confirmado após a conferência do comprovante simulado.');
   html = html.replaceAll('sessionStorage.', 'parent.ceiaDemoSession.');
   html = html.replace("if (window.CEIA_DEMO) history.replaceState(null, '', '#' + hash);", "if (window.CEIA_DEMO) { /* Link simulado válido apenas nesta análise. */ }");
   html = html.replace('Pague com Pix</h3>', 'Simulação do Pix</h3>')
     .replace('Escaneie o QR Code ou copie o código e cole na opção Pix Copia e Cola do seu banco.', 'Esta é uma demonstração. O QR Code e o texto abaixo não permitem fazer pagamentos.')
     .replace('COPIAR CÓDIGO PIX', 'COPIAR CÓDIGO DE DEMONSTRAÇÃO')
-    .replace(/<div class="notice bank-details">[\s\S]*?<\/div>/, '<div class="notice bank-details"><strong>DEMONSTRAÇÃO — SEM COBRANÇA</strong><p>Nenhuma conta bancária é acionada. O registro da inscrição já ocupa os lugares. Não é necessário simular ou confirmar pagamento.</p></div>')
+    .replace(/<div class="notice bank-details">[\s\S]*?<\/div>/, '<div class="notice bank-details"><strong>DEMONSTRAÇÃO — SEM COBRANÇA</strong><p>Nenhuma conta bancária é acionada. O registro da inscrição já ocupa os lugares. Envie um arquivo de teste e simule a conferência no painel administrativo.</p></div>')
     .replace('O link já está liberado. Ele é particular e permite consultar esta inscrição. Copiar ou enviar a mensagem novamente não desconta outras vagas.', 'O link já está liberado e funciona somente nesta análise aberta. Copiar ou visualizar a mensagem novamente não desconta outras vagas. A versão publicada terá o link individual para consulta.')
     .replace("return 'CEIA DE CONFRATERNIZAÇÃO 2026\\n", "return 'DEMONSTRAÇÃO — SEM VALIDADE PARA ENTRADA OU PAGAMENTO\\nCEIA DE CONFRATERNIZAÇÃO 2026\\n")
     .replace('id="share-receipt"', 'id="share-receipt" disabled title="Compartilhamento real disponível após a publicação no Google"');
+  html = html.replace("link.href = 'https://wa.me/' + CONFIG.event.secretariat.whatsapp + '?text=' + encodeURIComponent(text);", "link.href = '#whatsapp-demo'; link.onclick = event => event.preventDefault();");
+  html = html.replaceAll('20896270000130', 'CHAVE-DE-DEMONSTRACAO').replaceAll('20.896.270/0001-30', 'CHAVE DE DEMONSTRAÇÃO');
   html = html.replace('</head>', '<style>@media print{body::before{content:"DEMONSTRAÇÃO — SEM VALIDADE PARA PAGAMENTO OU ENTRADA";display:block;font-weight:bold;padding:15px;border:2px solid #000}}</style></head>');
   pages[panel] = html;
 }

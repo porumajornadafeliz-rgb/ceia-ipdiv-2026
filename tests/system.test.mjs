@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { platform, registration } from './platform.mjs';
+import { platform, registration, pay } from './platform.mjs';
 import qrcode from 'qrcode-generator';
 import jsQR from 'jsqr';
 function value(response) { assert.equal(response.ok, true, response.error); return response.data; }
@@ -45,7 +45,8 @@ test('prazo inclui 20/12 23h59 em Brasília; consultas e retry continuam após e
   rejected(p.publicApi('create', registration()), /prazo/);
   assert.equal(value(p.publicApi('create', input)).id, row.id);
   assert.equal(value(p.publicApi('lookup', access(row))).status, 'REGISTERED');
-  assert.equal(value(p.publicApi('capacity')).remaining, 199);
+  assert.equal(value(p.publicApi('capacity')).remaining, 200);
+  assert.equal(value(p.publicApi('lookup', access(row))).reservationStatus, 'EXPIRED');
 });
 test('repetir o envio retorna inscrição e token originais sem descontar novas vagas', () => {
   const p = platform(), input = registration();
@@ -88,9 +89,10 @@ test('abrir WhatsApp não altera vagas nem comprova envio ou pagamento', () => {
   assert.equal(value(p.publicApi('report', access(row))).reportedAt, report.reportedAt);
   assert.equal(value(p.publicApi('capacity')).remaining, 199);
 });
-test('entrada familiar não depende de pagamento; duplicações continuam bloqueadas', () => {
+test('entrada familiar exige pagamento confirmado; duplicações continuam bloqueadas', () => {
   const p = platform({ actor: 'entrada@example.test' });
   const row = value(p.publicApi('create', registration({ counts: { ...empty, adultMembers: 4 } })));
+  rejected(p.adminApi('entry', { id: row.id }), /pagamento/i); pay(p, row);
   assert.ok(value(p.adminApi('entry', { id: row.id })).entryAt);
   rejected(p.adminApi('entry', { id: row.id }), /já registrada/);
   assert.equal(value(p.adminApi('list')).metrics.enteredPeople, 4);
@@ -110,7 +112,7 @@ test('cancelar e reativar exige conta autorizada, motivo e auditoria', () => {
 });
 test('inscrição com entrada registrada não pode ser cancelada', () => {
   const p = platform({ actor: 'admin@example.test' }), row = value(p.publicApi('create', registration()));
-  value(p.adminApi('entry', { id: row.id }));
+  pay(p, row); value(p.adminApi('entry', { id: row.id }));
   rejected(p.adminApi('cancel', { id: row.id, cancelled: true, note: 'Tentativa de cancelamento' }), /entrada registrada/);
 });
 test('conta Google e papéis são verificados no servidor; identidade enviada pelo cliente é ignorada', () => {
@@ -140,17 +142,18 @@ test('contenção do bloqueio não grava inscrição parcial', () => {
   const p = platform(); p.lock(true); rejected(p.publicApi('create', registration()), /Muitos acessos/); p.lock(false);
   assert.equal(value(p.adminApi('list')).rows.length, 0); assert.equal(value(p.publicApi('capacity')).remaining, 200);
 });
-test('indicadores contam inscrições ativas, canceladas, pessoas e entradas sem declarar valores recebidos', () => {
+test('indicadores contam inscrições ativas, canceladas, pessoas e entradas com valores recebidos somente após conferência', () => {
   const p = platform({ actor: 'admin@example.test' });
   const a = value(p.publicApi('create', registration({ counts: { ...empty, adultMembers: 2 } })));
   const b = value(p.publicApi('create', registration())); value(p.adminApi('cancel', { id: b.id, cancelled: true, note: 'Desistência' }));
-  value(p.adminApi('entry', { id: a.id }));
-  assert.deepEqual(value(p.adminApi('list')).metrics, { families: 1, people: 2, declaredTotal: 16000, enteredFamilies: 1, enteredPeople: 2, cancelledFamilies: 1 });
+  pay(p, a); value(p.adminApi('entry', { id: a.id }));
+  assert.deepEqual(value(p.adminApi('list')).metrics, { families: 1, people: 2, declaredTotal: 16000, enteredFamilies: 1, enteredPeople: 2, cancelledFamilies: 1, receivedTotal:16000, pendingTotal:0, confirmedFamilies:1, confirmedPeople:2, pendingFamilies:0, expiredFamilies:0 });
 });
-test('ações financeiras antigas e confirmação inventada não estão disponíveis', () => {
+test('autodeclaração não confirma pagamento e comprovante ausente não pode ser baixado', () => {
   const p = platform(), row = value(p.publicApi('create', registration()));
-  for (const action of ['proof', 'payment', 'bankApproved']) rejected(p.publicApi(action, { ...access(row), paid: true }), /Ação inválida/);
-  for (const action of ['payment', 'getProof']) rejected(p.adminApi(action, { id: row.id, paid: true }), /Ação inválida/);
+  for (const action of ['payment', 'bankApproved']) rejected(p.publicApi(action, { ...access(row), paid: true }), /Ação inválida/);
+  rejected(p.adminApi('payment', { id:row.id, paid:true }), /inválida/);
+  rejected(p.adminApi('getProof', { id:row.id }), /Nenhum comprovante/);
 });
 test('planilha amplia a grade sem perder registros; primeira inicialização começa sem exemplos', () => {
   const p = platform(), sheet = p.sheets.get('Inscricoes');

@@ -62,22 +62,48 @@ function registrationInput_(input) {
   return { name: contact.name, phone: contact.phone, counts: calculated.counts, people: calculated.people, total: calculated.total, requestId: input.requestId };
 }
 function statusName_(name) { return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
-/** Consulta limitada: nunca retorna contato, ID, token, valores ou dados administrativos. */
+/** Consulta limitada de situação; a API acrescenta acesso temporário exclusivo ao pagamento. */
 function statusResults_(rows, contact) {
   var name = statusName_(contact.name);
   var matches = rows.filter(function(row) { return statusName_(row.name) === name && row.phone === contact.phone; });
   return { more: matches.length > 20, registrations: matches.slice(-20).reverse().map(function(row) {
-    return { status: registrationState_(row), people: row.people, createdAt: row.createdAt, entered: Boolean(row.entryAt) };
+    return { status: registrationState_(row), reservationStatus: reservationState_(row), paymentStatus: paymentState_(row), people: row.people, createdAt: row.createdAt, entered: Boolean(row.entryAt) };
   }) };
 }
 function assertOpen_(now) {
   if (new Date(now).getTime() >= Date.parse(EVENT_.deadline)) fail_('O prazo de inscrições encerrou em 20/12/2026, às 23h59 (Brasília). A consulta continua disponível.');
 }
-/** Toda inscrição ativa ocupa lugares, independentemente do pagamento. */
+/** Reservas ocupam lugares até o prazo; pagamentos confirmados mantêm a ocupação. */
 function registrationState_(row) { return row.cancelledAt ? 'CANCELLED' : 'REGISTERED'; }
+function paymentState_(row) {
+  if (row.paidAt || row.status === 'PAID') return 'PAID';
+  if (row.proofId && row.status !== 'PROOF_REJECTED') return 'PROOF_SUBMITTED';
+  return 'PENDING';
+}
+function reservationState_(row) {
+  if (row.cancelledAt) return 'CANCELLED';
+  if (paymentState_(row) === 'PAID') return 'CONFIRMED';
+  return Date.now() >= Date.parse(EVENT_.deadline) ? 'EXPIRED' : 'RESERVED';
+}
+function occupiesSeats_(row) { return ['RESERVED', 'CONFIRMED'].indexOf(reservationState_(row)) >= 0; }
+function paymentTransition_(row, actor, approved, now, note) {
+  assertRole_(actor, ['admin', 'treasury']);
+  if (row.cancelledAt) fail_('Inscrição cancelada. Reative antes de confirmar pagamento.');
+  if (typeof approved !== 'boolean') fail_('Situação de pagamento inválida.');
+  if (approved && paymentState_(row) === 'PAID') return false;
+  if (!approved && paymentState_(row) === 'PAID') fail_('Pagamento já confirmado. Esta ação não realiza estorno ou devolução.');
+  if (!row.proofId || !row.proofAt) fail_('É necessário conferir o comprovante enviado antes de confirmar pagamento.');
+  if (!approved && row.status === 'PROOF_REJECTED') return false;
+  if (approved && row.status === 'PROOF_REJECTED') fail_('Comprovante recusado. Aguarde um novo envio para confirmar o pagamento.');
+  var reason = cleanText_(note, 250, approved ? 'a conferência do comprovante' : 'o motivo da recusa do comprovante');
+  row.status = approved ? 'PAID' : 'PROOF_REJECTED';
+  if (approved) { row.paidAt = now; row.paidBy = actor.email; }
+  row.audit.push({ at: now, by: actor.email, action: approved ? 'PAYMENT_CONFIRMED' : 'PROOF_REJECTED', note: reason });
+  return true;
+}
 function capacity_(rows, limit) {
   var configured = Number.isSafeInteger(limit) && limit > 0;
-  var used = rows.reduce(function(n, r) { return n + (r.cancelledAt ? 0 : r.people); }, 0);
+  var used = rows.reduce(function(n, r) { return n + (occupiesSeats_(r) ? r.people : 0); }, 0);
   return { configured: configured, limit: configured ? limit : null, policy: 'REGISTERED',
     used: configured ? used : null, remaining: configured ? Math.max(0, limit - used) : null };
 }
@@ -101,15 +127,21 @@ function cancellationTransition_(row, actor, cancelled, now, note) {
 function entryTransition_(row, actor, now) {
   assertRole_(actor, ['door', 'admin']);
   if (row.cancelledAt) fail_('Inscrição cancelada. A entrada não está autorizada.');
+  if (paymentState_(row) !== 'PAID') fail_('Pagamento pendente de confirmação. Confira o comprovante antes de autorizar a entrada.');
   if (row.entryAt) fail_('Entrada já registrada em ' + row.entryAt + '.');
   row.entryAt = now; row.entryBy = actor.email; row.entryOverride = false;
   row.audit.push({ at: now, by: actor.email, action: 'ENTRY_CONFIRMED', note: '' });
 }
 function metrics_(rows) {
   return rows.reduce(function(m, r) {
+    if (paymentState_(r) === 'PAID') m.receivedTotal += r.total;
     if (r.cancelledAt) { m.cancelledFamilies++; return m; }
     m.families++; m.people += r.people; m.declaredTotal += r.total;
+    if (reservationState_(r) === 'CONFIRMED') { m.confirmedFamilies++; m.confirmedPeople += r.people; }
+    else if (reservationState_(r) === 'EXPIRED') m.expiredFamilies++;
+    else { m.pendingFamilies++; m.pendingTotal += r.total; }
     if (r.entryAt) { m.enteredFamilies++; m.enteredPeople += r.people; }
     return m;
-  }, { families: 0, people: 0, declaredTotal: 0, enteredFamilies: 0, enteredPeople: 0, cancelledFamilies: 0 });
+  }, { families: 0, people: 0, declaredTotal: 0, enteredFamilies: 0, enteredPeople: 0, cancelledFamilies: 0,
+    receivedTotal: 0, pendingTotal: 0, confirmedFamilies: 0, confirmedPeople: 0, pendingFamilies: 0, expiredFamilies: 0 });
 }

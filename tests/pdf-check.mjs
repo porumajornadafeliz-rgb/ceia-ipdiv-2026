@@ -8,7 +8,7 @@ export async function checkReceiptPdf(download, expected = []) {
   assert.equal(bytes.subarray(0, 5).toString(), '%PDF-');
   const text = execFileSync('pdftotext', ['-layout', path, '-'], { encoding: 'utf8' });
   for (const pattern of expected) assert.match(text, pattern);
-  assert.match(text, /Não é comprovante de pagamento/);
+  assert.match(text, /Não é comprovante de\s+pagamento/);
   assert.match(text, /Consultar minha inscrição/);
   // Decodificador independente verifica a geometria do PDF efetivamente baixado.
   const bounds = execFileSync('pdftotext', ['-bbox', path, '-'], { encoding: 'utf8' });

@@ -11,7 +11,7 @@ export function preview(port = 4173) {
     res.setHeader('Cache-Control', 'no-store'); res.setHeader('Referrer-Policy', 'no-referrer');
     try {
       if (req.method === 'POST' && ['/api/public', '/api/admin'].includes(req.url)) {
-        let raw = ''; for await (const chunk of req) { raw += chunk; if (raw.length > 16000) { res.writeHead(413); res.end(); return; } }
+        let raw = ''; for await (const chunk of req) { raw += chunk; if (raw.length > 2900000) { res.writeHead(413); res.end(); return; } }
         const { action, input } = JSON.parse(raw);
         res.setHeader('Content-Type', 'application/json'); res.end(JSON.stringify(req.url.endsWith('admin') ? app.adminApi(action, input) : app.publicApi(action, input))); return;
       }

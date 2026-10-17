@@ -21,17 +21,24 @@ function doPost(e) {
       var sheet = sheet_(), rows = readRows_(sheet);
       if (request.action === 'list') {
         var metrics = metrics_(rows);
-        if (actor.role === 'door') { delete metrics.declaredTotal; }
+        if (actor.role === 'door') { delete metrics.declaredTotal; delete metrics.receivedTotal; delete metrics.pendingTotal; }
         return { actor: actor, rows: rows.map(function(r) { return adminRow_(r, actor); }), metrics: metrics, capacity: capacityForRows_(rows) };
       }
       var input = request.input;
       if (!input || typeof input.id !== 'string') fail_('Inscrição inválida.');
       var row = rows.find(function(r) { return r.id === input.id; });
       if (!row) fail_('Inscrição não encontrada.');
+      if (request.action === 'getProof') return administrativeProof_(row, actor);
       // Nonce também fica na auditoria: nem um replay após remoção de cache repete alterações.
       if (row.audit.some(function(a) { return a.operation === request.nonce; })) return adminRow_(row, actor);
       var now = new Date().toISOString(), previousLength = row.audit.length;
       if (request.action === 'entry') entryTransition_(row, actor, now);
+      else if (request.action === 'payment') {
+        assertRole_(actor, ['treasury', 'admin']);
+        if (row.proofId && !(input.approved === true && paymentState_(row) === 'PAID') && !safeEqual_(proofVersion_(row), input.proofVersion || '')) fail_('O comprovante mudou. Atualize os dados, baixe e confira o arquivo atual antes de registrar a conferência.');
+        if (input.approved === true && !occupiesSeats_(row) && !row.cancelledAt) assertSeats_(capacityForRows_(rows), row.people);
+        paymentTransition_(row, actor, input.approved, now, input.note);
+      }
       else if (request.action === 'cancel') {
         assertRole_(actor, ['treasury', 'admin']);
         if (input.cancelled === false && row.cancelledAt) assertSeats_(capacityForRows_(rows), row.people);
@@ -48,9 +55,10 @@ function doPost(e) {
 }
 function adminRow_(r, actor) {
   var out = { id: r.id, name: r.name, phone: r.phone, people: r.people, status: registrationState_(r),
-    entryAt: r.entryAt || '', cancelledAt: r.cancelledAt || '' };
+    reservationStatus: reservationState_(r), paymentStatus: paymentState_(r), entryAt: r.entryAt || '', cancelledAt: r.cancelledAt || '' };
   if (actor.role !== 'door') {
     out.total = r.total; out.counts = r.counts; out.createdAt = r.createdAt; out.reportedAt = r.reportedAt || ''; out.audit = r.audit;
+    out.proofSubmittedAt = r.proofAt || ''; out.hasProof = Boolean(r.proofId); out.proofRejected = r.status === 'PROOF_REJECTED'; out.paidAt = r.paidAt || ''; out.paidBy = r.paidBy || '';
   }
   return out;
 }

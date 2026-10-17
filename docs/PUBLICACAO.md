@@ -1,3 +1,5 @@
+> Projetos existentes: siga [Atualizar Pix e comprovantes](ATUALIZAR-PAGAMENTO.md), preservando planilha, segredos e endereços.
+
 # Publicar gratuitamente na conta Google da Igreja
 
 A publicação é feita por um responsável autorizado na própria conta Google. Não envie senhas, tokens ou a chave de comunicação em conversas. Separe cerca de 30 minutos para configuração e testes. Use uma conta da Igreja para que o sistema não dependa da conta pessoal de um voluntário.
@@ -54,13 +56,13 @@ Configuração inicial preparada para a Igreja:
 }
 ```
 
-`admin` gerencia inscrições, cancelamentos, reativações e entradas. `treasury` corresponde à Secretaria: gerencia inscrições e relatórios. `door` pesquisa e registra a entrada das inscrições ativas, sem exigir confirmação de pagamento. Uma conta precisa de somente um papel; use `admin` quando precisar das duas áreas.
+`admin` gerencia inscrições, cancelamentos, reativações e entradas. `treasury` corresponde à Secretaria: gerencia inscrições e relatórios. `door` pesquisa e registra a entrada das inscrições ativas, com pagamento confirmado. Uma conta precisa de somente um papel; use `admin` quando precisar das duas áreas.
 
 Para outras pessoas, acrescente seus e-mails reais ao mesmo JSON com `treasury` ou `door`. Não é preciso fornecer senha. O arquivo `Config.gs` define os valores iniciais: após a primeira configuração, a lista efetiva é a propriedade `ADMIN_ACCOUNTS`, que nunca é sobrescrita pela inicialização.
 
 5. Salve tudo. Selecione **`prepararPublicacao`** no editor e clique em **Executar**, como proprietário. Autorize o acesso a Planilhas e a identificação da conta proprietária. A função verifica a identidade da conta proprietária no servidor antes de configurar; visitantes não podem executá-la.
 6. Ela cria a aba `Inscricoes` e o cabeçalho, sem incluir famílias de exemplo. Numa atualização, acrescenta a coluna `cancelledAt` ao cabeçalho anterior compatível. Não apaga nem altera os registros existentes; estruturas incompatíveis são recusadas.
-7. Confira as propriedades geradas: `TOKEN_SECRET`, `ADMIN_BRIDGE_SECRET`, **`MAX_PARTICIPANTS=200`** e **`SEAT_POLICY=REGISTERED`**. **Não altere `TOKEN_SECRET` após iniciar inscrições**, pois ele é usado para repetir envios com segurança. Não exponha nenhum segredo. Pastas e comprovantes privados de versões anteriores permanecem no Drive, sem uso pelo sistema atual e sem serem apagados.
+7. Confira as propriedades geradas: `TOKEN_SECRET`, `ADMIN_BRIDGE_SECRET`, **`MAX_PARTICIPANTS=200`** e **`SEAT_POLICY=REGISTERED`**. **Não altere `TOKEN_SECRET` após iniciar inscrições**, pois ele é usado para repetir envios com segurança. Não exponha nenhum segredo. A pasta PROOF_FOLDER_ID deve permanecer privada; comprovantes existentes são preservados. Autorize Drive, planilhas e identificação no Público.
 8. Vá a **Implantar → Nova implantação → Aplicativo da Web**:
    - **Executar como: Eu**, a conta proprietária da Igreja.
    - **Quem pode acessar: Qualquer pessoa**, incluindo quem não tem login Google. Não escolha apenas “qualquer pessoa com uma conta Google”.
@@ -95,15 +97,15 @@ Se o Google solicitar configuração da tela de consentimento OAuth ou usuários
 
 Siga a lista de [TESTES.md](TESTES.md), **incluindo contas de tesouraria e entrada separadas e uma conta não autorizada**. O teste local não substitui a conferência da implantação, da identidade Google e da conta bancária.
 
-A secretaria faz o controle de pagamento diretamente pelo WhatsApp. A reserva de lugares acontece no cadastro, sem confirmação financeira. Não é necessário contratar ou habilitar uma API Pix para este fluxo.
+O participante paga por Pix e envia comprovante privado no site. A secretaria confere o recebimento no painel. Reservar desconta vagas; confirmar pagamento garante os lugares. Reservas sem confirmação expiram após 20/12/2026, às 23h59 (Brasília). Não é necessário contratar ou habilitar uma API Pix para este fluxo.
 
-Confira os dados Pix opcionais antes de divulgar: chave **20.896.270/0001-30**, favorecido **Igreja Presbiteriana de Divinópolis**, Itaú, agência **0690**, conta **16405-8**, e valor correto no aplicativo do banco. O registro da inscrição não comprova pagamento.
+Confira os dados Pix antes de divulgar: chave **20.896.270/0001-30**, favorecido **Igreja Presbiteriana de Divinópolis**, Itaú, agência **0690**, conta **16405-8**, e valor correto no aplicativo do banco. O registro da inscrição não comprova pagamento.
 
 Depois dos testes, compartilhe apenas o endereço público `/exec` com os participantes. O link administrativo permanece restrito à equipe.
 
 ## 6. Atualizar e operar
 
-Para atualizar uma implantação anterior para a regra de vagas por inscrição, copie os arquivos atualizados dos dois projetos e execute `prepararPublicacao` novamente no projeto público. Ela acrescenta a coluna `cancelledAt`, configura `SEAT_POLICY=REGISTERED` e preserva registros, históricos, segredos e permissões. Confira `MAX_PARTICIPANTS=200` antes de publicar a nova versão. Todos os registros existentes não cancelados passam a ocupar lugares, independentemente do pagamento. Use o painel para cancelar inscrições de teste identificadas, sem apagar linhas manualmente.
+Para atualizar uma implantação anterior para a regra de vagas por inscrição, copie os arquivos atualizados dos dois projetos e execute `prepararPublicacao` novamente no projeto público. Ela acrescenta a coluna `cancelledAt`, configura `SEAT_POLICY=REGISTERED` e preserva registros, históricos, segredos e permissões. Confira `MAX_PARTICIPANTS=200` antes de publicar a nova versão. Reservas ativas ocupam lugares até o prazo; depois somente pagamentos confirmados mantêm a ocupação. Use o painel para cancelar inscrições de teste identificadas, sem apagar linhas manualmente.
 
 Após editar código, gere os arquivos novamente, copie os arquivos alterados no projeto correspondente e publique uma **nova versão da implantação existente** em **Implantar → Gerenciar implantações → Editar → Nova versão**. Isso preserva os endereços `/exec`. Salvar no editor sozinho não atualiza a versão pública.
 

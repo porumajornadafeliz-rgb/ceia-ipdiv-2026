@@ -1,5 +1,5 @@
 <script>
-let state = { rows: [], metrics: {}, actor: CONFIG.actor }, area = CONFIG.actor.role === 'door' ? 'door' : 'registrations', pendingRow = null;
+let state = { rows: [], metrics: {}, actor: CONFIG.actor }, area = CONFIG.actor.role === 'door' ? 'door' : 'registrations', pendingRow = null, pendingAction = "cancel", proofViewed = new Map();
 const roleNames = { admin: 'Administrador', treasury: 'Secretaria', door: 'Conferência de entrada' };
 $('actor').textContent = state.actor.email + ' · ' + roleNames[state.actor.role];
 if (state.actor.role === 'door') $('tab-treasury').hidden = true;
@@ -10,9 +10,10 @@ function setArea(next) {
 }
 $('tab-treasury').onclick = () => setArea('registrations'); $('tab-door').onclick = () => setArea('door');
 function renderMetrics() {
+  $('payment-filter-field').hidden = state.actor.role === 'door';
   const m = state.metrics; $('metrics').replaceChildren();
   const items = [['Vagas restantes', state.capacity?.remaining ?? '—'], ['Limite de participantes', state.capacity?.limit ?? '—'], ['Famílias inscritas', m.families], ['Participantes inscritos', m.people], ['Famílias que já entraram', m.enteredFamilies], ['Pessoas nas entradas (estimativa)', m.enteredPeople], ['Inscrições canceladas', m.cancelledFamilies]];
-  if (state.actor.role !== 'door') items.push(['Valor das inscrições ativas', money(m.declaredTotal)]);
+  if (state.actor.role !== 'door') items.push(['Pagamentos confirmados', money(m.receivedTotal)], ['Valor pendente nas reservas', money(m.pendingTotal)], ['Pessoas com vagas garantidas', m.confirmedPeople], ['Reservas expiradas', m.expiredFamilies]);
   items.forEach(([label, value]) => { const card = el('div', undefined, 'metric'); card.append(el('span', label), el('strong', String(value ?? 0))); $('metrics').append(card); });
 }
 function normalized(value) { return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase(); }
@@ -20,13 +21,13 @@ function filteredRows() {
   const q = normalized($('search').value.trim()), digits = q.replace(/\D/g, '');
   return state.rows.filter(r => {
     const match = !q || normalized(r.name).includes(q) || normalized(r.id).includes(q) || (digits.length > 1 && !/[a-z]/.test(q) && r.phone.includes(digits));
-    return match && ($('registration-filter').value === 'all' || r.status === $('registration-filter').value) && ($('entry-filter').value === 'all' || (Boolean(r.entryAt) === ($('entry-filter').value === 'entered')));
+    return match && (state.actor.role === 'door' || $('payment-filter').value === 'all' || r.paymentStatus === $('payment-filter').value) && ($('registration-filter').value === 'all' || r.status === $('registration-filter').value) && ($('entry-filter').value === 'all' || (Boolean(r.entryAt) === ($('entry-filter').value === 'entered')));
   }).sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'));
 }
 function actionButton(text, fn, disabled = false) { const b = el('button', text, 'btn secondary'); b.type = 'button'; b.disabled = disabled; b.onclick = fn; return b; }
 function renderTable() {
   $('table-head').replaceChildren(); const header = el('tr');
-  const columns = ['Responsável', 'Pessoas', 'Inscrição', ...(area === 'registrations' ? ['Valor da inscrição'] : []), 'Entrada', 'Ação'];
+  const columns = ['Responsável', 'Pessoas', 'Inscrição', ...(area === 'registrations' ? ['Valor da inscrição', 'Pagamento'] : []), 'Entrada', 'Ação'];
   columns.forEach(title => { const th = el('th', title); th.scope = 'col'; header.append(th); }); $('table-head').append(header);
   const root = $('table-body'); root.replaceChildren(); const rows = filteredRows();
   $('result-count').textContent = rows.length + (rows.length === 1 ? ' inscrição encontrada' : ' inscrições encontradas');
@@ -34,41 +35,56 @@ function renderTable() {
   rows.forEach(r => {
     const active = r.status === 'REGISTERED', tr = el('tr', undefined, active ? 'is-paid' : ''), name = el('td');
     name.append(el('strong', r.name), el('small', formatPhone(r.phone)), el('small', r.id)); tr.append(name, el('td', String(r.people)));
-    const registration = el('td'); registration.append(el('span', active ? 'REGISTRADA' : 'CANCELADA', 'status' + (active ? ' paid' : '')));
+    const registration = el('td'); registration.append(el('span', reservationText(r.reservationStatus), 'status' + (active ? ' paid' : '')));
     if (r.reportedAt) registration.append(el('small', 'Participante abriu contato com a secretaria'));
-    tr.append(registration); if (area === 'registrations') tr.append(el('td', money(r.total)));
+    tr.append(registration); if (area === 'registrations') { const financial = el('td'); financial.append(el('strong', paymentText(r.paymentStatus))); if (r.proofSubmittedAt) financial.append(el('small', 'Comprovante: ' + dateTime(r.proofSubmittedAt))); if (r.paidAt) financial.append(el('small', 'Conferido: ' + dateTime(r.paidAt))); if (r.proofRejected) financial.append(el('small', 'Comprovante recusado; aguarda novo envio')); tr.append(el('td', money(r.total)), financial); }
     const entry = el('td'); entry.append(el('span', r.entryAt ? 'Confirmada' : active ? 'Aguardando chegada' : 'Não autorizada')); if (r.entryAt) entry.append(el('small', dateTime(r.entryAt))); tr.append(entry);
     const actions = el('td');
     if (area === 'registrations') {
+      if (r.hasProof) actions.append(actionButton('BAIXAR COMPROVANTE', () => viewProof(r, actions.firstChild)), el('br'));
+      if (active && r.paymentStatus === 'PROOF_SUBMITTED') actions.append(actionButton('CONFERIR PAGAMENTO', () => openPayment(r)), el('br'));
       actions.append(actionButton(active ? 'CANCELAR INSCRIÇÃO' : 'REATIVAR INSCRIÇÃO', () => openDialog(r), Boolean(r.entryAt)));
       actions.append(el('br'), actionButton('Histórico', () => openAudit(r)));
     } else if (!active) actions.append(el('span', 'INSCRIÇÃO CANCELADA', 'small muted'));
     else if (r.entryAt) actions.append(el('span', 'ENTRADA REGISTRADA', 'small muted'));
+    else if (r.paymentStatus !== 'PAID') actions.append(el('span', 'AGUARDA PAGAMENTO CONFIRMADO', 'small muted'));
     else actions.append(actionButton('CONFIRMAR ENTRADA', () => confirmEntry(r, actions.firstChild)));
     tr.append(actions); root.append(tr);
   });
 }
 async function load() {
   message('admin-error', '');
-  try { state = await api('list'); renderMetrics(); renderTable(); $('updated-at').textContent = 'Dados atualizados em ' + dateTime(new Date().toISOString()) + ' (Brasília). O controle de pagamento é feito diretamente pela secretaria.'; }
+  try { state = await api('list'); renderMetrics(); renderTable(); $('updated-at').textContent = 'Dados atualizados em ' + dateTime(new Date().toISOString()) + ' (Brasília). Pagamentos via Pix; somente a conferência do comprovante confirma o pagamento e garante as vagas.'; }
   catch (e) { message('admin-error', e.message); $('result-count').textContent = 'Não foi possível carregar a lista.'; }
 }
 $('reload').onclick = () => busy($('reload'), load);
-for (const id of ['search', 'registration-filter', 'entry-filter']) $(id).addEventListener(id === 'search' ? 'input' : 'change', renderTable);
+for (const id of ['search', 'registration-filter', 'entry-filter', 'payment-filter']) $(id).addEventListener(id === 'search' ? 'input' : 'change', renderTable);
 function openDialog(row) {
-  pendingRow = row; $('action-note').value = ''; message('dialog-error', '');
+  pendingAction = 'cancel'; $('submit-action').textContent = 'CONFIRMAR'; pendingRow = row; $('action-note').value = ''; message('dialog-error', '');
   $('dialog-title').textContent = row.status === 'REGISTERED' ? 'Cancelar esta inscrição?' : 'Reativar esta inscrição?';
   $('dialog-description').textContent = row.name + ' · ' + row.people + ' pessoa(s)';
   $('note-label').textContent = 'Motivo obrigatório';
   $('dialog-help').textContent = row.status === 'REGISTERED' ? 'O cancelamento libera os lugares e preserva o histórico. Esta ação não faz devolução financeira.' : 'A reativação exige vagas para todos os participantes e ficará registrada no histórico.';
-  $('action-dialog').showModal();
+  $('payment-decision-field')?.remove(); $('action-dialog').showModal();
+}
+async function viewProof(row, button) {
+  await busy(button, async () => { try { const proof = await api('getProof', { id: row.id }); const bytes = Uint8Array.from(atob(proof.data), c => c.charCodeAt(0)); download(proof.name, bytes, proof.mime); proofViewed.set(row.id, proof.version); message('admin-success', 'Comprovante baixado. Confira o destinatário, o valor e o recebimento antes de confirmar.', true); } catch (e) { message('admin-error', e.message); } });
+}
+function openPayment(row) {
+  openDialog(row); pendingAction = 'payment'; $('dialog-title').textContent = 'Conferir pagamento por Pix';
+  $('dialog-description').textContent = row.name + ' · ' + row.people + ' pessoa(s) · ' + money(row.total);
+  $('dialog-help').textContent = 'Baixe e confira o comprovante e o recebimento. Confirmar garante as vagas; recusar permite enviar outro comprovante. Reservas expiradas exigem vagas disponíveis.';
+  const field = el('div', undefined, 'field'); field.id = 'payment-decision-field'; const label = el('label', 'Resultado da conferência'); label.htmlFor = 'payment-decision';
+  const select = el('select'); select.id = 'payment-decision'; for (const [v,t] of [['approved','Confirmar pagamento recebido'],['rejected','Recusar comprovante']]) { const o = el('option',t); o.value = v; select.append(o); }
+  field.append(label,select); $('action-note').closest('.field').before(field); $('submit-action').textContent = 'REGISTRAR CONFERÊNCIA';
 }
 $('cancel-dialog').onclick = () => $('action-dialog').close();
 $('action-form').onsubmit = e => {
   e.preventDefault(); busy($('submit-action'), async () => {
     message('dialog-error', '');
     try {
-      await api('cancel', { id: pendingRow.id, cancelled: pendingRow.status === 'REGISTERED', note: $('action-note').value });
+      if (pendingAction === 'payment' && !proofViewed.has(pendingRow.id)) throw new Error('Baixe e confira o comprovante antes de confirmar ou recusar.');
+      await api(pendingAction, pendingAction === 'payment' ? { id: pendingRow.id, approved: $('payment-decision').value === 'approved', proofVersion: proofViewed.get(pendingRow.id), note: $('action-note').value } : { id: pendingRow.id, cancelled: pendingRow.status === 'REGISTERED', note: $('action-note').value });
       $('action-dialog').close(); message('admin-success', 'Inscrição atualizada e vagas recalculadas. Alteração registrada no histórico.', true); await load();
     } catch (e) { message('dialog-error', e.message); }
   });
@@ -83,7 +99,7 @@ async function confirmEntry(row, button) {
 function openAudit(row) {
   const root = $('audit-content'); root.replaceChildren(el('h3', row.name), el('p', row.id, 'small muted'));
   const audit = el('div', undefined, 'audit');
-  const labels = { REGISTRATION_CANCELLED: 'Inscrição cancelada', REGISTRATION_RESTORED: 'Inscrição reativada', ENTRY_CONFIRMED: 'Entrada confirmada', PAYMENT_CONFIRMED: 'Pagamento confirmado (histórico anterior)', PAYMENT_REVERSED: 'Pagamento desfeito (histórico anterior)', ENTRY_OVERRIDE: 'Liberação excepcional (histórico anterior)' };
+  const labels = { PROOF_SUBMITTED: 'Comprovante enviado', PROOF_REJECTED: 'Comprovante recusado', REGISTRATION_CANCELLED: 'Inscrição cancelada', REGISTRATION_RESTORED: 'Inscrição reativada', ENTRY_CONFIRMED: 'Entrada confirmada', PAYMENT_CONFIRMED: 'Pagamento confirmado', PAYMENT_REVERSED: 'Pagamento desfeito (histórico anterior)', ENTRY_OVERRIDE: 'Liberação excepcional (histórico anterior)' };
   if (!row.audit?.length) audit.append(el('p', 'Nenhuma alteração registrada.'));
   (row.audit || []).forEach(a => audit.append(el('p', (labels[a.action] || a.action) + '\n' + dateTime(a.at) + ' · ' + a.by + (a.note ? '\n' + a.note : ''))));
   audit.style.whiteSpace = 'pre-wrap'; root.append(audit); $('audit-dialog').showModal();
@@ -92,8 +108,8 @@ $('close-audit').onclick = () => $('audit-dialog').close();
 function csvCell(v) { let s = String(v ?? ''); if (/^[\s]*[=+@\-\t\r\n]/.test(s)) s = "'" + s; return '"' + s.replaceAll('"', '""') + '"'; }
 $('export').onclick = () => {
   const full = area === 'registrations';
-  const header = ['Inscrição', 'Responsável', 'WhatsApp', 'Pessoas', 'Situação da inscrição', ...(full ? ['Valor da inscrição (R$)', 'Contato aberto em', ...CONFIG.event.categories.map(c => c.label)] : []), 'Entrada em'];
-  const rows = filteredRows().map(r => [r.id, r.name, r.phone, r.people, r.status === 'REGISTERED' ? 'Registrada' : 'Cancelada', ...(full ? [(r.total / 100).toFixed(2).replace('.', ','), dateTime(r.reportedAt), ...CONFIG.event.categories.map(c => r.counts[c.key])] : []), dateTime(r.entryAt)]);
+  const header = ['Inscrição', 'Responsável', 'WhatsApp', 'Pessoas', 'Situação da inscrição', ...(full ? ['Valor da inscrição (R$)', 'Situação da reserva', 'Pagamento', 'Comprovante enviado em', 'Pagamento confirmado em', 'Conferido por', 'Contato aberto em', ...CONFIG.event.categories.map(c => c.label)] : []), 'Entrada em'];
+  const rows = filteredRows().map(r => [r.id, r.name, r.phone, r.people, r.status === 'REGISTERED' ? 'Registrada' : 'Cancelada', ...(full ? [(r.total / 100).toFixed(2).replace('.', ','), reservationText(r.reservationStatus), paymentText(r.paymentStatus), dateTime(r.proofSubmittedAt), dateTime(r.paidAt), r.paidBy, dateTime(r.reportedAt), ...CONFIG.event.categories.map(c => r.counts[c.key])] : []), dateTime(r.entryAt)]);
   download('ceia-ipdiv-' + area + '.csv', '\uFEFF' + [header, ...rows].map(r => r.map(csvCell).join(';')).join('\r\n'), 'text/csv;charset=utf-8');
 };
 $('print-list').onclick = () => window.print();

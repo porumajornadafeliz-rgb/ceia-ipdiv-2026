@@ -1,52 +1,35 @@
 # Operação da ceia
 
-Em **31/12/2026**, culto às **20h30min**, no **Templo da IPDiv — Av. Paraná, 1098 — Sidil**. Ceia após o culto, no Salão Imperatriz. Inscrições até **20/12/2026, às 23h59 (Brasília)**.
+Em 31/12/2026: culto de Ações de Graças às 20h30min no Templo da IPDiv, Av. Paraná, 1098 — Sidil. Ceia após o culto no Salão Imperatriz, Rua Duarte, 70 — Catalão, esquina com Rua Paraná, Divinópolis/MG.
 
-## Vagas
+## Cadastro e pagamento
 
-A lotação é de **200 pessoas**, incluindo adultos e crianças de todas as categorias. **Registrar a inscrição reserva os lugares imediatamente**, independentemente de pagamento ou envio de mensagem. Uma inscrição de 4 pessoas reduz o contador de 200 para 196.
+1. O responsável informa nome, WhatsApp com DDD e quantidades. Valores são calculados no servidor. Crianças têm até 12 anos em 31/12/2026; filhos não membros usam tarifa de não membro. Um cônjuge não membro pode usar R$ 80 com adulto membro na inscrição.
+2. Ao confirmar o cadastro, os lugares são reservados e descontados do contador de 200 pessoas, incluindo crianças. A pessoa pode pagar com Pix imediatamente ou depois, consultando por nome e WhatsApp.
+3. A área de pagamento mostra valor, QR Code, chave CNPJ, favorecido e Pix Copia e Cola. Se já pagou, não repita o pagamento.
+4. Envie o comprovante PDF, PNG ou JPG de até 2 MB pelo site. A situação passa a **Comprovante em conferência**, ainda sem garantia das vagas.
+5. A secretaria baixa o comprovante no painel, confere favorecido, valor e recebimento, e usa **CONFERIR PAGAMENTO**, com motivo obrigatório. Confirmar registra conta e data e passa para **Pago — comprovante conferido / Vaga garantida**. Recusar permite novo envio.
 
-O contador aparece no alto de todas as telas públicas. Consulta os dados ao abrir, ao voltar à aba, antes de conferir o formulário, após registrar e a cada 30 segundos com a página visível. O botão **Atualizar vagas** permite consultar a qualquer momento. Outros navegadores podem mostrar a última consulta até a próxima atualização; o servidor sempre relê a lotação sob bloqueio antes de gravar.
+O registro de inscrição/PDF não é comprovante bancário. Não há integração bancária automática nem devolução financeira pelo sistema.
 
-Copiar o link, enviar a mensagem novamente, consultar a inscrição ou registrar a entrada não desconta outras vagas. Repetir o mesmo envio após erro de conexão retorna a mesma inscrição. Se não houver lugar para toda a família, o servidor recusa o cadastro inteiro, sem gravar reserva parcial. Esgotamento e prazo bloqueiam novos cadastros, mas mantêm consultas e a administração.
+## Prazo e vagas
 
-## Participante e secretaria
+Inscrições e pagamento até **20/12/2026, às 23h59 (Brasília)**. Reservas sem pagamento confirmado deixam de ocupar vagas após o prazo, inclusive comprovantes aguardando análise. Os registros não são apagados. A secretaria deve concluir a conferência antes do prazo para garantir os lugares.
 
-1. Abra o link público e toque **FAZER MINHA INSCRIÇÃO**.
-2. Informe nome do responsável, WhatsApp com DDD e quantidades. O telefone se organiza ao digitar, apagar ou colar, como `(37) 99999-9999` ou `(37) 3212-4980`.
-3. Confira o resumo e toque **REGISTRAR MINHA INSCRIÇÃO**. Crianças têm até 12 anos em 31/12/2026; com 13 anos ou mais, tarifa de adulto. Filhos não membros usam tarifa de não membro. Um cônjuge não membro pode usar a tarifa de R$ 80 com adulto membro na mesma inscrição.
-4. A tela mostra **INSCRIÇÃO REGISTRADA**, reserva as vagas e libera **COPIAR MEU LINK** imediatamente. Guarde o link particular; ele permite consultar os dados sem login. O registro para salvar/imprimir não comprova pagamento.
-5. Toque **ENVIAR INSCRIÇÃO À SECRETARIA — (37) 3212-4980 (ZAP)**. O WhatsApp abre com nome, telefone, número, quantidades, categorias, valor e situação da inscrição. Confira e toque **Enviar**. A mensagem não inclui o token privado nem afirma que a pessoa pagou.
-6. A secretaria acompanha o pagamento na conversa. O participante pode anexar o comprovante no próprio WhatsApp. O sistema oferece dados Pix opcionais para facilitar o pagamento; se já pagou, não repita o Pix.
+Vagas confirmadas continuam ocupadas. Confirmar tardiamente exige disponibilidade para toda a família; nunca ultrapassa a lotação. Cancelar libera lugares, preserva o histórico e não realiza devolução. Reativar depende de disponibilidade quando a inscrição ocupa lugares. Entrada registrada impede cancelamento.
 
-O site não consegue saber se uma mensagem aberta foi efetivamente enviada ou recebida. O horário de contato no painel significa apenas que o participante acionou o botão. A vaga foi contabilizada no registro e não depende da entrega do WhatsApp.
+Copiar, consultar, abrir WhatsApp, enviar comprovante ou confirmar pagamento não desconta novamente uma reserva já contabilizada. Repetir o mesmo cadastro retorna a mesma inscrição. O contador atualiza ao abrir, voltar à aba, cadastrar e a cada 30 segundos visíveis; a gravação sempre relê a lotação sob bloqueio.
 
-Não há API bancária, confirmação financeira, upload de comprovante ou exigência de pagamento no sistema. A secretaria faz esse controle diretamente, conforme definido pela Igreja. O valor exibido no painel/CSV representa o valor das inscrições, não dinheiro recebido.
+## Consulta e WhatsApp
 
-O acesso de consulta é guardado temporariamente na mesma aba para retomada, além do fragmento do link. Não publique o link em grupos. Mesmo sem o link, use Consultar minha inscrição e informe nome do responsável e WhatsApp cadastrados para ver situação, quantidade e data do cadastro. Essa consulta não recupera o token nem abre dados completos. O link individual continua sendo usado para os detalhes e o PDF.
+A consulta por nome e WhatsApp exatos mostra situação, quantidade e data, e permite pagar/enviar comprovante depois. Não abre contato, categorias, histórico ou o documento completo. O link particular continua disponível na tela final e no PDF, para acesso completo sem login. A consulta não precisa colar esse link.
 
-## Painel Inscrições e vagas
+**ENVIAR RESUMO PELO WHATSAPP** prepara nome, telefone, número, participantes, valor e situação para `(37) 3212-4980`. A pessoa precisa tocar em **Enviar**. O site não comprova entrega da mensagem. O comprovante enviado pelo site fica disponível à secretaria, sem depender do WhatsApp. O compartilhamento de arquivo, quando disponível no celular, exige escolher a conversa e confirmar. Nunca há envio silencioso pelo aplicativo comum.
 
-Entre com uma conta Google autorizada. O papel interno `treasury` corresponde à **Secretaria**, preservando contas de versões anteriores. `admin` usa inscrições e entrada; `door` acessa somente a conferência de entrada.
+## Painel e relatório
 
-Pesquise por nome, telefone ou número e filtre inscrições **Ativas**, **Canceladas** ou **Todas**. O painel começa vazio numa instalação nova; não inclui famílias de exemplo.
+`admin`: inscrições e entrada; `treasury`: secretaria e conferência financeira; `door`: entrada, sem valores ou comprovantes. Contas precisam constar da lista autorizada.
 
-**Cancelar inscrição** exige motivo e libera os lugares. O histórico e a linha original são preservados; não existe apagamento de inscrições pelo painel. **Reativar inscrição** exige motivo e lugares suficientes para toda a família. Uma inscrição com entrada registrada não pode ser cancelada.
+Use pesquisa, filtros de inscrição, pagamento e entrada. **EXPORTAR RELATÓRIO CSV** e impressão respeitam os filtros. O CSV financeiro inclui valor, situação da reserva e pagamento, data de envio do comprovante, data e responsável pela conferência. Indicadores globais distinguem recebimentos confirmados, valores pendentes, vagas garantidas e reservas expiradas. Recebimentos de inscrição cancelada permanecem contabilizados, pois cancelar não faz estorno.
 
-Cancelamento não realiza devolução financeira. Qualquer acerto de pagamento é tratado pela secretaria. O histórico identifica a conta Google, data, horário e motivo da alteração.
-
-## Entrada
-
-1. Abra **Conferência de entrada**, atualize os dados e pesquise o responsável.
-2. Confira as quantidades e toque **CONFIRMAR ENTRADA**. O pagamento não é requisito desta operação.
-3. A ação registra a família inteira. Inscrição cancelada e segunda tentativa de entrada são recusadas no servidor, inclusive em outro celular.
-
-A quantidade nas entradas é estimada pelas declarações da inscrição familiar. Não representa conferência nominal de cada pessoa. No celular, deslize horizontalmente a tabela para alcançar todas as colunas.
-
-## Relatórios e contingência
-
-**EXPORTAR RELATÓRIO CSV** e **IMPRIMIR LISTA FILTRADA** respeitam os filtros atuais. Os indicadores são globais. A secretaria vê categorias e valores de referência; a equipe de entrada não recebe esses dados financeiros. O CSV usa UTF-8, separador `;` e proteção contra fórmulas em campos livres.
-
-Antes do evento, imprima a lista ativa com entradas aguardadas. Em falta de internet, registre família, horário e operador no papel e concilie quando a conexão voltar. Proteja relatórios e impressos, que contêm dados pessoais.
-
-As listagens administrativas têm atualização manual; todas as ações conferem o estado atual no servidor. O contador público possui atualização automática.
+A entrada exige inscrição ativa e pagamento confirmado e registra a família inteira. Duplicações são bloqueadas no servidor. Pessoas nas entradas são estimativas pelas quantidades declaradas, sem conferência nominal individual. Em falta de internet, use lista impressa de inscrições garantidas e concilie os registros depois. Proteja relatórios e impressos com dados pessoais.

@@ -1,22 +1,14 @@
-# Entrega atual — Ceia IPDiv 2026
+# Entrega atual — Pix, comprovantes e reservas
 
-**Versão 8: consulta da situação por nome e WhatsApp, sem exigir link, e PDF legível no celular. Novas demonstrações continuam com zero inscrições e 200 vagas.**
+Use **ATUALIZAR-PIX-E-COMPROVANTES-IPDIV-2026.zip** para atualizar os projetos Google existentes. Inclui Público e Administração, cada um com Code.gs e manifesto, além do guia. Requer autorização do Drive e execução de prepararPublicacao pelo proprietário no Público. Preserva planilha, registros, segredos e endereços.
 
-A vaga é reservada quando a inscrição é registrada, incluindo adultos e crianças. O link fica disponível imediatamente. Pagamentos são controlados diretamente pela secretaria no WhatsApp **(37) 3212-4980**; o site não exige confirmação financeira.
+- **DEMONSTRACAO-IPDIV-v9.zip** e **DEMONSTRACAO-IPDIV.zip**: demonstração atual sem rede, sem pagamentos reais e sem envio de WhatsApp. Extraia e abra ABRIR-DEMONSTRACAO.html. Começa com zero registros e 200 vagas; testes descartados ao fechar/recarregar.
+- **PUBLICAR-CEIA-IPDIV-2026-v2.zip** e **PUBLICAR-CEIA-IPDIV-2026.zip**: instalação nova na conta proprietária, com guia COMECE-AQUI.txt.
+- **ceia-ipdiv-2026.zip**: fontes, testes, documentação, marca oficial e projetos gerados.
+- Os pacotes de PDF/consulta e demonstrações v6–v8 são históricos; não use para esta atualização financeira.
 
-- **PUBLICAR-CEIA-IPDIV-2026-v2.zip** (também disponível como `PUBLICAR-CEIA-IPDIV-2026.zip`): aplicação real pronta para publicar na conta Google. Contém `PUBLICO` e `ADMINISTRACAO`, cada um com `Code.gs` e manifesto, além de `COMECE-AQUI.txt`. A configuração cria a planilha vazia automaticamente. Esta revisão corrige a seleção no editor: execute `prepararPublicacao`, sem sublinhado no final; a função verifica a identidade da conta proprietária. O Google fornecerá o link público depois da implantação.
-- **DEMONSTRACAO-IPDIV-v8.zip**: versão atual para analisar sem instalar nada. Extraia em uma nova pasta e abra **ABRIR-DEMONSTRACAO.html**. Não inclui famílias de exemplo. Tem o mesmo conteúdo de `DEMONSTRACAO-IPDIV.zip`.
-- **ABRIR-DEMONSTRACAO.html**: demonstração autônoma com as telas Inscrição, Inscrições e vagas e Entrada. Os testes ficam apenas na aba; reiniciar volta a zero registros e 200 vagas. WhatsApp e Pix são simulados, sem envio real ou pagamentos.
-- **COMO-ABRIR.txt**: instruções para Windows.
-- **ceia-ipdiv-2026.zip**: pacote completo com fontes, logo oficial, documentação e os projetos gerados em `dist/public` e `dist/admin`, prontos para publicação no Google da Igreja.
-- **pagina-com-logotipo.png**: captura da página no celular, com o contador inicial de 200 vagas.
+Registrar reserva os lugares até 20/12/2026, às 23h59 Brasília. O participante paga por Pix e envia comprovante privado. A secretaria confere recebimento e comprovante no painel para marcar como pago e garantir as vagas. Reservas não confirmadas expiram após o prazo, preservando registros e histórico. Entrada exige pagamento confirmado.
 
-Use a demonstração v8 para conferir a consulta sem link e o PDF. As revisões v6 e v7 são anteriores a essa consulta. As versões mais antigas, com famílias fictícias e regras financeiras anteriores, permanecem somente no histórico do Git.
+O WhatsApp comum exige que a pessoa toque em Enviar. A mensagem inclui dados, quantidade, valor e situação; o comprovante fica disponível no painel. Não há confirmação bancária automática nem envio silencioso.
 
-No GitHub, use **Download raw file** ou **View raw** no arquivo desejado. No Windows, clique com o botão direito no ZIP e use **Extrair Tudo**.
-
-O proprietário publicou os projetos na conta **porumajornadafeliz@gmail.com** e confirmou por imagens o Público, o painel Administrativo e o cadastro de quatro participantes no celular em 17/10/2026. A melhoria do PDF e da consulta sem link ainda precisa ser aplicada à implantação existente conforme `docs/ATUALIZAR-PDF.md`. O pacote não atualiza a conta Google automaticamente.
-
-A demonstração está vazia. Atualizar uma instalação Google existente preserva suas inscrições e históricos; não apaga dados reais. A nova política conta todos os registros não cancelados. A secretaria pode cancelar registros de teste identificados pelo painel, com motivo e histórico.
-
-- **ATUALIZAR-CONSULTA-E-PDF-IPDIV-2026.zip**: atualização somente do projeto Público existente. Permite consultar situação/quantidade pelo nome e WhatsApp e troca o arquivo de texto por PDF com letras maiores e consulta clicável; preserva o link, as chaves e as inscrições. Leia o guia incluso antes de atualizar a versão da implantação.
+Os projetos anteriores foram publicados e a consulta por nome/WhatsApp foi confirmada pelo proprietário. Esta atualização ainda precisa ser aplicada aos dois projetos. Os testes locais não alteram a conta Google.

@@ -36,7 +36,7 @@ export function platform({ now = '2026-10-17T15:00:00Z', actor = 'tesouraria@exa
     computeHmacSha256Signature: (text, secret) => [...createHmac('sha256', secret).update(text).digest()],
     base64Decode: text => [...Buffer.from(text, 'base64')],
     base64Encode: bytes => Buffer.from(bytes).toString('base64'),
-    newBlob: (bytes, mime, name) => ({ getBytes: () => bytes, mime, name }),
+    newBlob: (bytes, mime, name) => ({ getBytes: () => bytes, getContentType: () => mime, getName: () => name, mime, name }),
     base64EncodeWebSafe: bytes => Buffer.from(bytes).toString('base64').replaceAll('+', '-').replaceAll('/', '_')
   };
   const book = { getId: () => 'test-sheet', getUrl: () => 'https://docs.google.com/spreadsheets/d/test-sheet/edit',
@@ -48,12 +48,12 @@ export function platform({ now = '2026-10-17T15:00:00Z', actor = 'tesouraria@exa
     }) },
     Session: { getActiveUser: () => ({ getEmail: () => publicUser }), getEffectiveUser: () => ({ getEmail: () => publicOwner }) },
     PropertiesService: { getScriptProperties: () => getProps(properties) },
-    DriveApp: { Access: { PRIVATE: 'private' }, createFolder: () => ({ getId: () => 'test-folder' }), getFolderById: () => ({ getSharingAccess: () => sharedFolder ? 'public' : 'private', getEditors: () => [], getViewers: () => [], createFile: blob => { const id = randomUUID(); files.set(id, blob); return { getId: () => id, setTrashed: () => files.delete(id) }; } }), getFileById: id => ({ getBlob: () => files.get(id) }) },
+    DriveApp: { Access: { PRIVATE: 'private' }, createFolder: () => ({ getId: () => 'test-folder' }), getFolderById: () => ({ getSharingAccess: () => sharedFolder ? 'public' : 'private', getEditors: () => [], getViewers: () => [], createFile: blob => { const id = randomUUID(); files.set(id, blob); return { getId: () => id, setTrashed: () => files.delete(id) }; } }), getFileById: id => ({ getBlob: () => { if (!files.has(id)) throw new Error('Arquivo não encontrado.'); return files.get(id); } }) },
     SpreadsheetApp: { openById: () => book, create: () => { createdSpreadsheets++; return book; }, flush() {} },
     LockService: { getScriptLock: () => ({ tryLock() { if (lock) return false; lock = true; return true; }, releaseLock() { lock = false; } }) },
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: text => ({ text, setMimeType() { return this; } }) }
   });
-  for (const file of ['shared/Domain.gs', 'shared/Pix.gs', 'shared/Storage.gs', 'public/Config.gs', 'public/Public.gs', 'public/Bridge.gs']) vm.runInContext(readFileSync(path.join(root, 'src', file), 'utf8'), publicContext, { filename: file });
+  for (const file of ['shared/Domain.gs', 'shared/Pix.gs', 'shared/Storage.gs', 'public/Config.gs', 'public/Public.gs', 'public/Payments.gs', 'public/Bridge.gs']) vm.runInContext(readFileSync(path.join(root, 'src', file), 'utf8'), publicContext, { filename: file });
   publicContext.initializePublic_();
   const adminProperties = { PUBLIC_WEB_APP_URL: 'https://script.google.com/macros/s/TEST/exec', ADMIN_BRIDGE_SECRET: properties.ADMIN_BRIDGE_SECRET };
   const adminContext = vm.createContext({ Date: Clock, console, Utilities: utilities,
@@ -85,3 +85,18 @@ export function platform({ now = '2026-10-17T15:00:00Z', actor = 'tesouraria@exa
 export function registration(overrides = {}) {
   return { name: 'José da Silva', phone: '(37) 99999-1234', requestId: randomUUID(), counts: { adultMembers: 1, childMembers: 0, spouse: 0, adultGuests: 0, childGuests: 0 }, ...overrides };
 }
+
+export const proofFixture = { mime: 'application/pdf', data: Buffer.from('%PDF-1.4\nSynthetic receipt for tests only.\n%%EOF').toString('base64') };
+export function pay(p, row) {
+ const uploaded = p.publicApi('proof', { id:row.id, token:row.token, ...proofFixture });
+ if (!uploaded.ok) throw new Error(uploaded.error);
+ const old = p.adminApi('list').data?.actor.email;
+ p.setActor('tesouraria@example.test');
+ const version = p.adminApi('getProof', {id:row.id}).data.version;
+ const response = p.adminApi('payment', { id:row.id, proofVersion:version, approved:true, note:'Comprovante conferido e recebimento verificado no teste' });
+ if (old) p.setActor(old);
+ if (!response.ok) throw new Error(response.error);
+ return response.data;
+}
+
+export const proofVersion = (p,r) => p.adminApi('getProof', {id:r.id}).data?.version;

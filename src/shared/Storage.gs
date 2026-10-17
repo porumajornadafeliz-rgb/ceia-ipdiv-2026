@@ -66,7 +66,10 @@ function safeEqual_(a, b) {
 function publicRow_(row) {
   return { id: row.id, name: row.name, phone: row.phone, counts: row.counts, people: row.people, total: row.total,
     status: registrationState_(row), createdAt: row.createdAt, reportedAt: row.reportedAt || '', entryAt: row.entryAt || '', cancelledAt: row.cancelledAt || '',
-    pix: row.cancelledAt || row.status === 'PAID' ? '' : pix_(row.total, row.id), event: EVENT_ };
+    paymentStatus: paymentState_(row), reservationStatus: reservationState_(row), proofSubmittedAt: row.proofAt || '',
+    proofRejected: row.status === 'PROOF_REJECTED', paidAt: row.paidAt || '',
+    reservationDeadline: EVENT_.deadline,
+    pix: ['CANCELLED', 'EXPIRED'].indexOf(reservationState_(row)) >= 0 || paymentState_(row) !== 'PENDING' ? '' : pix_(row.total, row.id), event: EVENT_ };
 }
 function withErrors_(fn) {
   try { return { ok: true, data: fn() }; }

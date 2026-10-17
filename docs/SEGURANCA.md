@@ -1,49 +1,33 @@
-# Segurança, arquitetura e limites
+# Segurança e limites
 
-## Acesso
+O Público executa como proprietário e é o único projeto que acessa planilha e comprovantes privados. A Administração executa como o usuário que acessa e identifica a conta Google no servidor. As operações são assinadas HMAC-SHA256 com ação, parâmetros, identidade, horário e nonce; a lista `ADMIN_ACCOUNTS` é verificada em cada chamada. A janela é de 60 segundos; nonces das alterações ficam na auditoria para bloquear replay. Papéis: `admin`, `treasury`, `door`. Identidade enviada pelo navegador não concede privilégios.
 
-O projeto público executa como proprietário e é o único que acessa a planilha privada. O projeto administrativo executa como o usuário que acessa, obtém o e-mail da conta Google no servidor e encaminha operações assinadas por HMAC-SHA256 ao público.
+`prepararPublicacao` só funciona com a conta ativa `porumajornadafeliz@gmail.com` igual ao proprietário efetivo. Reutiliza planilha, linhas, segredos e permissões existentes, criando a pasta privada de comprovantes se necessário. O Público pede escopos de planilhas, identificação e Drive. Administração pede identificação e requisições externas. Operadores não recebem acesso direto à pasta ou planilha.
 
-A lista `ADMIN_ACCOUNTS` é verificada em cada chamada. Papéis: `admin`, `treasury` (Secretaria) e `door`. Uma identidade enviada pelo navegador não concede privilégios. O painel não requer compartilhar o editor ou a planilha com os operadores.
+## Reservas e confirmação
 
-A assinatura cobre ação, identidade, parâmetros, horário e nonce, com janela de 60 segundos. O nonce fica no histórico para impedir repetição de alterações após uma operação posterior. A comparação da assinatura é de tempo constante para conteúdos de mesmo comprimento.
+Cadastro, envio de comprovante, conferência financeira, cancelamento, reativação e entrada usam o mesmo ScriptLock. Toda a família é aceita ou recusada. Idempotência do cadastro e do comprovante evita duplicações. Após 20/12/2026, 23h59 Brasília, reservas não confirmadas deixam de ocupar vagas automaticamente no cálculo; não é necessário gatilho nem apagar linhas. Pagas continuam ocupando. Confirmação tardia verifica vagas sob bloqueio. Entrada exige inscrição ativa e pagamento confirmado, e bloqueia duplicação.
 
-A função visível `prepararPublicacao` existe para execução no editor. Ela exige a conta ativa `porumajornadafeliz@gmail.com` igual à identidade efetiva do proprietário. Visitantes anônimos, outras contas e execução sob outro proprietário são recusados antes de criar planilha ou alterar propriedades. O manifesto público inclui identificação de e-mail para essa verificação; a rotina interna continua privada.
+Os cabeçalhos financeiros existentes são reutilizados. A inicialização de cabeçalho compatível só acrescenta `cancelledAt` quando ausente; não reordena ou apaga os registros. Status e datas financeiras históricos são preservados.
 
-## Vagas e registros
+## Acesso de participantes
 
-A capacidade é de 200 pessoas. Toda inscrição ativa ocupa lugares, sem depender de pagamento, cópia de link, envio de WhatsApp ou entrada. `SEAT_POLICY=REGISTERED` é gravado na inicialização; uma configuração antiga `PAID` não reativa o fluxo financeiro.
+O acesso completo exige token de 256 bits, derivado por HMAC de identificador aleatório; só seu hash fica na planilha. O token fica no fragmento do endereço e só é transmitido à API da aplicação. `no-referrer`, recursos incorporados, ausência de analytics e mensagem WhatsApp sem token reduzem exposição. Não publique links individuais em grupos.
 
-Cadastro, cancelamento, reativação e entrada são executados sob o **mesmo ScriptLock** do projeto público. O cadastro valida disponibilidade para toda a família antes de gravar. A reativação também valida a lotação. O identificador de envio e o hash dos dados garantem idempotência de retentativas, inclusive depois do prazo ou do esgotamento.
+Nome completo e WhatsApp exatos permitem consultar situação, quantidade, data e entrada. Também emitem uma autorização de dez minutos exclusivamente para abrir dados de pagamento e enviar comprovante daquela inscrição. Essa autorização não recupera token nem permite ler contato, categorias, histórico, PDF completo ou comprovante privado. Nome e telefone não verificam posse do aparelho: alguém que conheça ambos pode consultar essa situação, valor e enviar comprovante; a secretaria precisa conferir o recebimento antes de aprovar. Não há confirmação financeira por autodeclaração.
 
-O contador público retorna somente agregados. A atualização periódica não constitui uma reserva no navegador: o servidor sempre confere novamente ao gravar. Inscrição cancelada não ocupa lugares nem autoriza entrada. Entrada registrada impede cancelamento e duplicação de entrada.
+Até vinte resultados recentes por contato e oito tentativas por telefone/minuto; CacheService oferece proteção de melhor esforço, não autenticação ou proteção distribuída. Não há CAPTCHA. Monitore spam e cotas.
 
-A planilha inicia sem inscrições. A atualização de uma planilha existente acrescenta a coluna `cancelledAt` ao cabeçalho compatível, preservando as demais colunas, registros e históricos. Os campos financeiros e referências privadas de versões anteriores são preservados para evitar perda de dados, mas não há operações financeiras ou de comprovantes nesta versão. Uma estrutura de cabeçalho diferente é recusada.
+## Comprovantes
 
-## Privacidade
+Aceita apenas PDF, PNG e JPEG até 2 MB, com validação de base64, tamanho decodificado e assinatura inicial do formato. Isso não atesta autenticidade de um pagamento nem faz análise antimalware. A equipe deve conferir documentos e recebimento. A pasta precisa permanecer privada, sem editores ou leitores adicionais. Não há URL pública; download só pelo canal assinado a `admin`/`treasury`. `door` não recebe arquivos, valores ou auditoria financeira. Nomes dos arquivos são gerados pelo sistema.
 
-O ID é aleatório e o acesso aos dados completos exige um token de 256 bits derivado por HMAC de um identificador aleatório. A planilha guarda apenas o hash do token. Há uma consulta limitada de situação por nome completo e telefone juntos, normalizados conforme o cadastro. Ela retorna somente situação registrada/cancelada, quantidade, data de cadastro e indicador de entrada. Não retorna ID, nome, telefone, valores, categorias, token, link ou histórico administrativo. Não aceita busca parcial nem telefone sozinho. Isso não verifica a posse do telefone: alguém que conheça ambos os dados pode consultar essa situação limitada. O link individual continua necessário para os dados completos daquela inscrição; compartilhe apenas com pessoas de confiança.
+Reenvio idêntico é idempotente enquanto o comprovante está em conferência. Outro arquivo só é aceito após recusa. Versões anteriores permanecem privadas para preservar auditoria. Defina com a igreja o prazo de retenção e a exclusão posterior; não há limpeza automática dos documentos nesta versão.
 
-A consulta limitada retorna no máximo as 20 inscrições mais recentes com os mesmos contatos. Há limite de oito tentativas por telefone por minuto, atualizado sob ScriptLock. CacheService é uma proteção de melhor esforço e pode descartar entradas antes do prazo; esse limite não substitui autenticação nem proteção distribuída. Não são adicionadas colunas, alterados tokens ou descontadas vagas pela consulta.
+## Dados e serviços
 
-O token fica no fragmento `#` do link. A consulta o transmite somente à API da própria aplicação. A página declara `no-referrer` e não usa analytics, CDN, fontes ou QR remotos. A mensagem WhatsApp contém os dados necessários para a secretaria, sem o token privado.
+Campos são renderizados com `textContent`, nomes iniciados por fórmulas são recusados, campos livres usam formato texto na planilha e CSV neutraliza fórmulas. Dinheiro usa centavos inteiros calculados no servidor, até cem participantes por cadastro. `sessionStorage` conserva somente a retomada na própria aba; a demonstração usa memória descartável.
 
-`sessionStorage` guarda temporariamente o envio em andamento e o acesso da inscrição na própria aba. Não há `localStorage` ou rastreamento. A demonstração autônoma substitui esse armazenamento por memória descartada ao fechar/recarregar.
+Pix estático não tem webhook ou confirmação bancária. Somente conferência autorizada confirma pagamento; cancelamento não faz estorno. WhatsApp comum exige ação da pessoa para enviar a mensagem e anexar/compartilhar arquivo. O site não verifica entrega. Não há credenciais de API bancária ou WhatsApp no pacote.
 
-Dados são renderizados por `textContent`. Nomes que poderiam iniciar fórmulas são rejeitados, campos livres da planilha têm formato de texto e CSVs neutralizam fórmulas. Valores monetários são inteiros em centavos, recalculados no servidor; quantidades são inteiras e limitadas a 100 pessoas por inscrição.
-
-## Pagamento e WhatsApp
-
-O controle financeiro é feito pela secretaria fora do sistema. O Pix é estático, com chave CNPJ, valor exato e TxId da inscrição; o QR é gerado localmente. Não há leitura bancária, webhook, confirmação automática, upload de comprovante, crédito/devolução ou exigência de pagamento na entrada.
-
-A aplicação nunca apresenta um registro de inscrição como comprovante de pagamento. Valores no painel são declarados pelas inscrições, não saldo recebido. Campos financeiros históricos não são usados como condição de inscrição ou entrada.
-
-Abrir o WhatsApp prepara uma mensagem. O participante confere e toca em Enviar. O horário de contato registrado indica apenas o acionamento do botão, sem garantir envio ou entrega. O sistema não usa uma API de envio de WhatsApp.
-
-## Disponibilidade
-
-Apps Script e Planilhas possuem cotas de execução, simultaneidade e armazenamento: https://developers.google.com/apps-script/guides/services/quotas. As consultas leem a aba inteira, adequadas ao porte comunitário previsto; os testes locais não são testes de carga ou uma garantia de disponibilidade.
-
-O endpoint anônimo pode sofrer spam ou consumo excessivo de cotas. Esta versão não possui CAPTCHA ou proteção distribuída. Monitore a divulgação e as execuções. O bloqueio espera até 20 segundos antes de retornar uma falha recuperável; não exponha detalhes internos de serviços ou permissões.
-
-A publicação real deve validar identidade Google, contas autorizadas, privacidade da planilha, fluxo no celular e integridade do Pix. O simulador local não comprova configuração ou acesso à conta Google. Nenhuma senha ou segredo da Igreja é incluído no pacote.
+Apps Script, Planilhas e Drive possuem cotas: https://developers.google.com/apps-script/guides/services/quotas. Cada consulta lê a aba inteira, adequado ao porte comunitário previsto. O bloqueio espera até vinte segundos. Testes locais não comprovam configuração Google, privacidade efetiva ou disponibilidade da conta; a publicação exige conferência no ambiente da igreja.

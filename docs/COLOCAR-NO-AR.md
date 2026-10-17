@@ -1,10 +1,15 @@
+PARA ATUALIZAR PROJETOS JÁ PUBLICADOS: use o guia ATUALIZAR-PAGAMENTO.md.
+Este guia abaixo é para uma instalação NOVA, com planilha vazia.
+
 CEIA IPDIV 2026 — COLOCAR A VERSÃO DEFINITIVA NO AR
 
 COMO OS MEMBROS VÃO USAR
 
 Será um link que abre no navegador do celular ou computador, sem instalar
 aplicativo. O cadastro já reserva os lugares. A lotação é de 200 pessoas,
-incluindo crianças. A secretaria controla o pagamento pelo WhatsApp.
+incluindo crianças. O pagamento é feito por Pix, com comprovante privado e conferência no painel.
+Reservas sem pagamento confirmado expiram após 20/12/2026, 23h59 Brasília.
+Apenas pagamentos confirmados garantem as vagas.
 
 Este pacote contém a aplicação real para publicar no Google. Ele não é
 um arquivo de demonstração para abrir com dois cliques. O endereço para
@@ -48,7 +53,8 @@ PASSO 2 — CRIAR O PROJETO PÚBLICO
    conteúdo de PUBLICO/appsscript.json deste pacote. Salve.
 6. Na lista de funções, perto de Executar, selecione prepararPublicacao
    (sem sublinhado no final). Clique em Executar e autorize seu
-   próprio projeto a criar/acessar a planilha.
+   próprio projeto a criar/acessar a planilha e a pasta privada de comprovantes
+   no Drive. Marque todas as permissões necessárias.
 7. A execução cria a planilha "Ceia IPDiv 2026 — Inscrições", configura a
    conta da igreja como administradora e prepara os acessos. No registro
    da execução aparecerão o endereço da planilha, zero inscrições e 200 vagas.

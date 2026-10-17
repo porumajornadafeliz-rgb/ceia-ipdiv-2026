@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
-import { platform, registration } from './platform.mjs';
+import { platform, registration, pay } from './platform.mjs';
 // Também funciona após um checkout novo, sem depender de dist previamente gerado.
 await import('../scripts/build.mjs');
 await import('../scripts/build-publication.mjs');
@@ -45,7 +45,7 @@ test('Code.gs consolidado executa cadastro, baixa de vagas, cancelamento e entra
   value(p.adminApi('cancel', { id: row.id, cancelled: true, note: 'Teste de publicação' }));
   assert.equal(value(p.publicApi('capacity')).remaining, 200);
   value(p.adminApi('cancel', { id: row.id, cancelled: false, note: 'Retorno ao evento' }));
-  p.setActor('entrada@example.test'); assert.ok(value(p.adminApi('entry', { id: row.id })).entryAt);
+  p.setActor('entrada@example.test'); assert.ok((pay(p, row), value(p.adminApi('entry', { id: row.id }))).entryAt);
   assert.equal(value(p.publicApi('capacity')).remaining, 199);
 });
 test('páginas públicas e administrativas consolidadas renderizam marca, botões e configuração real', () => {
@@ -54,7 +54,7 @@ test('páginas públicas e administrativas consolidadas renderizam marca, botõe
   p.public.HtmlService = htmlService(p.public); p.admin.HtmlService = htmlService(p.admin);
   const publicHtml = p.public.doGet().getContent(), adminHtml = p.admin.doGet().getContent();
   for (const html of [publicHtml, adminHtml]) { assert.ok(html.includes('data:image/png;base64,')); assert.ok(!html.includes('<?!=')); assert.ok(!html.includes('test-secret-never-production')); assert.ok(!html.includes('bridge-test-never-production')); }
-  assert.match(publicHtml, /REGISTRAR MINHA INSCRIÇÃO/); assert.match(adminHtml, /Inscrições e vagas/);
+  assert.match(publicHtml, /CONFIRMAR E PAGAR COM PIX/); assert.match(adminHtml, /Inscrições e vagas/);
   assert.match(publicHtml, /"url":"https:\/\/script.google.com\/macros\/s\/TEST\/exec"/);
 });
 test('configuração inicial cria uma planilha sem exemplos e reutiliza a planilha em novas execuções', () => {

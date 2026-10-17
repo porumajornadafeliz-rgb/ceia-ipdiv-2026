@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { platform, registration } from './platform.mjs';
+import { platform, registration, pay } from './platform.mjs';
 const value = response => { assert.equal(response.ok, true, response.error); return response.data; };
 const contact = { name: 'José da Silva', phone: '(37) 99999-1234' };
 
@@ -13,13 +13,13 @@ test('situação sem link exige nome completo e telefone, aceita acentos, caixa,
     assert.deepEqual(value(p.publicApi('status', input)).registrations, []);
   }
 });
-test('situação não libera token, link, ID, nome, telefone, valores, categorias ou histórico', () => {
+test('situação não libera token completo nem contato, categorias ou histórico; concede acesso limitado ao pagamento', () => {
   const p = platform(), row = value(p.publicApi('create', registration()));
   const response = value(p.publicApi('status', { ...contact, id: row.id, token: row.token }));
   assert.deepEqual(Object.keys(response).sort(), ['more', 'registrations']);
-  assert.deepEqual(Object.keys(response.registrations[0]).sort(), ['createdAt', 'entered', 'people', 'status']);
+  assert.deepEqual(Object.keys(response.registrations[0]).sort(), ['createdAt', 'entered', 'paymentAccess', 'paymentStatus', 'people', 'reservationStatus', 'status']);
   const serialized = JSON.stringify(response);
-  for (const secret of [row.id, row.token, row.name, row.phone, row.pix]) assert.ok(!serialized.includes(secret));
+  for (const secret of [row.token, row.name, row.phone, row.pix]) assert.ok(!serialized.includes(secret));
   assert.equal(p.publicApi('lookup', contact).ok, false, 'Dados completos continuam exigindo token');
   assert.equal(p.publicApi('report', contact).ok, false);
 });
@@ -33,7 +33,7 @@ test('consultar situação não modifica vagas, registros ou auditoria; acompanh
   assert.equal(value(p.publicApi('status', contact)).registrations[0].status, 'CANCELLED');
   assert.equal(value(p.publicApi('capacity')).remaining, 200);
   value(p.adminApi('cancel', { id: row.id, cancelled: false, note: 'Reativação para teste' }));
-  p.setActor('entrada@example.test'); value(p.adminApi('entry', { id: row.id }));
+  p.setActor('entrada@example.test'); (pay(p, row), value(p.adminApi('entry', { id: row.id })));
   assert.equal(value(p.publicApi('status', contact)).registrations[0].entered, true);
   assert.equal(value(p.publicApi('capacity')).remaining, 199);
 });

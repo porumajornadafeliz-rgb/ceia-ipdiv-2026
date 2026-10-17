@@ -10,6 +10,8 @@ function publicApi(action, input) {
     if (action === 'capacity') return locked_(function() { return capacityForRows_(readRows_(sheet_())); });
     if (action === 'create') return create_(input);
     if (action === 'status') return registrationStatus_(input);
+    if (action === 'paymentDetails') return paymentDetails_(input);
+    if (action === 'proof') return submitProof_(input);
     if (action === 'lookup' || action === 'report' || action === 'confirmation') return accessRegistration_(action, input);
     fail_('Ação inválida.');
   });
@@ -24,7 +26,10 @@ function registrationStatus_(input) {
     var attempts = Number(cache.get(key) || 0);
     if (attempts >= 8) fail_('Muitas consultas para este WhatsApp. Aguarde um minuto e tente novamente.');
     cache.put(key, String(attempts + 1), 90);
-    return statusResults_(readRows_(sheet_()), contact);
+    var rows = readRows_(sheet_()), result = statusResults_(rows, contact);
+    var matches = rows.filter(function(row) { return statusName_(row.name) === statusName_(contact.name) && row.phone === contact.phone; }).slice(-20).reverse();
+    result.registrations.forEach(function(item, i) { item.paymentAccess = paymentAccess_(matches[i]); });
+    return result;
   });
 }
 function create_(input) {
@@ -76,6 +81,8 @@ function initializePublic_() {
   p.setProperty('SEAT_POLICY', capacity.policy); // Migração explícita para vagas por inscrição.
   if (!p.getProperty('TOKEN_SECRET')) p.setProperty('TOKEN_SECRET', Utilities.getUuid() + Utilities.getUuid());
   if (!p.getProperty('ADMIN_BRIDGE_SECRET')) p.setProperty('ADMIN_BRIDGE_SECRET', Utilities.getUuid() + Utilities.getUuid());
+  if (!p.getProperty('PROOF_FOLDER_ID')) p.setProperty('PROOF_FOLDER_ID', DriveApp.createFolder('Ceia IPDiv 2026 — Comprovantes privados').getId());
+  proofFolder_();
   var ss = spreadsheet_(), sheet = ss.getSheetByName('Inscricoes');
   if (!sheet) {
     sheet = ss.insertSheet('Inscricoes');

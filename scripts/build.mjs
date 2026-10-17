@@ -19,14 +19,14 @@ const commonManifest = { timeZone: 'America/Sao_Paulo', runtimeVersion: 'V8', ex
 for (const project of ['public', 'admin']) {
   const out = path.join(root, 'dist', project); await mkdir(out, { recursive: true });
   await writeFile(path.join(out, 'appsscript.json'), JSON.stringify({ ...commonManifest,
-    oauthScopes: project === 'public' ? ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/userinfo.email'] : ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/script.external_request']
+    oauthScopes: project === 'public' ? ['https://www.googleapis.com/auth/spreadsheets', 'https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/drive'] : ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/script.external_request']
   }, null, 2) + '\n');
   for (const name of ['Domain.gs', 'Styles.html', 'Client.html']) await copyFile(path.join(root, 'src/shared', name), path.join(out, name));
   await writeFile(path.join(out, 'Brand.html'), brand);
   if (project === 'public') {
     await copyFile(path.join(root, 'src/shared/Storage.gs'), path.join(out, 'Storage.gs'));
     await copyFile(path.join(root, 'src/shared/Pix.gs'), path.join(out, 'Pix.gs'));
-    for (const name of ['Config.gs', 'Public.gs', 'Bridge.gs', 'Index.html', 'PublicClient.html']) await copyFile(path.join(root, 'src/public', name), path.join(out, name));
+    for (const name of ['Config.gs', 'Public.gs', 'Payments.gs', 'Bridge.gs', 'Index.html', 'PublicClient.html']) await copyFile(path.join(root, 'src/public', name), path.join(out, name));
     await writeFile(path.join(out, 'Qr.html'), qr);
     await writeFile(path.join(out, 'Pdf.html'), pdf);
   } else for (const name of ['Admin.gs', 'Admin.html', 'AdminClient.html']) await copyFile(path.join(root, 'src/admin', name), path.join(out, name));

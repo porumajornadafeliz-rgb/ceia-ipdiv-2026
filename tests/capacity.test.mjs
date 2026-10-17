@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { platform, registration } from './platform.mjs';
+import { platform, registration, pay } from './platform.mjs';
 const value = response => { assert.equal(response.ok, true, response.error); return response.data; };
 const rejected = response => { assert.equal(response.ok, false); assert.match(response.error, /vaga|lotação/i); };
 const access = row => ({ id: row.id, token: row.token });
@@ -41,7 +41,7 @@ test('lotação esgotada bloqueia novo cadastro, mas mantém consulta, contato e
   const p = platform({ actor: 'admin@example.test' }); p.properties.MAX_PARTICIPANTS = '1';
   const row = value(p.publicApi('create', family(1)));
   rejected(p.publicApi('create', family(1))); value(p.publicApi('report', access(row))); value(p.publicApi('lookup', access(row)));
-  value(p.adminApi('entry', { id: row.id })); assert.equal(value(p.publicApi('capacity')).remaining, 0);
+  (pay(p, row), value(p.adminApi('entry', { id: row.id }))); assert.equal(value(p.publicApi('capacity')).remaining, 0);
 });
 test('limite inválido bloqueia novas inscrições; estado público só contém agregados', () => {
   const p = platform();

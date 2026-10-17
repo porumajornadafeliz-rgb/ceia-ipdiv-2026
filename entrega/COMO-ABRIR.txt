@@ -1,36 +1,22 @@
-CEIA IPDIV 2026 — VERSÃO 6 — INÍCIO LIMPO
+CEIA IPDIV 2026 — DEMONSTRAÇÃO V9: PIX E COMPROVANTES
 
-1. Clique com o botão direito em DEMONSTRACAO-IPDIV-v8.zip e escolha
-   "Extrair Tudo". Use uma nova pasta, separada das versões antigas.
+Extraia DEMONSTRACAO-IPDIV-v9.zip em uma nova pasta e abra
+ABRIR-DEMONSTRACAO.html no Edge ou Chrome. Não exige instalação ou rede.
 
-2. Abra a pasta extraída e dê DOIS CLIQUES em:
+Começa com zero inscrições e 200 vagas. Cadastre uma família, veja o Pix
+simulado e envie um arquivo fictício PDF, PNG ou JPG de até 2 MB.
+No painel INSCRIÇÕES E VAGAS, baixe esse arquivo, abra CONFERIR PAGAMENTO,
+informe o resultado e o motivo. A entrada exige confirmação do pagamento.
 
-   ABRIR-DEMONSTRACAO.html
+Não faça pagamentos reais. O QR e a chave desta demonstração não são
+válidos para pagar. O WhatsApp não envia mensagens reais. Arquivos e
+cadastros ficam só na memória desta aba; recarregar ou fechar apaga tudo.
+Não use comprovantes reais nesta análise.
 
-3. Ele abre no Microsoft Edge ou Google Chrome, sem instalação e sem internet.
+O cadastro reserva os lugares até 20/12/2026, 23h59 Brasília. Depois só
+pagamentos confirmados continuam ocupando vagas. Consultar, copiar link,
+enviar comprovante e confirmar pagamento não descontam a reserva duas vezes.
 
-4. O sistema começa SEM inscrições e com 200 VAGAS disponíveis.
-   Não há famílias ou pagamentos de exemplo.
-
-5. Use os botões do topo:
-   - INSCRIÇÃO: registre uma família para analisar as telas.
-   - INSCRIÇÕES E VAGAS: consulte, cancele ou reative uma inscrição de teste.
-   - ENTRADA: pesquise a família e registre sua chegada.
-
-A VAGA É CONTABILIZADA AO REGISTRAR A INSCRIÇÃO.
-Uma família de 4 pessoas reduz o contador de 200 para 196.
-Não é preciso confirmar pagamento. Copiar o link ou abrir a mensagem da
-secretaria novamente não desconta outras vagas.
-
-O botão COPIAR MEU LINK já fica disponível depois do registro.
-O controle de pagamento será feito diretamente pela secretaria via WhatsApp.
-
-ESTE ARQUIVO É UMA DEMONSTRAÇÃO PARA ANÁLISE.
-Os testes ficam apenas nesta aba. Fechar ou recarregar volta ao início vazio.
-O WhatsApp mostra uma prévia, sem enviar mensagens reais. O QR demonstrativo
-não permite pagamento. A demonstração não grava no Google.
-
-Antes de receber inscrições reais, publique os projetos Google Apps Script
-conforme docs/PUBLICACAO.md do pacote completo. A versão publicada terá os
-registros compartilhados, o contador da igreja e o WhatsApp para conferir
-e enviar os dados à secretaria.
+Para atualizar os projetos Google já existentes, use o pacote
+ATUALIZAR-PIX-E-COMPROVANTES-IPDIV-2026.zip e o guia incluso.
+A demonstração não publica mudanças na conta Google.
