@@ -8,14 +8,16 @@ Comandos executados durante a entrega:
 npm run build
 npm test
 npm run test:browser
+npm run test:offline
 ```
 
-`npm test` executa **20 testes** com o código `.gs` real dentro de um simulador das APIs Google. Exercita o canal administrativo completo, incluindo assinatura e identidade simuladas; não usa uma versão alternativa das regras do negócio.
+`npm test` executa **28 testes** com o código `.gs` real dentro de um simulador das APIs Google. Exercita o canal administrativo completo, incluindo assinatura e identidade simuladas; não usa uma versão alternativa das regras do negócio.
 
 | Área | Cobertura local |
 |---|---|
 | Categorias | Valores unitários, filhos não membros, soma e rejeição de quantidades inválidas |
 | Cônjuge | Limite de um e necessidade de adulto membro |
+| Vagas | 200 pessoas, crianças incluídas, pendência sem reserva, última vaga, família sem lugar integral, estorno, idempotência, configuração inválida, bloqueio e exceção de entrada |
 | Prazo | Último milissegundo do dia permitido, bloqueio no instante seguinte e consulta posterior |
 | Duplicações | Mesmo identificador retorna mesma inscrição/token; payload alterado é recusado |
 | Pix | TLV, chave, valor, moeda, TxId e CRC com vetor conhecido e cálculo independente |
@@ -31,13 +33,13 @@ npm run test:browser
 | Indicadores | Famílias, pessoas, valores e entradas coerentes |
 | Comprovante opcional | Token, formato, pasta privada, um arquivo por inscrição e download restrito |
 
-O teste de navegador usa Chromium em modo headless, executa as páginas e APIs locais e gera capturas em `test-results/` (não versionadas). Confere o carregamento local do logotipo oficial nas páginas pública e administrativa, visualização sem transbordamento entre 320 e 1280 pixels, máscara de telefone ao digitar/apagar/colar, destino WhatsApp da secretaria (interceptado no teste, sem contato real e sem token privado), botões +/−, regra do cônjuge, resumo, geração e decodificação do QR renderizado, aviso sem confirmação, upload/download opcional, pagamento manual, consulta pelo link privado, recibo, pesquisa por nome/telefone/número, filtros, check-in e CSV. Verifica ausência de erros JavaScript e de envios externos; a abertura do WhatsApp é respondida localmente no teste, sem acessar o serviço ou enviar mensagem.
+O teste de navegador usa Chromium em modo headless, executa as páginas e APIs locais e gera capturas em `test-results/` (não versionadas). Confere o carregamento local do logotipo oficial nas páginas pública e administrativa, visualização sem transbordamento entre 320 e 1280 pixels, máscara de telefone ao digitar/apagar/colar, destino e mensagem do WhatsApp da secretaria (nome, inscrição, participantes, valor e situação pendente; interceptado no teste, sem contato real e sem token privado), botões +/−, regra do cônjuge, resumo, geração e decodificação do QR renderizado, aviso sem confirmação, contador antes/depois do pagamento, vagas esgotadas com Pix oculto para pendente e consulta disponível, upload/download opcional, pagamento manual, consulta pelo link privado, recibo, pesquisa por nome/telefone/número, filtros, check-in e CSV. Verifica ausência de erros JavaScript e de envios externos; a abertura do WhatsApp é respondida localmente no teste, sem acessar o serviço ou enviar mensagem.
 
 São testes funcionais locais; **não são um teste de carga, uma auditoria de segurança independente, uma implantação Google ou uma validação bancária**.
 
 ## Demonstração autônoma para análise
 
-`npm run build` também gera `entrega/ABRIR-DEMONSTRACAO.html`. O comando `npm run test:offline` verifica esse HTML completo em Chromium com toda a rede desativada, incluindo logotipo, prazo destacado, programação do culto e da ceia, categoria de cônjuge corrigida, cadastro, valores, QR sem Pix válido, aviso pendente, confirmação simulada na tesouraria, retorno à consulta, programação no recibo salvo, check-in, bloqueio de duplicação, bloqueio de não pago, responsividade e descarte dos dados ao recarregar.
+`npm run build` também gera `entrega/ABRIR-DEMONSTRACAO.html`. O comando `npm run test:offline` verifica esse HTML completo em Chromium com toda a rede desativada, incluindo logotipo, prazo destacado, programação do culto e da ceia, categoria de cônjuge corrigida, contador de vagas incluindo exemplos fictícios, bloqueio por lotação e restauração ao reiniciar, cadastro, valores, QR sem Pix válido, aviso pendente, confirmação simulada na tesouraria, retorno à consulta, programação no recibo salvo, check-in, bloqueio de duplicação, bloqueio de não pago, responsividade e descarte dos dados ao recarregar.
 
 A política do navegador no ambiente de execução bloqueia a navegação direta a URLs `file://`; por isso o teste injeta o mesmo HTML completo em uma página vazia, sem servidor ou requisições de rede. O teste não executa o Windows nem o gesto de duplo clique do usuário. O arquivo entregue é HTML autônomo para abrir no Edge ou Chrome, sem instalação.
 
@@ -55,6 +57,8 @@ Faça estes testes nas versões `/exec`, com uma inscrição e um pagamento de t
 - [ ] Família com 1 adulto membro, 1 criança membro, 1 cônjuge, 1 adulto não membro e 1 criança não membro soma 5 pessoas e **R$ 380,00**.
 - [ ] Cônjuge não pode ser adicionado sem adulto membro nem ultrapassar uma unidade.
 - [ ] Filhos não membros são contados nas categorias de não membro; a orientação de idade usa 31/12/2026.
+- [ ] Propriedades `MAX_PARTICIPANTS=200` e `SEAT_POLICY=PAID` conferidas; contador inclui crianças, não desconta pendentes e diminui na confirmação do pagamento.
+- [ ] Em cópia de homologação, a última vaga não pode ser ocupada por duas confirmações; esgotamento bloqueia novos cadastros e oculta o Pix para pendentes sem lugar. Não altere a lotação da produção para testes.
 - [ ] Clique repetido/retentativa do mesmo envio não cria outra linha.
 - [ ] Na homologação, confira a lógica de prazo já testada localmente. Não altere a data em produção para simular o fechamento; use uma cópia privada separada se precisar de teste temporal no Google.
 - [ ] QR e Copia e Cola são lidos pelo banco com a chave, favorecido e valor corretos.

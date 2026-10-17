@@ -60,6 +60,19 @@ function registrationInput_(input) {
 function assertOpen_(now) {
   if (new Date(now).getTime() >= Date.parse(EVENT_.deadline)) fail_('O prazo de inscrições encerrou em 20/12/2026, às 23h59 (Brasília). A consulta continua disponível.');
 }
+/** Capacidade conta pessoas, incluindo crianças. Sem configuração, novas inscrições ficam bloqueadas. */
+function capacity_(rows, limit, policy) {
+  var configured = Number.isSafeInteger(limit) && limit > 0 && ['REGISTERED', 'PAID'].indexOf(policy) >= 0;
+  var used = rows.reduce(function(n, r) {
+    return n + (policy === 'REGISTERED' || r.status === 'PAID' || r.entryAt ? r.people : 0);
+  }, 0);
+  return { configured: configured, limit: configured ? limit : null, policy: configured ? policy : '',
+    used: configured ? used : null, remaining: configured ? Math.max(0, limit - used) : null };
+}
+function assertSeats_(capacity, people) {
+  if (!capacity.configured) fail_('O limite de vagas está em definição. Aguarde a organização liberar as inscrições.');
+  if (people > capacity.remaining) fail_(capacity.remaining === 0 ? 'Vagas esgotadas. Não é possível confirmar novas inscrições. Procure a secretaria.' : 'Restam apenas ' + capacity.remaining + ' vaga(s). Não foi possível reservar lugar para toda esta inscrição.');
+}
 function assertRole_(actor, roles) {
   if (!actor || roles.indexOf(actor.role) < 0) fail_('Acesso não autorizado para esta ação.');
 }

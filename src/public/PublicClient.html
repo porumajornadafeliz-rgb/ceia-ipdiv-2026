@@ -8,6 +8,33 @@ function newRequestId() {
   return hex.slice(0, 8) + '-' + hex.slice(8, 12) + '-' + hex.slice(12, 16) + '-' + hex.slice(16, 20) + '-' + hex.slice(20);
 }
 let requestId = newRequestId(), draft = null, current = null, access = null;
+let availability = null, capacityRequest = null;
+function renderAvailability() {
+  const c = availability;
+  $('capacity-summary').textContent = !c ? 'Não foi possível consultar as vagas.' : !c.configured ? 'Limite de vagas em definição' : c.remaining === 0 ? 'Vagas esgotadas' : c.remaining + (c.remaining === 1 ? ' vaga restante' : ' vagas restantes');
+  $('capacity-detail').textContent = c?.configured ? 'Limite de ' + c.limit + ' pessoas, incluindo crianças. ' + (c.policy === 'PAID' ? 'Inscrições pendentes não garantem lugar. As vagas são descontadas após a confirmação do pagamento.' : 'A inscrição reserva os lugares; a participação só é confirmada após a conferência do pagamento.') : 'Atualize a consulta antes de se inscrever. Se persistir, procure a secretaria.';
+  $('begin').disabled = !CONFIG.open || !c?.configured || c.remaining === 0;
+  $('begin').textContent = !CONFIG.open ? 'INSCRIÇÕES ENCERRADAS' : c?.configured && c.remaining === 0 ? 'VAGAS ESGOTADAS' : 'FAZER MINHA INSCRIÇÃO';
+  if (current?.status !== 'PAID') {
+    const cannotPay = !c?.configured || current && current.people > c.remaining;
+    $('pix-section').hidden = Boolean(cannotPay);
+    $('payment-capacity-warning').hidden = !current || !cannotPay;
+    $('payment-capacity-warning').textContent = c?.configured ? 'Não há vagas suficientes para todos os participantes desta inscrição. Não faça o Pix agora. Procure a secretaria pelo WhatsApp (37) 3212-4980 para orientação. Sua inscrição continua pendente.' : 'Consulte a disponibilidade de vagas antes de fazer o Pix. Não foi possível verificar a lotação neste momento.';
+  }
+  renderCounts();
+}
+async function refreshCapacity() {
+  if (capacityRequest) return capacityRequest;
+  capacityRequest = (async () => {
+    try { availability = await api('capacity'); $('capacity-updated').textContent = 'Consulta em ' + dateTime(new Date().toISOString()) + '. A disponibilidade pode mudar.'; }
+    catch { availability = null; $('capacity-updated').textContent = 'Não foi possível atualizar. Confira sua conexão e tente novamente.'; }
+    renderAvailability();
+  })();
+  try { await capacityRequest; } finally { capacityRequest = null; }
+}
+$('refresh-capacity').onclick = () => busy($('refresh-capacity'), refreshCapacity);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refreshCapacity(); });
+setInterval(() => { if (!document.hidden) refreshCapacity(); }, 60000);
 installPhoneMask($('phone'));
 const views = ['home', 'form', 'review', 'payment', 'lookup'];
 function show(view) {
@@ -30,7 +57,7 @@ function renderCounts() {
   CONFIG.event.categories.forEach(c => {
     $('quantity-' + c.key).value = counts[c.key]; $('quantity-' + c.key).textContent = counts[c.key];
     $('minus-' + c.key).disabled = counts[c.key] === 0;
-    $('plus-' + c.key).disabled = sum().people >= 100 || (c.key === 'spouse' && (!counts.adultMembers || counts.spouse >= 1));
+    $('plus-' + c.key).disabled = sum().people >= Math.min(100, availability?.configured ? availability.remaining : 100) || (c.key === 'spouse' && (!counts.adultMembers || counts.spouse >= 1));
   });
   summary('live-summary', counts);
 }
@@ -53,17 +80,22 @@ CONFIG.event.categories.forEach(c => {
 });
 renderCounts();
 if (!CONFIG.open) { $('begin').disabled = true; $('begin').textContent = 'INSCRIÇÕES ENCERRADAS'; $('deadline-home').textContent = 'O prazo encerrou em 20/12/2026. A consulta de pagamentos continua disponível.'; }
-$('begin').onclick = () => show('form');
+$('begin').onclick = () => { show('form'); refreshCapacity(); };
 $('open-lookup').onclick = () => show('lookup');
 $('brand-home').onclick = e => { e.preventDefault(); show('home'); };
 $('registration-form').onsubmit = e => {
-  e.preventDefault(); message('form-error', '');
-  if (!sum().people) { message('form-error', 'Inclua pelo menos uma pessoa na inscrição.'); return; }
-  const phone = $('phone').value.replace(/\D/g, '');
-  if (phone.length < 10 || phone.length > 13) { message('form-error', 'Confira o número de WhatsApp com DDD.'); return; }
-  draft = { name: $('name').value.trim(), phone: $('phone').value, counts: { ...counts }, requestId };
-  $('review-name').textContent = draft.name; $('review-phone').textContent = 'WhatsApp: ' + formatPhone(draft.phone);
-  summary('review-summary', draft.counts); show('review');
+  e.preventDefault();
+  busy($('review-button'), async () => {
+    message('form-error', '');
+    await refreshCapacity();
+    if (!availability?.configured || sum().people > availability.remaining) { message('form-error', 'Não há vagas suficientes ou não foi possível consultar a disponibilidade. Confira o contador de vagas e ajuste os participantes.'); return; }
+    if (!sum().people) { message('form-error', 'Inclua pelo menos uma pessoa na inscrição.'); return; }
+    const phone = $('phone').value.replace(/\D/g, '');
+    if (phone.length < 10 || phone.length > 13) { message('form-error', 'Confira o número de WhatsApp com DDD.'); return; }
+    draft = { name: $('name').value.trim(), phone: $('phone').value, counts: { ...counts }, requestId };
+    $('review-name').textContent = draft.name; $('review-phone').textContent = 'WhatsApp: ' + formatPhone(draft.phone);
+    summary('review-summary', draft.counts); show('review');
+  });
 };
 $('edit').onclick = () => show('form');
 $('confirm').onclick = () => busy($('confirm'), async () => {
@@ -72,8 +104,8 @@ $('confirm').onclick = () => busy($('confirm'), async () => {
     try { sessionStorage.setItem('ceia-pending', JSON.stringify(draft)); } catch {}
     const result = await api('create', draft); access = { id: result.id, token: result.token };
     try { sessionStorage.removeItem('ceia-pending'); } catch {}
-    updateHash(); renderPayment(result); show('payment');
-  } catch (e) { message('review-error', e.message); } finally { $('edit').disabled = false; }
+    updateHash(); renderPayment(result); show('payment'); await refreshCapacity();
+  } catch (e) { message('review-error', e.message); await refreshCapacity(); } finally { $('edit').disabled = false; }
 });
 function baseUrl() { return (CONFIG.url || location.href.split('#')[0]).split('#')[0]; }
 function privateLink() { return baseUrl() + '#' + new URLSearchParams(access).toString(); }
@@ -87,6 +119,9 @@ function renderPayment(data) {
   $('payment-status').textContent = paid ? 'PAGAMENTO CONFIRMADO' : 'AGUARDANDO CONFIRMAÇÃO'; $('payment-status').className = 'status' + (paid ? ' paid' : '');
   $('payment-title').textContent = paid ? 'Sua presença está confirmada.' : 'Inscrição recebida!';
   $('payment-description').textContent = paid ? 'Guarde a confirmação. Nos vemos na ceia!' : 'Agora é só fazer o Pix e aguardar a conferência da tesouraria.';
+  $('pending-payment-notice').hidden = paid;
+  $('payment-contact').hidden = paid;
+  $('payment-capacity-warning').hidden = paid;
   $('registration-id').textContent = data.id; $('receipt-name').textContent = data.name; summary('receipt-summary', data.counts);
   $('pix-section').hidden = paid; $('confirmed-section').hidden = !paid;
   $('private-link').value = privateLink();
@@ -98,8 +133,10 @@ function renderPayment(data) {
     const qr = qrcode(0, 'M'); qr.addData(data.pix, 'Byte'); qr.make();
     $('qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 16, scalable: true }); // Somente SVG da biblioteca local, sem texto do usuário.
     $('report-pix').href = secretariatWhatsAppLink(data);
+    $('whatsapp-message-preview').textContent = secretariatMessage(data);
     $('reported-message').textContent = data.reportedAt ? 'Aviso registrado no sistema em ' + dateTime(data.reportedAt) + '. A mensagem no WhatsApp precisa ser enviada por você. O pagamento continua aguardando conferência bancária.' : 'Abra o WhatsApp, confira a mensagem e toque em Enviar. Avisar a secretaria não confirma o pagamento; o recebimento será conferido no banco.';
   }
+  renderAvailability();
 }
 $('upload-proof').onclick = () => busy($('upload-proof'), async () => {
   message('payment-error', '');
@@ -112,8 +149,13 @@ $('upload-proof').onclick = () => busy($('upload-proof'), async () => {
 });
 $('copy-pix').onclick = () => copyText(current.pix, $('copy-pix'));
 $('copy-link').onclick = () => copyText(privateLink(), $('copy-link'));
+function secretariatMessage(data) {
+  const status = data.status === 'PAID' ? 'PAGAMENTO CONFIRMADO em ' + dateTime(data.paidAt) + '.' : 'PENDENTE — aguardando conferência bancária. Este aviso não comprova o recebimento.';
+  const text = 'Olá, secretaria! Seguem os dados da minha inscrição para a Ceia de Confraternização IPDiv 2026:\n\nResponsável: ' + data.name + '\nInscrição: ' + data.id + '\nParticipantes: ' + data.people + '\nValor total: ' + money(data.total) + '\n\nInformação do participante: já fiz o Pix.\nSituação no sistema nesta consulta: ' + status + '\n\nSolicito a conferência do recebimento. Sei que a inscrição só será confirmada após o pagamento e a conferência no banco.';
+  return text;
+}
 function secretariatWhatsAppLink(data) {
-  const text = 'Olá, secretaria! Sou ' + data.name + '. Realizei o Pix da inscrição ' + data.id + ' para a Ceia de Confraternização IPDiv 2026, no valor de ' + money(data.total) + '. Solicito a conferência do recebimento.';
+  const text = secretariatMessage(data);
   return 'https://wa.me/' + CONFIG.event.secretariat.whatsapp + '?text=' + encodeURIComponent(text);
 }
 $('report-pix').onclick = () => {
@@ -127,7 +169,7 @@ $('report-pix').onclick = () => {
 };
 $('refresh-payment').onclick = () => busy($('refresh-payment'), async () => {
   message('payment-error', ''); message('payment-success', '');
-  try { renderPayment(await api('lookup', access)); message('payment-success', 'Situação atualizada.', true); } catch (e) { message('payment-error', e.message); }
+  try { renderPayment(await api('lookup', access)); await refreshCapacity(); message('payment-success', 'Situação atualizada.', true); } catch (e) { message('payment-error', e.message); }
 });
 function receiptText() {
   return 'CEIA DE CONFRATERNIZAÇÃO 2026\nIgreja Presbiteriana de Divinópolis\n\nInscrição: ' + current.id + '\nResponsável: ' + current.name + '\nParticipantes: ' + current.people + '\nValor pago: ' + money(current.total) + '\nPAGAMENTO CONFIRMADO\nConferido em: ' + dateTime(current.paidAt) + '\n\n' + CONFIG.event.date + ' — ' + CONFIG.event.thanksgiving.name + ' às ' + CONFIG.event.thanksgiving.time + '\n' + CONFIG.event.thanksgiving.venue + ' — ' + CONFIG.event.thanksgiving.address + '\n\nCeia após o culto — ' + CONFIG.event.venue + '\n' + CONFIG.event.address + '\n\nConsulta privada: ' + privateLink();
@@ -145,7 +187,7 @@ function parseAccess(raw) {
   if (!/^IPD26[A-F0-9]{16}$/.test(id || '') || !/^[a-zA-Z0-9_-]{43}$/.test(token || '')) throw new Error('Cole o link individual completo, incluindo a parte depois de #.');
   return { id, token };
 }
-async function loadAccess(raw) { access = parseAccess(raw); const result = await api('lookup', access); renderPayment(result); updateHash(); show('payment'); }
+async function loadAccess(raw) { access = parseAccess(raw); const result = await api('lookup', access); renderPayment(result); updateHash(); show('payment'); await refreshCapacity(); }
 $('lookup-form').onsubmit = e => { e.preventDefault(); busy($('lookup-button'), async () => { message('lookup-error', ''); try { await loadAccess($('lookup-link').value); } catch (e) { message('lookup-error', e.message); } }); };
 async function initialLocation(hash) {
   if (hash && /(?:^#?|&)id=/.test(hash)) { show('lookup'); try { await loadAccess(hash); } catch (e) { message('lookup-error', e.message); } return; }
@@ -160,4 +202,5 @@ async function initialLocation(hash) {
 }
 if (window.CEIA_DEMO) initialLocation(location.hash);
 else google.script.url.getLocation(loc => initialLocation(loc.hash || ''));
+refreshCapacity();
 </script>

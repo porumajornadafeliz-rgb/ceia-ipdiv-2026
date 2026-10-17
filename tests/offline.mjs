@@ -15,6 +15,7 @@ try {
   await loadDemo();
   const registration = page.frameLocator('#registration-app'), admin = page.frameLocator('#app');
   await registration.getByRole('button', { name: 'FAZER MINHA INSCRIÇÃO' }).waitFor();
+  await registration.getByText('194 vagas restantes', { exact: true }).waitFor();
   assert.match(await registration.locator('#deadline-home').innerText(), /20\/12\/2026/);
   await registration.getByRole('heading', { name: 'Culto de Ações de Graças', exact: true }).waitFor();
   await registration.getByText('20h30min', { exact: true }).waitFor();
@@ -32,6 +33,8 @@ try {
   assert.match(await registration.locator('#review-summary').innerText(), /200,00/);
   await registration.getByRole('button', { name: 'CONFIRMAR E PAGAR COM PIX' }).click();
   await registration.locator('#qr svg').waitFor();
+  assert.equal(await registration.locator('#capacity-summary').innerText(), '194 vagas restantes');
+  assert.match(await registration.locator('#pending-payment-notice').innerText(), /pendentes não garantem lugar/);
   const id = await registration.locator('#registration-id').innerText();
   const qrImage = PNG.sync.read(await registration.locator('#qr').screenshot());
   const qrData = jsQR(new Uint8ClampedArray(qrImage.data), qrImage.width, qrImage.height)?.data;
@@ -39,6 +42,9 @@ try {
   await registration.getByRole('link', { name: /JÁ FIZ O PIX — AVISAR A SECRETARIA/ }).click();
   await registration.getByText('Demonstração: aviso registrado. Na versão publicada, o WhatsApp da secretaria abrirá com uma mensagem para você conferir e enviar.').waitFor();
   assert.equal(await registration.locator('#payment-status').innerText(), 'AGUARDANDO CONFIRMAÇÃO');
+  const preview = await registration.locator('#whatsapp-message-preview').innerText();
+  assert.match(preview, /Família de Teste/); assert.match(preview, /Participantes: 2/);
+  assert.match(preview, /Situação no sistema nesta consulta: PENDENTE/); assert.ok(preview.includes(id));
   await page.getByRole('button', { name: '2. TESOURARIA', exact: true }).click();
   await admin.getByLabel('Pesquisar inscrição').fill('Familia de Teste');
   await admin.getByRole('button', { name: 'CONFIRMAR PAGAMENTO', exact: true }).click();
@@ -47,6 +53,8 @@ try {
   await page.getByRole('button', { name: '1. INSCRIÇÃO', exact: true }).click();
   await registration.getByRole('button', { name: 'Atualizar situação do pagamento' }).click();
   await registration.getByText('Sua presença está confirmada.').waitFor();
+  await registration.getByText('192 vagas restantes', { exact: true }).waitFor();
+  assert.equal(await registration.locator('#pending-payment-notice').isVisible(), false);
   assert.match(await registration.locator('#confirmed-section').innerText(), /Av\. Paraná, 1098/);
   assert.match(await registration.locator('#confirmed-section').innerText(), /Ceia após o culto/);
   const receiptPromise = page.waitForEvent('download');
@@ -72,7 +80,19 @@ try {
   await page.screenshot({ path: 'test-results/demonstracao-mobile.png', fullPage: true });
   assert.ok(requests.every(url => /^(file:|data:|about:|blob:)/.test(url)), 'Nenhuma requisição de rede');
   assert.deepEqual(errors, [], 'Nenhum erro JavaScript');
+  const fullDemo = await page.evaluate(() => {
+    let sequence = 0;
+    const make = n => ceiaOfflineApi('public', 'create', { name: 'Lotação fictícia', phone: '(37) 99999-0000', requestId: '00000000-0000-4000-8000-' + String(++sequence).padStart(12, '0'), counts: { adultMembers: n, childMembers: 0, spouse: 0, adultGuests: 0, childGuests: 0 } });
+    const pending = make(1);
+    const results = [100, 92].map(n => { const r = make(n); return ceiaOfflineApi('admin', 'payment', { id: r.data.id, paid: true, note: 'Fixture lotação fictícia' }); });
+    return { results, remaining: ceiaOfflineApi('public', 'capacity').data.remaining, extra: make(1), overpayment: ceiaOfflineApi('admin', 'payment', { id: pending.data.id, paid: true, note: 'Tentativa excedente' }) };
+  });
+  assert.ok(fullDemo.results.every(r => r.ok)); assert.equal(fullDemo.remaining, 0);
+  assert.equal(fullDemo.extra.ok, false); assert.equal(fullDemo.overpayment.ok, false);
+  await registration.getByRole('button', { name: 'Atualizar vagas', exact: true }).click();
+  await registration.getByText('Vagas esgotadas', { exact: true }).waitFor();
   await loadDemo(); await registration.getByRole('button', { name: 'FAZER MINHA INSCRIÇÃO' }).waitFor();
+  await registration.getByText('194 vagas restantes', { exact: true }).waitFor();
   await page.getByRole('button', { name: '2. TESOURARIA', exact: true }).click();
   await admin.getByLabel('Pesquisar inscrição').fill('Família de Teste');
   await admin.getByText('Nenhuma inscrição encontrada.', { exact: true }).waitFor();

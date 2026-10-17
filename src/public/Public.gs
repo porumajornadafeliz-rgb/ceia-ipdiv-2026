@@ -7,6 +7,7 @@ function doGet() {
 function include_(name) { return HtmlService.createHtmlOutputFromFile(name).getContent(); }
 function publicApi(action, input) {
   return withErrors_(function() {
+    if (action === 'capacity') return locked_(function() { return capacityForRows_(readRows_(sheet_())); });
     if (action === 'create') return create_(input);
     if (action === 'proof') return proof_(input);
     if (action === 'lookup' || action === 'report') return accessRegistration_(action, input);
@@ -25,6 +26,7 @@ function create_(input) {
       var result = publicRow_(existing); result.token = token; return result;
     }
     assertOpen_(Date.now());
+    assertSeats_(capacityForRows_(rows), valid.people);
     var id;
     do { id = 'IPD26' + Utilities.getUuid().replace(/-/g, '').slice(0, 16).toUpperCase(); }
     while (rows.some(function(r) { return r.id === id; }));
@@ -56,6 +58,9 @@ function initializePublic_() {
   if (!p.getProperty('SPREADSHEET_ID')) fail_('Defina SPREADSHEET_ID nas propriedades do script.');
   // Configurar a conta informada sem substituir permissões já salvas.
   if (!p.getProperty('ADMIN_ACCOUNTS')) p.setProperty('ADMIN_ACCOUNTS', JSON.stringify(initialAdminAccounts_()));
+  var capacity = initialCapacity_();
+  if (!p.getProperty('MAX_PARTICIPANTS')) p.setProperty('MAX_PARTICIPANTS', String(capacity.limit));
+  if (!p.getProperty('SEAT_POLICY')) p.setProperty('SEAT_POLICY', capacity.policy);
   if (!p.getProperty('TOKEN_SECRET')) p.setProperty('TOKEN_SECRET', Utilities.getUuid() + Utilities.getUuid());
   if (!p.getProperty('ADMIN_BRIDGE_SECRET')) p.setProperty('ADMIN_BRIDGE_SECRET', Utilities.getUuid() + Utilities.getUuid());
   var ss = spreadsheet_(), sheet = ss.getSheetByName('Inscricoes');

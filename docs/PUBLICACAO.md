@@ -36,6 +36,8 @@ O logotipo oficial já está incorporado no arquivo `Brand.html` dos dois projet
 | Propriedade | Valor |
 |---|---|
 | `SPREADSHEET_ID` | ID da planilha privada criada acima |
+| `MAX_PARTICIPANTS` | `200` — lotação total, contando adultos e crianças. A inicialização cria esse valor quando ausente. |
+| `SEAT_POLICY` | `PAID` — descontar vagas somente após a confirmação do pagamento; pendentes não garantem lugar. A inicialização cria esse valor quando ausente. |
 | `ADMIN_ACCOUNTS` | Opcional no primeiro uso: a inicialização configura a conta abaixo como administradora. Se a propriedade já existir, confira ou acrescente a conta sem remover os demais acessos necessários. |
 
 Configuração inicial preparada para a Igreja:
@@ -48,11 +50,11 @@ Configuração inicial preparada para a Igreja:
 
 `admin` confirma pagamentos, registra entradas e pode liberar uma entrada pendente com justificativa. `treasury` confere pagamentos e relatórios; `door` pesquisa e registra apenas a entrada de inscrições pagas. Uma conta precisa de somente um papel; use `admin` quando precisar das duas áreas.
 
-Para outras pessoas, acrescente seus e-mails reais ao mesmo JSON com `treasury` ou `door`. Não é preciso fornecer senha. O arquivo `Config.gs` define somente o valor inicial: após a primeira configuração, a lista efetiva é a propriedade `ADMIN_ACCOUNTS`, que nunca é sobrescrita pela inicialização.
+Para outras pessoas, acrescente seus e-mails reais ao mesmo JSON com `treasury` ou `door`. Não é preciso fornecer senha. O arquivo `Config.gs` define os valores iniciais: após a primeira configuração, a lista efetiva é a propriedade `ADMIN_ACCOUNTS`, que nunca é sobrescrita pela inicialização.
 
 5. Salve tudo. Selecione **`initializePublic_`** no editor e clique em **Executar**, como proprietário. Autorize acesso a Planilhas e Drive. A função é privada para chamadas web, mas pode ser executada pelo proprietário no editor.
 6. Ela cria a aba `Inscricoes`, o cabeçalho e uma pasta privada **Ceia IPDiv 2026 — Comprovantes privados** no Drive. Não apaga dados existentes. Confere o cabeçalho e recusa estruturas diferentes.
-7. Confira as propriedades geradas: `TOKEN_SECRET`, `ADMIN_BRIDGE_SECRET` e `PROOF_FOLDER_ID`. **Não altere `TOKEN_SECRET` após iniciar inscrições**, pois ele é usado para repetir envios com segurança. Não exponha nenhum segredo nem compartilhe a pasta de comprovantes.
+7. Confira as propriedades geradas: `TOKEN_SECRET`, `ADMIN_BRIDGE_SECRET`, `PROOF_FOLDER_ID`, **`MAX_PARTICIPANTS=200`** e **`SEAT_POLICY=PAID`**. **Não altere `TOKEN_SECRET` após iniciar inscrições**, pois ele é usado para repetir envios com segurança. Não exponha nenhum segredo nem compartilhe a pasta de comprovantes.
 8. Vá a **Implantar → Nova implantação → Aplicativo da Web**:
    - **Executar como: Eu**, a conta proprietária da Igreja.
    - **Quem pode acessar: Qualquer pessoa**, incluindo quem não tem login Google. Não escolha apenas “qualquer pessoa com uma conta Google”.
@@ -97,6 +99,8 @@ Na conta bancária, a tesouraria precisa:
 Somente após essas verificações, compartilhe o endereço público `/exec` pelo WhatsApp. O link administrativo não deve ir no convite.
 
 ## 6. Atualizar e operar
+
+Para atualizar uma implantação anterior para o controle de vagas, copie os arquivos atualizados dos dois projetos e execute `initializePublic_` novamente no projeto público. Ela acrescenta as propriedades de capacidade sem apagar inscrições ou alterar segredos existentes. Confira `MAX_PARTICIPANTS=200` e `SEAT_POLICY=PAID` antes de publicar a nova versão.
 
 Após editar código, gere os arquivos novamente, copie os arquivos alterados no projeto correspondente e publique uma **nova versão da implantação existente** em **Implantar → Gerenciar implantações → Editar → Nova versão**. Isso preserva os endereços `/exec`. Salvar no editor sozinho não atualiza a versão pública.
 

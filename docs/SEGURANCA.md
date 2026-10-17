@@ -44,6 +44,8 @@ A validação do formato não é antivírus. Não execute conteúdo de arquivos 
 
 Preços são inteiros em centavos e quantidades inteiras, sem confiar no total enviado pelo navegador. São permitidas de 1 a 100 pessoas por inscrição; o limite evita abuso e pode ser revisto em tarefa de código se a organização precisar de grupos maiores. O prazo é `2026-12-21T03:00:00Z`, limite exclusivo equivalente a 00h00 de 21/12 em Brasília.
 
+A lotação é de 200 pessoas, incluindo crianças. A configuração inicial usa `MAX_PARTICIPANTS=200` e `SEAT_POLICY=PAID`; ausência ou valor inválido bloqueia novas inscrições e novas confirmações que precisem ocupar vagas. A consulta pública de disponibilidade retorna somente agregados. Cadastro, confirmação de pagamento e liberação excepcional de entrada usam o mesmo bloqueio de script, com nova leitura dos registros antes da validação. Uma lista desatualizada não permite ultrapassar a capacidade. Pagamentos pendentes não garantem lugar, e a capacidade não revoga um código Pix estático previamente copiado.
+
 O Pix usa chave CNPJ `20896270000130`, moeda BRL `986`, valor exato, identificador alfanumérico e CRC16/CCITT-FALSE. Ele é estático e não consulta o Itaú. Não há webhook, leitura bancária, confirmação automática ou cobrança recorrente.
 
 Avisar ou anexar comprovante **não altera `PENDING` para `PAID`**. Confirmar/desfazer pagamento exige tesouraria/admin e referência/motivo, registrando usuário e horário. Depois de uma entrada, não é possível desfazer pagamento pelo painel. Uma exceção de entrada exige administrador e justificativa e mantém o débito pendente. Estado e histórico são gravados juntos na mesma linha, com lock, antes de responder ao cliente.

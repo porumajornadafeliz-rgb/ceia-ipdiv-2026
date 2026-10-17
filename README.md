@@ -24,12 +24,13 @@ Essa demonstração é um arquivo HTML autônomo e não precisa de internet, Nod
 ## O que está incluído
 
 - Formulário público sem login Google; nome do responsável, WhatsApp com formatação automática ao digitar/apagar/colar e quantidades.
+- Limite de **200 pessoas**, incluindo crianças, com contador público de vagas restantes. Inscrições pendentes não garantem lugar; a vaga é descontada quando o pagamento é confirmado pela tesouraria.
 - Cinco categorias, contadores, preço calculado no servidor e resumo antes de confirmar.
 - Regra de um cônjuge não membro por inscrição, somente com adulto membro.
 - Encerramento automático de novas inscrições ao fim de 20/12/2026, horário de Brasília. Consultas, pagamentos e administração continuam funcionando.
 - Envios repetidos com o mesmo identificador não criam outra inscrição, inclusive após falha de conexão.
 - Pix BR Code com CNPJ, valor exato, TxId da inscrição e CRC16; QR gerado no próprio navegador, sem transmitir dados a terceiros.
-- Contato da secretaria pelo WhatsApp **(37) 3212-4980**, com mensagem preparada para o participante conferir e enviar, sem incluir o token privado.
+- Contato da secretaria pelo WhatsApp **(37) 3212-4980**, com mensagem preparada para o participante conferir e enviar: nome, inscrição, participantes, valor e situação pendente de conferência, sem incluir o token privado.
 - Link privado com token, aviso de Pix realizado e comprovante **opcional** em PDF/JPG/PNG de até 1 MB, guardado no Drive privado.
 - Confirmação **manual** do recebimento pela tesouraria. Nem o aviso nem o arquivo do participante mudam o pagamento para pago.
 - Confirmação de inscrição paga para salvar em texto, imprimir em PDF ou compartilhar pelo recurso do celular.

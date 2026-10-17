@@ -4,7 +4,8 @@ import { PNG } from 'pngjs';
 import jsQR from 'jsqr';
 import { mkdir, readFile } from 'node:fs/promises';
 import { preview } from '../scripts/preview.mjs';
-const { server } = preview(0);
+import { registration } from './platform.mjs';
+const { server, app } = preview(0);
 await new Promise(resolve => server.on('listening', resolve));
 const base = 'http://127.0.0.1:' + server.address().port;
 let browser;
@@ -21,7 +22,7 @@ try {
   context.on('request', request => requests.push(request.url()));
   const page = await context.newPage();
   await mkdir('test-results', { recursive: true });
-  await page.goto(base); await page.screenshot({ path: 'test-results/home-mobile.png', fullPage: true });
+  await page.goto(base); await page.getByText('200 vagas restantes', { exact: true }).waitFor(); await page.screenshot({ path: 'test-results/home-mobile.png', fullPage: true });
   const publicLogo = page.getByRole('img', { name: 'Igreja Presbiteriana de Divinópolis', exact: true });
   assert.ok(await publicLogo.evaluate(img => img.complete && img.naturalWidth > 0 && img.src.startsWith('data:image/png;base64,')), 'Logotipo oficial carregado localmente na página pública');
   for (const width of [320, 390, 768, 1280]) {
@@ -54,10 +55,13 @@ try {
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Formulário não transborda no celular');
   await page.screenshot({ path: 'test-results/form-mobile.png', fullPage: true });
   await page.getByRole('button', { name: 'CONFERIR INSCRIÇÃO' }).click();
+  await page.locator('#review-view').waitFor({ state: 'visible' });
   assert.match(await page.locator('#review-summary').innerText(), /340,00/);
   assert.match(await page.locator('#review-summary').innerText(), /4 pessoas/);
   await page.getByRole('button', { name: 'CONFIRMAR E PAGAR COM PIX' }).click();
   await page.locator('#qr svg').waitFor();
+  assert.equal(await page.locator('#capacity-summary').innerText(), '200 vagas restantes');
+  assert.match(await page.locator('#pending-payment-notice').innerText(), /ainda não está confirmada/);
   const id = await page.locator('#registration-id').innerText(), link = await page.locator('#private-link').inputValue();
   assert.match(id, /^IPD26[A-F0-9]{16}$/); assert.match(link, /#id=.*&token=/);
   const png = PNG.sync.read(await page.locator('#qr').screenshot());
@@ -74,6 +78,10 @@ try {
   const whatsappUrl = new URL(whatsappPage.url());
   assert.equal(whatsappUrl.hostname, 'wa.me'); assert.equal(whatsappUrl.pathname, '/553732124980');
   assert.match(whatsappUrl.searchParams.get('text'), /José da Silva/);
+  assert.match(whatsappUrl.searchParams.get('text'), /Participantes: 4/);
+  assert.match(whatsappUrl.searchParams.get('text'), /340,00/);
+  assert.match(whatsappUrl.searchParams.get('text'), /Situação no sistema nesta consulta: PENDENTE/);
+  assert.match(whatsappUrl.searchParams.get('text'), /Este aviso não comprova o recebimento/);
   assert.ok(whatsappUrl.searchParams.get('text').includes(id));
   const token = new URLSearchParams(new URL(link).hash.slice(1)).get('token');
   assert.ok(!whatsappUrl.searchParams.get('text').includes(token), 'Token privado não é enviado ao WhatsApp');
@@ -96,6 +104,9 @@ try {
   await page.getByRole('button', { name: 'Atualizar situação do pagamento' }).click();
   await page.getByText('Sua presença está confirmada.').waitFor();
   assert.equal(await page.locator('#pix-section').isVisible(), false);
+  assert.equal(await page.locator('#pending-payment-notice').isVisible(), false);
+  assert.equal(await page.locator('#payment-contact').isVisible(), false);
+  await page.getByText('196 vagas restantes', { exact: true }).waitFor();
   const receiptPromise = page.waitForEvent('download'); await page.getByRole('button', { name: 'SALVAR CONFIRMAÇÃO', exact: true }).click();
   const receipt = await receiptPromise; assert.match(await readFile(await receipt.path(), 'utf8'), /Valor pago: R\$\s340,00/);
   await page.screenshot({ path: 'test-results/receipt-mobile.png', fullPage: true });
@@ -110,6 +121,27 @@ try {
   await admin.setViewportSize({ width: 1280, height: 900 }); await admin.screenshot({ path: 'test-results/admin-desktop.png', fullPage: true });
   const csvPromise = admin.waitForEvent('download'); await admin.getByRole('button', { name: 'EXPORTAR RELATÓRIO CSV' }).click();
   assert.match(await readFile(await (await csvPromise).path(), 'utf8'), /José da Silva/);
+  // Simular outras confirmações enquanto uma pessoa mantém a consulta pendente aberta.
+  const pending = app.publicApi('create', registration()).data;
+  const pendingPage = await context.newPage(); await pendingPage.goto(base + '/#' + new URLSearchParams({ id: pending.id, token: pending.token }));
+  await pendingPage.locator('#qr svg').waitFor();
+  for (const n of [100, 96]) {
+    const row = app.publicApi('create', registration({ counts: { adultMembers: n, childMembers: 0, spouse: 0, adultGuests: 0, childGuests: 0 } }));
+    assert.equal(row.ok, true, row.error);
+    const paid = app.adminApi('payment', { id: row.data.id, paid: true, note: 'Fixture de lotação no navegador' }); assert.equal(paid.ok, true, paid.error);
+  }
+  await pendingPage.getByRole('button', { name: 'Atualizar situação do pagamento' }).click();
+  await pendingPage.getByText('Vagas esgotadas', { exact: true }).waitFor();
+  assert.equal(await pendingPage.locator('#pix-section').isVisible(), false);
+  assert.match(await pendingPage.locator('#payment-capacity-warning').innerText(), /Não faça o Pix agora/);
+  assert.equal(await pendingPage.locator('#report-pix').isVisible(), true, 'Quem já transferiu ainda consegue contatar a secretaria');
+  await pendingPage.setViewportSize({ width: 320, height: 800 });
+  assert.ok(await pendingPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Aviso de lotação e pagamento cabem no celular');
+  const full = await context.newPage(); await full.goto(base);
+  await full.getByText('Vagas esgotadas', { exact: true }).waitFor();
+  assert.equal(await full.locator('#begin').isDisabled(), true);
+  await full.getByRole('button', { name: 'Consultar minha inscrição' }).click();
+  await full.locator('#lookup-form').waitFor();
   assert.deepEqual(errors, [], 'Nenhum erro JavaScript');
   assert.ok(requests.every(url => url.startsWith(base) || url.startsWith('data:') || whatsappRequests.includes(url)), 'Sem serviços externos: a única navegação WhatsApp é interceptada localmente no teste');
   console.log('Navegador: responsividade 320–1280px, contadores, resumo, Pix decodificado, aviso pendente, tesouraria, consulta por token, recibo, pesquisa por nome/telefone/número, check-in e CSV verificados.');

@@ -22,7 +22,7 @@ function doPost(e) {
       if (request.action === 'list') {
         var metrics = metrics_(rows);
         if (actor.role === 'door') { delete metrics.received; delete metrics.pending; }
-        return { actor: actor, rows: rows.map(function(r) { return adminRow_(r, actor); }), metrics: metrics };
+        return { actor: actor, rows: rows.map(function(r) { return adminRow_(r, actor); }), metrics: metrics, capacity: capacityForRows_(rows) };
       }
       var input = request.input;
       if (!input || typeof input.id !== 'string') fail_('Inscrição inválida.');
@@ -37,6 +37,11 @@ function doPost(e) {
         return { base64: Utilities.base64Encode(blob.getBytes()), mime: row.proofMime, name: row.id + (row.proofMime === 'application/pdf' ? '.pdf' : row.proofMime === 'image/png' ? '.png' : '.jpg') };
       }
       var now = new Date().toISOString(), previousLength = row.audit.length;
+      // Na política de vagas por pagamento, conferir sob o mesmo lock da gravação.
+      // A liberação excepcional de entrada também ocupa lugar, mesmo sem pagamento.
+      var capacity = capacityForRows_(rows);
+      if ((!capacity.configured || capacity.policy === 'PAID') && row.status !== 'PAID' && !row.entryAt &&
+          ((request.action === 'payment' && input.paid === true) || request.action === 'entry')) assertSeats_(capacity, row.people);
       if (request.action === 'payment') paymentTransition_(row, actor, input.paid, now, input.note);
       else if (request.action === 'entry') entryTransition_(row, actor, now, input.reason);
       else fail_('Ação inválida.');

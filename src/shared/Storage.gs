@@ -1,5 +1,11 @@
 var HEADERS_ = ['id', 'createdAt', 'name', 'phone', 'counts', 'people', 'total', 'status', 'reportedAt', 'paidAt', 'paidBy', 'entryAt', 'entryBy', 'entryOverride', 'tokenHash', 'requestHash', 'payloadHash', 'audit', 'proofId', 'proofMime', 'proofAt'];
 function props_() { return PropertiesService.getScriptProperties(); }
+function capacityForRows_(rows) {
+  var p = props_(), raw = p.getProperty('MAX_PARTICIPANTS') || '';
+  // Rejeitar valores parciais, decimais ou vazios; não assumir uma lotação.
+  var limit = /^[1-9][0-9]*$/.test(raw) ? Number(raw) : null;
+  return capacity_(rows, limit, p.getProperty('SEAT_POLICY'));
+}
 function spreadsheet_() {
   var id = props_().getProperty('SPREADSHEET_ID');
   if (!id) fail_('Configuração indisponível. Procure a organização da Igreja.');

@@ -1,5 +1,6 @@
 // Simulador exclusivo da demonstração offline. Nunca é copiado para Apps Script.
 const demoRows = [], demoRequests = new Map();
+const demoCapacity = () => capacity_(demoRows, DEMO_CAPACITY.limit, DEMO_CAPACITY.policy);
 const cloneDemo = value => JSON.parse(JSON.stringify(value));
 const demoNow = () => new Date().toISOString();
 function demoUuid() {
@@ -21,6 +22,7 @@ function demoCreate(input) {
     if (previous.payload !== payload) fail_('Este envio já foi recebido com outros dados.');
     return { ...demoPublicRow(previous.row), token: previous.row.token };
   }
+  assertSeats_(demoCapacity(), valid.people);
   const row = { ...valid, id: 'IPD26' + demoUuid().replaceAll('-', '').slice(0, 16).toUpperCase(), token: demoToken(), createdAt: demoNow(), status: 'PENDING', audit: [] };
   demoRows.push(row); demoRequests.set(valid.requestId, { row, payload });
   return { ...demoPublicRow(row), token: row.token };
@@ -34,7 +36,8 @@ function demoApi(mode, action, input = {}, role = 'admin') {
   try {
     let result;
     if (mode === 'public') {
-      if (action === 'create') result = demoCreate(input);
+      if (action === 'capacity') result = demoCapacity();
+      else if (action === 'create') result = demoCreate(input);
       else if (['lookup', 'report', 'proof'].includes(action)) {
         const row = demoAuthorizedRow(input);
         if (action === 'report' && !row.reportedAt) row.reportedAt = demoNow();
@@ -53,10 +56,11 @@ function demoApi(mode, action, input = {}, role = 'admin') {
       if (action === 'list') {
         const metrics = metrics_(demoRows);
         if (role === 'door') { delete metrics.received; delete metrics.pending; }
-        result = { actor, metrics, rows: demoRows.map(r => adminRow_(r, actor)) };
+        result = { actor, metrics, capacity: demoCapacity(), rows: demoRows.map(r => adminRow_(r, actor)) };
       } else {
         const row = demoRows.find(r => r.id === input.id);
         if (!row) fail_('Inscrição não encontrada.');
+        if (DEMO_CAPACITY.policy === 'PAID' && row.status !== 'PAID' && !row.entryAt && ((action === 'payment' && input.paid === true) || action === 'entry')) assertSeats_(demoCapacity(), row.people);
         if (action === 'payment') paymentTransition_(row, actor, input.paid, demoNow(), input.note);
         else if (action === 'entry') entryTransition_(row, actor, demoNow(), input.reason);
         else if (action === 'getProof') { assertRole_(actor, ['admin']); if (!row.proof) fail_('Sem comprovante.'); result = row.proof; }

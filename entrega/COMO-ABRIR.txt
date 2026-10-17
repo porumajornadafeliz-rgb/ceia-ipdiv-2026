@@ -15,7 +15,10 @@ COMO ABRIR A DEMONSTRAÇÃO DA CEIA IPDIV 2026
    - TESOURARIA: encontre a família de teste e simule a confirmação do pagamento.
    - ENTRADA: pesquise a família e confirme a entrada.
 
-Há três famílias fictícias como exemplos no painel. Você pode criar outras.
+O limite é de 200 pessoas, incluindo crianças. Só pagamentos confirmados
+descontam vagas; inscrições pendentes não garantem lugar.
+Há três famílias fictícias como exemplos no painel, com 6 pessoas já pagas.
+Por isso, a demonstração começa mostrando 194 vagas. Você pode criar outras.
 Você pode voltar à inscrição e usar "Atualizar situação do pagamento".
 
 Não precisa instalar nada e funciona sem internet.

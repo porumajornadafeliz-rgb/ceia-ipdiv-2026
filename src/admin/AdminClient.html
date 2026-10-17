@@ -12,6 +12,8 @@ $('tab-treasury').onclick = () => setArea('treasury'); $('tab-door').onclick = (
 function renderMetrics() {
   const m = state.metrics; $('metrics').replaceChildren();
   const items = [['Famílias inscritas', m.families], ['Total de participantes', m.people], ['Pessoas com pagamento confirmado', m.paidPeople], ['Pessoas com pagamento pendente', m.pendingPeople]];
+  const capacity = state.capacity;
+  if (capacity?.configured) items.unshift(['Vagas restantes', capacity.remaining], ['Limite de participantes', capacity.limit]);
   if (state.actor.role !== 'door') items.push(['Valor total recebido', money(m.received)], ['Valor ainda pendente', money(m.pending)]);
   items.push(['Famílias que já entraram', m.enteredFamilies], ['Pessoas nas entradas (estimativa)', m.enteredPeople]);
   items.forEach(([label, value]) => { const card = el('div', undefined, 'metric'); card.append(el('span', label), el('strong', String(value ?? 0))); $('metrics').append(card); });
