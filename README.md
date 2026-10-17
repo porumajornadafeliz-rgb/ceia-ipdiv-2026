@@ -6,11 +6,11 @@ Sistema de inscrição familiar e entrada da **Igreja Presbiteriana de Divinópo
 
 O sistema inicia **sem inscrições e sem exemplos fictícios**, com **200 vagas disponíveis**. A inicialização de uma planilha existente preserva seus registros e históricos; não apaga inscrições reais.
 
-**Código implementado e testado localmente. A publicação no Google da Igreja ainda está pendente.** O pacote não cria uma implantação pública nem conecta a conta `porumajornadafeliz@gmail.com` automaticamente.
+**Projetos Público e Administração publicados pelo proprietário e conferidos por imagens nesta sessão em 17/10/2026.** O cadastro no celular reservou quatro vagas. A melhoria de PDF foi validada localmente e ainda precisa ser aplicada à implantação pública existente. O pacote não altera a conta Google automaticamente.
 
 ## Analisar sem instalar nada
 
-Baixe **`entrega/DEMONSTRACAO-IPDIV-v6.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
+Baixe **`entrega/DEMONSTRACAO-IPDIV-v7.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
 
 A demonstração começa vazia. Você pode registrar uma família e ver a baixa imediata das vagas, visualizar a mensagem da secretaria, copiar o link, consultar inscrições, cancelar/reativar e registrar a entrada. O painel **Inscrições e vagas** substitui a antiga tesouraria.
 
@@ -23,7 +23,7 @@ A demonstração começa vazia. Você pode registrar uma família e ver a baixa 
 - Categoria **Cônjuge adulto não-membro da igreja**, R$ 80 por pessoa, limitada a um cônjuge e com adulto membro na inscrição.
 - Vagas verificadas no servidor sob o mesmo bloqueio da gravação; uma família inteira é aceita ou recusada, sem ultrapassar a lotação.
 - Repetir o mesmo envio não cria inscrição nem baixa vagas em duplicidade, mesmo após perda de conexão, prazo ou esgotamento.
-- Link privado disponível imediatamente; consulta sem login; registro para salvar ou imprimir, identificado como **não sendo comprovante de pagamento**.
+- Link privado disponível imediatamente; consulta sem login; consulta direta na mesma aba após cadastrar e registro para salvar em PDF legível no celular ou imprimir, identificado como **não sendo comprovante de pagamento**.
 - WhatsApp preparado com nome, telefone, inscrição, participantes, categorias e valor. Não inclui o token privado nem afirma que houve pagamento.
 - Pix estático opcional para facilitar o pagamento, com conferência financeira diretamente pela secretaria. Não usa API bancária.
 - Administração com login Google e papéis autorizados; pesquisa, filtros, valores de referência, CSV, impressão e histórico.

@@ -1,6 +1,6 @@
 CEIA IPDIV 2026 — VERSÃO 6 — INÍCIO LIMPO
 
-1. Clique com o botão direito em DEMONSTRACAO-IPDIV-v6.zip e escolha
+1. Clique com o botão direito em DEMONSTRACAO-IPDIV-v7.zip e escolha
    "Extrair Tudo". Use uma nova pasta, separada das versões antigas.
 
 2. Abra a pasta extraída e dê DOIS CLIQUES em:

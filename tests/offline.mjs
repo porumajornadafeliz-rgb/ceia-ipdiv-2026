@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { mkdir, readFile } from 'node:fs/promises';
 import { PNG } from 'pngjs';
 import jsQR from 'jsqr';
+import { checkReceiptPdf } from './pdf-check.mjs';
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || '/usr/bin/chromium', args: ['--no-sandbox'], headless: true });
 try {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, offline: true });
@@ -49,10 +50,8 @@ try {
   assert.match(preview, /Família de Teste/); assert.match(preview, /Participantes: 2/); assert.match(preview, /INSCRIÇÃO REGISTRADA/); assert.ok(preview.includes(id));
   assert.equal((await page.evaluate(() => ceiaOfflineApi('public', 'capacity'))).data.remaining, 198);
   const receiptPromise = page.waitForEvent('download');
-  await registration.getByRole('button', { name: 'SALVAR INSCRIÇÃO', exact: true }).click();
-  const receiptText = await readFile(await (await receiptPromise).path(), 'utf8');
-  assert.match(receiptText, /INSCRIÇÃO REGISTRADA/); assert.match(receiptText, /Não é comprovante de pagamento/);
-  assert.match(receiptText, /Culto de Ações de Graças às 20h30min/); assert.match(receiptText, /Av\. Paraná, 1098 — Sidil/);
+  await registration.getByRole('button', { name: 'SALVAR INSCRIÇÃO EM PDF', exact: true }).click();
+  await checkReceiptPdf(await receiptPromise, [/INSCRIÇÃO REGISTRADA/, /Família de Teste/, /20h30min/, /Av\. Paraná, 1098/]);
   await page.getByRole('button', { name: '2. INSCRIÇÕES E VAGAS', exact: true }).click();
   await admin.getByLabel('Pesquisar inscrição').fill('Familia de Teste');
   await admin.getByRole('button', { name: 'CANCELAR INSCRIÇÃO', exact: true }).click();

@@ -75,7 +75,10 @@ CONFIG.event.categories.forEach(c => {
 renderCounts();
 if (!CONFIG.open) { $('begin').disabled = true; $('begin').textContent = 'INSCRIÇÕES ENCERRADAS'; $('deadline-home').textContent = 'O prazo encerrou em 20/12/2026. A consulta de pagamentos continua disponível.'; }
 $('begin').onclick = () => { show('form'); refreshCapacity(); };
-$('open-lookup').onclick = () => show('lookup');
+$('open-lookup').onclick = () => {
+  if (access && current) { show('payment'); refreshRegistration(true); }
+  else show('lookup');
+};
 $('brand-home').onclick = e => { e.preventDefault(); show('home'); };
 $('registration-form').onsubmit = e => {
   e.preventDefault();
@@ -160,7 +163,104 @@ $('refresh-payment').onclick = () => busy($('refresh-payment'), async () => { me
 function receiptText() {
   return 'CEIA DE CONFRATERNIZAÇÃO 2026\nIgreja Presbiteriana de Divinópolis\n\nInscrição: ' + current.id + '\nResponsável: ' + current.name + '\nParticipantes: ' + current.people + '\nValor da inscrição: ' + money(current.total) + '\n' + (current.status === 'REGISTERED' ? 'INSCRIÇÃO REGISTRADA' : 'INSCRIÇÃO CANCELADA') + '\nRegistro em: ' + dateTime(current.createdAt) + '\nControle de pagamento diretamente com a secretaria. Não é comprovante de pagamento.\n\n' + CONFIG.event.date + ' — ' + CONFIG.event.thanksgiving.name + ' às ' + CONFIG.event.thanksgiving.time + '\n' + CONFIG.event.thanksgiving.venue + ' — ' + CONFIG.event.thanksgiving.address + '\n\nCeia após o culto — ' + CONFIG.event.venue + '\n' + CONFIG.event.address + '\n\nConsulta privada: ' + privateLink();
 }
-$('save-receipt').onclick = () => download(current.id + '.txt', receiptText(), 'text/plain;charset=utf-8');
+function receiptPdf() {
+  // Página estreita, proporcional à tela do telefone, sem reduzir o tamanho das letras.
+  const pdf = new jspdf.jsPDF({ unit: 'pt', format: [420, 900], compress: true });
+  const width = pdf.internal.pageSize.getWidth(), height = pdf.internal.pageSize.getHeight();
+  const margin = 26, usable = width - margin * 2, green = '#143f32';
+  let y = margin;
+  pdf.setProperties({ title: 'Inscrição ' + current.id + ' | Ceia IPDiv 2026', author: 'Igreja Presbiteriana de Divinópolis' });
+  function nextPage() {
+    pdf.addPage(); y = margin;
+    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(12); pdf.setTextColor(green);
+    pdf.text('CEIA IPDIV 2026 · SUA INSCRIÇÃO', margin, y + 12); y += 40;
+  }
+  function ensure(space) { if (y + space > height - 38) nextPage(); }
+  function text(value, size = 16, bold = false, gap = 9) {
+    pdf.setFont('helvetica', bold ? 'bold' : 'normal'); pdf.setFontSize(size); pdf.setTextColor(green);
+    const lines = pdf.splitTextToSize(String(value).replaceAll('\u00a0', ' '), usable);
+    // Quebra por linha para preservar todo o conteúdo mesmo com nomes e categorias longos.
+    for (const line of lines) {
+      ensure(size * 1.35);
+      pdf.setFont('helvetica', bold ? 'bold' : 'normal'); pdf.setFontSize(size); pdf.setTextColor(green);
+      pdf.text(line, margin, y + size); y += size * 1.35;
+    }
+    y += gap;
+  }
+  function heading(value) { ensure(66); y += 8; text(value, 19, true); }
+  function name(value) {
+    if (/^[\x20-\x7e\u00a0-\u00ff]*$/.test(value)) { text(value, 21, true); return; }
+    // Nomes fora do alfabeto latino usam a fonte do celular, sem perder caracteres.
+    const canvas = document.createElement('canvas'), scale = 3, lineHeight = 29;
+    canvas.width = Math.ceil(usable * scale); canvas.height = 420 * scale;
+    const ctx = canvas.getContext('2d'); ctx.scale(scale, scale); ctx.font = 'bold 21px system-ui';
+    const lines = []; let line = '';
+    for (const char of Array.from(value)) {
+      if (ctx.measureText(line + char).width > usable) { lines.push(line); line = ''; }
+      line += char;
+    }
+    if (line) lines.push(line);
+    const nameHeight = lines.length * lineHeight; ensure(nameHeight + 9);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, usable, 420); ctx.fillStyle = green;
+    lines.forEach((line, index) => ctx.fillText(line, 0, 23 + index * lineHeight));
+    const crop = document.createElement('canvas'); crop.width = canvas.width; crop.height = Math.ceil(nameHeight * scale);
+    crop.getContext('2d').drawImage(canvas, 0, 0);
+    pdf.addImage(crop.toDataURL('image/png'), 'PNG', margin, y, usable, nameHeight); y += nameHeight + 9;
+  }
+  const logo = document.querySelector('img.official-logo');
+  if (logo?.complete && logo.naturalWidth) {
+    const logoWidth = 108, logoHeight = logoWidth * logo.naturalHeight / logo.naturalWidth;
+    pdf.addImage(logo.src, 'PNG', margin, y, logoWidth, logoHeight);
+    pdf.setFont('helvetica', 'bold'); pdf.setFontSize(21); pdf.setTextColor(green);
+    pdf.text('Ceia IPDiv 2026', margin + 124, y + 27);
+    pdf.setFont('helvetica', 'normal'); pdf.setFontSize(12);
+    pdf.text('Registro de inscrição', margin + 124, y + 48);
+    y += Math.max(logoHeight, 60) + 18;
+  } else heading('Ceia IPDiv 2026');
+  text(current.status === 'REGISTERED' ? 'INSCRIÇÃO REGISTRADA' : 'INSCRIÇÃO CANCELADA', 18, true);
+  text('Número: ' + current.id, 13);
+  text('Responsável', 13); name(current.name);
+  heading('Participantes');
+  CONFIG.event.categories.filter(c => current.counts[c.key]).forEach(c => {
+    ensure(75);
+    text(current.counts[c.key] + ' × ' + c.label, 16, true, 3);
+    text(money(current.counts[c.key] * c.price), 16);
+  });
+  ensure(85);
+  text('Total de participantes: ' + current.people + (current.people === 1 ? ' pessoa' : ' pessoas'), 17, true);
+  text('Valor da inscrição: ' + money(current.total), 21, true);
+  text('Controle de pagamento diretamente com a secretaria. Não é comprovante de pagamento.', 15);
+  text('Registro em: ' + dateTime(current.createdAt), 12);
+  text('Emitido em: ' + dateTime(new Date().toISOString()), 12);
+  ensure(86); y += 7;
+  pdf.setFillColor(green); pdf.roundedRect(margin, y, usable, 46, 7, 7, 'F');
+  pdf.setFont('helvetica', 'bold'); pdf.setFontSize(17); pdf.setTextColor('#ffffff');
+  pdf.text('Consultar minha inscrição', width / 2, y + 29, { align: 'center' });
+  pdf.link(margin, y, usable, 46, { url: privateLink() }); y += 59;
+  text('Toque no botão acima para consultar a situação atual. Este documento é particular.', 13);
+  nextPage();
+  heading('Esperamos vocês!');
+  text(CONFIG.event.date, 22, true);
+  heading(CONFIG.event.thanksgiving.name + ' às ' + CONFIG.event.thanksgiving.time);
+  text(CONFIG.event.thanksgiving.venue, 17, true);
+  text(CONFIG.event.thanksgiving.address, 16);
+  heading('Ceia após o culto');
+  text(CONFIG.event.venue, 17, true); text(CONFIG.event.address, 16);
+  heading('Secretaria');
+  text('(37) 3212-4980 (WhatsApp)', 18, true);
+  text('Na chegada, informe o nome do responsável. A entrada será registrada para toda a inscrição familiar.', 16);
+  const pages = pdf.getNumberOfPages();
+  for (let page = 1; page <= pages; page++) {
+    pdf.setPage(page); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(10); pdf.setTextColor(green);
+    pdf.text('IPDiv · Registro de inscrição · ' + page + '/' + pages, margin, height - 17);
+  }
+  return pdf.output('arraybuffer');
+}
+$('save-receipt').onclick = () => {
+  message('payment-error', '');
+  try { download(current.id + '.pdf', receiptPdf(), 'application/pdf'); }
+  catch { message('payment-error', 'Não foi possível gerar o PDF. Tente novamente ou use Imprimir para salvar sua inscrição.'); }
+};
 $('print-receipt').onclick = () => window.print();
 $('share-receipt').onclick = async () => {
   const text = receiptText();

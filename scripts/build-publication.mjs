@@ -6,7 +6,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 for (const project of ['public', 'admin']) {
   const input = path.join(root, 'dist', project), output = path.join(root, 'dist/publicacao', project === 'public' ? 'PUBLICO' : 'ADMINISTRACAO');
   await mkdir(output, { recursive: true });
-  const names = project === 'public' ? ['Index', 'Styles', 'Brand', 'Client', 'Qr', 'PublicClient'] : ['Admin', 'Styles', 'Brand', 'Client', 'AdminClient'];
+  const names = project === 'public' ? ['Index', 'Styles', 'Brand', 'Client', 'Qr', 'Pdf', 'PublicClient'] : ['Admin', 'Styles', 'Brand', 'Client', 'AdminClient'];
   const html = {};
   for (const name of names) html[name] = await readFile(path.join(input, name + '.html'), 'utf8');
   const sources = project === 'public' ? ['Domain.gs', 'Pix.gs', 'Storage.gs', 'Config.gs', 'Public.gs', 'Bridge.gs'] : ['Domain.gs', 'Admin.gs'];
