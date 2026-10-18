@@ -37,8 +37,10 @@ try {
   await registration.locator('#review-view').waitFor({ state: 'visible' });
   assert.match(await registration.locator('#review-summary').innerText(), /200,00/);
   await registration.getByRole('button', { name: 'CONFIRMAR E ESCOLHER PAGAMENTO' }).click();
+  await registration.getByText('Escolha como deseja pagar', { exact: true }).waitFor();
+  await registration.locator('#payment-plan').selectOption('ONCE');await registration.locator('#choose-payment-plan').click();
   await registration.getByText('Sua reserva foi registrada!', { exact: true }).waitFor();
-  await registration.getByText('198 vagas restantes', { exact: true }).waitFor();
+  await registration.getByText('198 vagas restantes', { exact: true }).waitFor({state:'attached'});
   assert.equal(await registration.locator('#copy-link, #private-link, #share-receipt').count(), 0);
   assert.equal(await registration.locator('#save-receipt').isEnabled(), true);
   const id = await registration.locator('#registration-id').innerText();

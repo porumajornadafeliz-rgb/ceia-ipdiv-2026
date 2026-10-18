@@ -1,6 +1,6 @@
 /** Calendário e valores de parcelas. Sem crédito bancário ou envio de mensagens. */
 var PAYMENT_PLANS_ = Object.freeze([
-  { key: 'ONCE', label: 'À vista', dates: ['2026-10-25'] },
+  { key: 'ONCE', label: 'À vista', dates: ['2026-12-20'] },
   { key: 'TWICE', label: '2 vezes', dates: ['2026-11-20', '2026-12-20'] },
   { key: 'THRICE', label: '3 vezes', dates: ['2026-10-25', '2026-11-20', '2026-12-20'] }
 ]);
@@ -113,7 +113,7 @@ function proofTargets_(row, input) {
 
 function reminderMessage_(item, publicUrl) {
   var value = (item.amount/100).toFixed(2).replace('.',',');
-  return 'Olá, '+item.name+'! Lembrete da Ceia IPDiv 2026: a parcela '+item.number+'/'+item.count+', de R$ '+value+', vence amanhã, '+dueLabel_(item.dueDate)+'. Pagamento por Pix ou depósito na conta da igreja. Se já pagou, não repita o pagamento; envie o comprovante para conferência.'+(publicUrl ? '\nConsulte e envie o comprovante pelo site: '+publicUrl : '');
+  return 'Olá, '+item.name+'! Lembrete da Ceia IPDiv 2026: '+(item.count === 1 ? 'o pagamento à vista' : 'a parcela '+item.number+'/'+item.count)+', de R$ '+value+', vence amanhã, '+dueLabel_(item.dueDate)+'. Pagamento por Pix ou depósito na conta da igreja. Se já pagou, não repita o pagamento; envie o comprovante para conferência.'+(publicUrl ? '\nConsulte e envie o comprovante pelo site: '+publicUrl : '');
 }
 function remindersForAdmin_(rows,now,publicUrl) {
   return reminderCandidates_(rows,now).filter(function(item) { var row=rows.find(function(r) {return r.id===item.id;});return Boolean(row.paymentPlan && row.paymentPlan.remindersEnabled); }).map(function(item) {

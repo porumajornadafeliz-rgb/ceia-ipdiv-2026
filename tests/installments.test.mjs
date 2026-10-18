@@ -12,15 +12,15 @@ test('parcelas usam valores inteiros, somam o total e têm as datas solicitadas'
  }
  assert.deepEqual(copy(context.scheduleFor_(32000,'THRICE')).parts.map(p=>p.amount),[10667,10667,10666]);
  assert.deepEqual(copy(context.scheduleFor_(32000,'TWICE')).parts.map(p=>p.dueDate),['2026-11-20','2026-12-20']);
- assert.equal(context.scheduleFor_(8000,'ONCE').parts[0].dueDate,'2026-10-25');
+ assert.equal(context.scheduleFor_(8000,'ONCE').parts[0].dueDate,'2026-12-20');
  assert.throws(()=>context.scheduleFor_(8000,'FAKE'));assert.throws(()=>context.splitCents_(80.5,2));
 });
 test('comparação de datas usa Brasília e trata o dia inteiro do vencimento',()=>{
  assert.equal(context.brasiliaDay_('2026-10-26T02:59:59.999Z'),'2026-10-25');
  assert.equal(context.brasiliaDay_('2026-10-26T03:00:00Z'),'2026-10-26');
  assert.equal(context.availableSchedules_(8000,'2026-10-26T02:59:59Z','FUTURE_ONLY').length,3);
- assert.deepEqual(copy(context.availableSchedules_(8000,'2026-10-26T03:00:00Z','FUTURE_ONLY')).map(p=>p.key),['TWICE']);
- assert.equal(context.availableSchedules_(8000,'2026-11-21T03:00:00Z','FUTURE_ONLY').length,0);
+ assert.deepEqual(copy(context.availableSchedules_(8000,'2026-10-26T03:00:00Z','FUTURE_ONLY')).map(p=>p.key),['ONCE','TWICE']);
+ assert.equal(context.availableSchedules_(8000,'2026-11-21T03:00:00Z','FUTURE_ONLY').length,1);
  assert.equal(context.availableSchedules_(8000,'2026-11-21T03:00:00Z','COLLECT_OVERDUE').length,3);
  assert.throws(()=>context.availableSchedules_(8000,Date.now(),'UNDECIDED'));
 });
@@ -47,4 +47,14 @@ test('lembrete seleciona a parcela de amanhã, sem cobrar pagas, canceladas ou c
  row.paymentPlan.parts[1].paidAt='2026-11-18T18:00:00Z';assert.equal(context.reminderCandidates_([row],now).length,0);
  row.paymentPlan.parts[1].paidAt='';row.cancelledAt='2026-11-18T18:00:00Z';assert.equal(context.reminderCandidates_([row],now).length,0);
  row.cancelledAt='';assert.equal(context.reminderCandidates_([row],'2026-11-18T18:00:00Z').length,0);
+});
+
+test('à vista vence em 20/12 e gera lembrete somente em 19/12, no horário de Brasília',()=>{
+ const row={id:'ONCE',name:'Teste à vista',phone:'37999990000',total:8000,paymentPlan:copy(context.scheduleFor_(8000,'ONCE'))};
+ assert.equal(context.reminderCandidates_([row],'2026-10-24T15:00:00Z').length,0);
+ assert.equal(context.reminderCandidates_([row],'2026-12-19T02:59:59Z').length,0);
+ const queue=copy(context.reminderCandidates_([row],'2026-12-19T03:00:00Z'));
+ assert.equal(queue.length,1);assert.equal(queue[0].dueDate,'2026-12-20');assert.equal(queue[0].amount,8000);
+ assert.match(context.reminderMessage_(queue[0],'https://example.test'),/pagamento à vista.*vence amanhã, 20\/12\/2026/);
+ assert.equal(context.reminderCandidates_([row],'2026-12-20T03:00:00Z').length,0);
 });

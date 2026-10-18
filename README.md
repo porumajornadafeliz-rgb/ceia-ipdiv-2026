@@ -2,15 +2,15 @@
 
 Sistema de inscrição familiar e entrada da **Igreja Presbiteriana de Divinópolis**, em **31/12/2026**. Culto de Ações de Graças às **20h30min**, no **Templo da IPDiv — Av. Paraná, 1098 — Sidil**. Ceia **após o culto, no Salão Imperatriz**, Rua Duarte, 70, Bairro Catalão, esquina com a Rua Paraná. Inscrições até **20/12/2026, às 23h59 (Brasília)**.
 
-**Registrar reserva os lugares; confirmar a primeira parcela garante as vagas.** São 200 pessoas, incluindo crianças. À vista em 25/10, 2x em 20/11 e 20/12 ou 3x em 25/10, 20/11 e 20/12, com o mesmo total. Parcelas vencidas são cobradas juntas. Pix ou depósito na conta Itaú da igreja, com comprovantes privados e conferência pela secretaria. Sem contratação de API: lembretes de amanhã aparecem no painel para envio manual pelo WhatsApp.
+**Registrar reserva os lugares; confirmar a primeira parcela garante as vagas.** São 200 pessoas, incluindo crianças. À vista até 20/12, 2x em 20/11 e 20/12 ou 3x em 25/10, 20/11 e 20/12, com o mesmo total. Parcelas vencidas são cobradas juntas. Pix ou depósito na conta Itaú da igreja, com comprovantes privados e conferência pela secretaria. Sem contratação de API: lembretes de amanhã aparecem no painel para envio manual pelo WhatsApp.
 
 O sistema inicia **sem inscrições e sem exemplos fictícios**, com **200 vagas disponíveis**. A inicialização de uma planilha existente preserva seus registros e históricos; não apaga inscrições reais.
 
-**Atualização de parcelamento preparada para os dois projetos existentes.** Use [o guia](docs/ATUALIZAR-PARCELAMENTO.md) e `entrega/ATUALIZAR-PARCELAMENTO-IPDIV-2026.zip`. O proprietário precisa aplicar os códigos, executar a migração protegida no Público e atualizar as implantações. Os testes locais não alteram o Google da igreja.
+**Atualização atual: escolha de pagamento simplificada no Público.** Use [o guia](docs/ATUALIZAR-PAGAMENTO-SIMPLIFICADO.md) e `entrega/ATUALIZAR-PAGAMENTO-SIMPLIFICADO-IPDIV-2026.zip`. Primeiro aparecem apenas À vista, 2x, 3x e Continuar; escolher revela os valores e datas, e continuar abre Pix/depósito/comprovante. A conclusão do painel administrativo ficou para a próxima etapa. Os testes locais não alteram o Google da igreja.
 
 ## Analisar sem instalar nada
 
-Baixe **`entrega/DEMONSTRACAO-IPDIV-v11.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
+Baixe **`entrega/DEMONSTRACAO-IPDIV-v12.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
 
 A demonstração começa vazia. Você pode registrar uma família e ver a baixa imediata das vagas, visualizar a mensagem da secretaria, salvar o PDF, consultar inscrições, cancelar/reativar e registrar a entrada. O painel **Inscrições e vagas** substitui a antiga tesouraria.
 

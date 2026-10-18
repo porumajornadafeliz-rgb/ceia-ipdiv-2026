@@ -23,11 +23,11 @@ def package(name, files):
 files = {str(p.relative_to(PUBLICATION)): p for p in PUBLICATION.rglob('*') if p.is_file()}
 for name in ['PUBLICAR-CEIA-IPDIV-2026.zip', 'PUBLICAR-CEIA-IPDIV-2026-v2.zip']:
     package(name, files)
-update = {k: p for k, p in files.items() if k.startswith(('PUBLICO/', 'ADMINISTRACAO/'))}
-update.update({'LEIA-PRIMEIRO.txt': ROOT / 'docs/ATUALIZAR-PARCELAMENTO.md', 'LICENCAS.txt': ROOT / 'THIRD_PARTY_NOTICES.md'})
-package('ATUALIZAR-PARCELAMENTO-IPDIV-2026.zip', update)
+update = {k: p for k, p in files.items() if k.startswith('PUBLICO/')}
+update.update({'LEIA-PRIMEIRO.txt': ROOT / 'docs/ATUALIZAR-PAGAMENTO-SIMPLIFICADO.md', 'LICENCAS.txt': ROOT / 'THIRD_PARTY_NOTICES.md'})
+package('ATUALIZAR-PAGAMENTO-SIMPLIFICADO-IPDIV-2026.zip', update)
 demo = {'ABRIR-DEMONSTRACAO.html': OUT / 'ABRIR-DEMONSTRACAO.html', 'COMO-ABRIR.txt': OUT / 'COMO-ABRIR.txt', 'LICENCAS.txt': ROOT / 'THIRD_PARTY_NOTICES.md'}
-for name in ['DEMONSTRACAO-IPDIV-v11.zip', 'DEMONSTRACAO-IPDIV.zip']:
+for name in ['DEMONSTRACAO-IPDIV-v12.zip', 'DEMONSTRACAO-IPDIV.zip']:
     package(name, demo)
 source = {'ceia-ipdiv-2026/' + name: ROOT / name for name in ['README.md', 'package.json', 'package-lock.json', '.gitignore', 'THIRD_PARTY_NOTICES.md']}
 for directory in ['src', 'scripts', 'tests', 'docs', 'assets', 'dist/public', 'dist/admin', 'dist/licenses', 'dist/publicacao']:

@@ -10,7 +10,7 @@ Ceia em 31/12/2026, após o culto de Ações de Graças às 20h30min no Templo d
 4. Envie o comprovante PDF, PNG ou JPG de até 2 MB do pagamento selecionado. Fica em conferência, sem marcar como pago.
 5. A secretaria baixa e confere o comprovante e o recebimento. Confirmação registra conta e data. Recusa permite novo arquivo. Depois de enviar comprovante, o plano não pode ser alterado pelo participante.
 
-À vista vence em 25/10; 2x em 20/11 e 20/12; 3x em 25/10, 20/11 e 20/12, todas em 2026. Parcelas já vencidas são cobradas juntas, com valor somado, um pagamento e um comprovante. Sem juros acrescentados pelo sistema. Centavos são distribuídos para conservar o total.
+À vista vence em 20/12; 2x em 20/11 e 20/12; 3x em 25/10, 20/11 e 20/12, todas em 2026. Parcelas já vencidas são cobradas juntas, com valor somado, um pagamento e um comprovante. Sem juros acrescentados pelo sistema. Centavos são distribuídos para conservar o total.
 
 Pix usa chave CNPJ 20.896.270/0001-30, QR e Copia e Cola com valor exato. Depósito: Itaú, agência 0690, conta 16.405-8, Igreja Presbiteriana de Divinópolis. Se já pagou, não repita: envie o comprovante. Não há API bancária nem confirmação por autodeclaração.
 

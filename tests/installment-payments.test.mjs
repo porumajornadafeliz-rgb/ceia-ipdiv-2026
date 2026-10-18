@@ -61,3 +61,17 @@ test('retry de cadastro anterior à atualização conserva inscrição original 
  const p=platform(),input=registration(),old=value(p.publicApi('create',input));
  const again=value(p.publicApi('create',{...input,plan:'ONCE',remindersEnabled:true}));assert.equal(again.id,old.id);assert.equal(again.payment.plan,'LEGACY');assert.equal(again.remindersEnabled,false);assert.equal(value(p.adminApi('list')).rows.length,1);
 });
+
+test('configuração prorroga à vista pendente para 20/12 sem apagar comprovante nem alterar parcelas ou pagamentos conferidos',()=>{
+ const p=platform(),pending=create(p,'ONCE'),paid=create(p,'ONCE'),split=create(p,'THRICE');
+ value(proof(p,pending,[1]));value(proof(p,paid,[1]));value(approve(p,paid,1));
+ const sheet=p.sheets.get('Inscricoes');
+ for(const id of [pending.id,paid.id]){const cells=sheet.rows.find(r=>r[0]===id),plan=JSON.parse(cells[22]);plan.parts[0].dueDate='2026-10-25';cells[22]=JSON.stringify(plan);}
+ const before=JSON.stringify(sheet.rows.find(r=>r[0]===pending.id).slice(0,17));
+ p.public.console={log(){}};p.public.prepararPublicacao_();
+ const current=value(p.publicApi('lookup',access(pending)));assert.equal(current.payment.parts[0].dueDate,'2026-12-20');assert.equal(current.paymentStatus,'PROOF_SUBMITTED');
+ assert.equal(JSON.stringify(sheet.rows.find(r=>r[0]===pending.id).slice(0,17)),before);assert.equal(p.files.size,2);
+ assert.equal(value(p.publicApi('lookup',access(paid))).payment.parts[0].dueDate,'2026-10-25');
+ assert.equal(value(p.publicApi('lookup',access(split))).payment.parts[0].dueDate,'2026-10-25');
+ const after=JSON.stringify(sheet.rows);p.public.prepararPublicacao_();assert.equal(JSON.stringify(sheet.rows),after);
+});

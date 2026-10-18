@@ -34,6 +34,7 @@ installPhoneMask($('status-phone'));
 const views = ['home', 'form', 'review', 'payment', 'lookup'];
 function show(view) {
   const policy=document.querySelector('.registration-policy');if(policy)policy.hidden=view!=='home';
+  document.querySelector('.availability').hidden=view==='payment';
   views.forEach(v => $(v + '-view').hidden = v !== view);
   const title = $(view + '-title');
   if (title) { title.focus({ preventScroll: true }); title.scrollIntoView({ block: 'start' }); } else window.scrollTo(0, 0);
@@ -127,8 +128,10 @@ function renderPayment(data) {
   $('registration-notice').textContent=guaranteed?'Primeira parcela confirmada: vagas garantidas. Quite as demais parcelas até 20/12/2026.':!active || data.reservationStatus==='EXPIRED'?'Esta inscrição não ocupa vagas nem autoriza entrada.':'Reserva provisória: a primeira parcela precisa ser confirmada para garantir as vagas.';
   $('payment-policy-message').textContent=awaiting?'Comprovante recebido. Não repita o Pix ou depósito desse pagamento. Aguarde a conferência.':paid?'Inscrição quitada. Este registro não substitui o comprovante bancário.':'A primeira parcela confirmada garante as vagas. Parcelas já vencidas devem ser pagas na inscrição.';
   $('registration-id').textContent=data.id;$('receipt-name').textContent=data.name;summary('receipt-summary',data.counts);$('confirmed-section').hidden=!active;
-  drawPaymentPanel($('payment-controls'),data,access,updated=>renderPayment(updated),true);
-  $('pay-later').hidden=!active || data.reservationStatus==='EXPIRED' || paid;$('pay-later').textContent=awaiting?'VOLTAR AO INÍCIO':'VOLTAR AO INÍCIO E PAGAR DEPOIS';
+  const choosing=drawPaymentPanel($('payment-controls'),data,access,updated=>renderPayment(updated),true)===true;
+  $('payment-financial-summary').hidden=choosing;$('payment-receipt').hidden=choosing;$('payment-status').hidden=choosing;$('payment-description').hidden=choosing;
+  if(choosing)$('payment-title').textContent='Escolha como deseja pagar';
+  $('pay-later').hidden=choosing || !active || data.reservationStatus==='EXPIRED' || paid;$('pay-later').textContent=awaiting?'VOLTAR AO INÍCIO':'VOLTAR AO INÍCIO E PAGAR DEPOIS';
   $('report-pix').href=secretariatWhatsAppLink(data);$('whatsapp-message-preview').textContent=secretariatMessage(data);
   $('reported-message').textContent='A mensagem contém os dados e a situação das parcelas. No WhatsApp, confira e toque em Enviar. Os comprovantes enviados pelo site ficam disponíveis no painel da secretaria.';
 

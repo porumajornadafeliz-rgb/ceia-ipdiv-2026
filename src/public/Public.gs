@@ -129,7 +129,16 @@ function prepararPublicacao_() {
       p.setProperty('SPREADSHEET_ID', book.getId());
     }
     initializePublic_();
-    var rows = readRows_(sheet_()), capacity = capacityForRows_(rows);
+    var sheet = sheet_(), rows = readRows_(sheet);
+    rows.forEach(function(row) {
+      var plan = row.paymentPlan, part = plan && plan.parts && plan.parts[0];
+      if (plan && plan.key === 'ONCE' && plan.parts.length === 1 && part.dueDate === '2026-10-25' && partState_(part) !== 'PAID' && !row.cancelledAt) {
+        part.dueDate = '2026-12-20';
+        row.audit.push({action:'PAYMENT_DUE_DATE_UPDATED',by:'configuração',at:new Date().toISOString(),note:'Pagamento à vista prorrogado de 25/10 para 20/12/2026.'});
+        writeRow_(sheet,row);
+      }
+    });
+    var capacity = capacityForRows_(rows);
     var result = { planilha: spreadsheet_().getUrl(), inscricoesAtivas: rows.filter(function(r) { return !r.cancelledAt; }).length,
       limite: capacity.limit, vagasRestantes: capacity.remaining };
     console.log('Configuração concluída. Planilha: ' + result.planilha + '. Inscrições ativas: ' + result.inscricoesAtivas + '. Vagas restantes: ' + result.vagasRestantes + '.');

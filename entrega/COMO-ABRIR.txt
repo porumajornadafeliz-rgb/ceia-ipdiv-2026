@@ -1,6 +1,6 @@
-CEIA IPDIV 2026 — DEMONSTRAÇÃO V11: PARCELAS, PIX E DEPÓSITO
+CEIA IPDIV 2026 — DEMONSTRAÇÃO V12: ESCOLHA SIMPLIFICADA DE PAGAMENTO
 
-Extraia DEMONSTRACAO-IPDIV-v11.zip em uma nova pasta e abra
+Extraia DEMONSTRACAO-IPDIV-v12.zip em uma nova pasta e abra
 ABRIR-DEMONSTRACAO.html no Edge ou Chrome. Não exige instalação ou rede.
 
 Começa sem inscrições e com 200 vagas. Registre uma família, escolha
@@ -18,5 +18,5 @@ Na demonstração, nenhum WhatsApp real é aberto ou enviado.
 Os arquivos e cadastros ficam apenas na memória desta aba. Fechar ou
 recarregar apaga tudo. A demonstração não grava na conta Google.
 
-Para atualizar os projetos já publicados, use o pacote
-ATUALIZAR-PARCELAMENTO-IPDIV-2026.zip e seu guia. Ele preserva os dados.
+Para atualizar o Público já publicado, use o pacote
+ATUALIZAR-PAGAMENTO-SIMPLIFICADO-IPDIV-2026.zip e seu guia. Ele preserva os dados.

@@ -4,7 +4,7 @@ Use o pacote **ATUALIZAR-PARCELAMENTO-IPDIV-2026.zip** nos dois projetos já exi
 
 ## Regras definidas pela igreja
 
-- À vista: 25/10/2026.
+- À vista: até 20/12/2026.
 - 2 vezes: 20/11/2026 e 20/12/2026.
 - 3 vezes: 25/10/2026, 20/11/2026 e 20/12/2026.
 - O valor total é o mesmo, sem juros acrescentados pelo sistema. Centavos são distribuídos entre as parcelas para fechar o total exato.

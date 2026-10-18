@@ -2,7 +2,7 @@
 
 Execute `npm run build`, `npm test`, `npm run test:browser` e `npm run test:offline`. Node 22+, Chromium e pdftotext devem estar disponíveis. `npm ci` instala dependências fixadas no lockfile.
 
-Os 65 testes de regras usam o código .gs em simulador das APIs Google. Cobrem cadastro e idempotência, preço das cinco categorias e cônjuge, nome/telefone, consulta limitada, última vaga e família inteira, cancelamento/reativação, bloqueio concorrente, prazo Brasília, assinatura/replay, permissões por conta e papel, migração sem perda de dados e publicação consolidada.
+Os 67 testes de regras usam o código .gs em simulador das APIs Google. Cobrem cadastro e idempotência, preço das cinco categorias e cônjuge, nome/telefone, consulta limitada, última vaga e família inteira, cancelamento/reativação, bloqueio concorrente, prazo Brasília, assinatura/replay, permissões por conta e papel, migração sem perda de dados e publicação consolidada.
 
 Quatro testes da manutenção verificam a limpeza única autorizada: identidade do proprietário, cópia validada antes de esvaziar, preservação de comprovantes/configurações, bloqueio de repetição e proteção em falhas. O arquivo de manutenção é separado e não entra nas implantações.
 
@@ -26,3 +26,5 @@ A demonstração autônoma também é testada sem rede, com arquivos fictícios 
 - Somente em cópia de homologação, simule o prazo: pendentes expiram; pagas permanecem; confirmação tardia respeita a lotação.
 
 A versão anterior foi confirmada por imagens pelo proprietário. Esta atualização financeira precisa ser aplicada e conferida na conta da igreja. Testes locais não validam identidade Google, recebimento bancário, entrega de WhatsApp ou cotas reais.
+
+A revisão da escolha de pagamento verifica a etapa inicial sem QR/comprovante, as três condições e seus valores, à vista em 20/12, preservação da escolha após atualização, tela em 320/390/768 px e comprovante obrigatório. O lembrete à vista é preparado em 19/12 (Brasília). A migração prorroga somente à vista ainda não conferido, preservando os comprovantes e o histórico.
