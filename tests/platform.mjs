@@ -8,15 +8,18 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const clone = value => JSON.parse(JSON.stringify(value));
 class Sheet {
   constructor() { this.rows = []; this.maxRows = 1000; }
-  getLastRow() { return this.rows.length; }
+  getLastRow() { let n = this.rows.length; while (n && this.rows[n-1].every(v => v === '' || v === undefined)) n--; return n; }
   getMaxRows() { return this.maxRows; }
   insertRowsAfter(row, extra) { this.maxRows += extra; }
   setFrozenRows() {}
+  copyTo(book) { const copy = book.insertSheet('Cópia de teste'); copy.rows = clone(this.rows); copy.maxRows = this.maxRows; return copy; }
+  setName(name) { this.rename(name); return this; }
   getRange(row, col, height = 1, width = 1) {
     return {
       getValues: () => Array.from({ length: height }, (_, i) => Array.from({ length: width }, (_, j) => this.rows[row + i - 1]?.[col + j - 1] ?? '')),
       setValues: values => { for (let i = 0; i < height; i++) { this.rows[row + i - 1] ||= []; for (let j = 0; j < width; j++) this.rows[row + i - 1][col + j - 1] = values[i][j]; } },
       setValue: value => { this.rows[row - 1] ||= []; this.rows[row - 1][col - 1] = value; },
+      clearContent: () => { for (let i=0;i<height;i++) for(let j=0;j<width;j++) { this.rows[row+i-1] ||= []; this.rows[row+i-1][col+j-1] = ''; } },
       setNumberFormat() {}
     };
   }
@@ -40,7 +43,7 @@ export function platform({ now = '2026-10-17T15:00:00Z', actor = 'tesouraria@exa
     base64EncodeWebSafe: bytes => Buffer.from(bytes).toString('base64').replaceAll('+', '-').replaceAll('/', '_')
   };
   const book = { getId: () => 'test-sheet', getUrl: () => 'https://docs.google.com/spreadsheets/d/test-sheet/edit',
-    getSheetByName: name => sheets.get(name), insertSheet: name => { const s = new Sheet(); sheets.set(name, s); return s; } };
+    getSheetByName: name => sheets.get(name), insertSheet: name => { const s = new Sheet(); let currentName = name; s.rename = next => { if (sheets.has(next)) throw new Error('Nome de aba já existe.'); sheets.delete(currentName); currentName = next; sheets.set(next,s); }; sheets.set(name, s); return s; } };
   const publicContext = vm.createContext({ Date: Clock, console, Utilities: utilities,
     CacheService: { getScriptCache: () => ({
       get(key) { const item = cache.get(key); return item && item.until > clock ? item.value : null; },

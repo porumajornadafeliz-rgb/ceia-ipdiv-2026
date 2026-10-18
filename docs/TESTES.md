@@ -2,7 +2,9 @@
 
 Execute `npm run build`, `npm test`, `npm run test:browser` e `npm run test:offline`. Node 22+, Chromium e pdftotext devem estar disponíveis. `npm ci` instala dependências fixadas no lockfile.
 
-Os 49 testes de regras usam o código .gs em simulador das APIs Google. Cobrem cadastro e idempotência, preço das cinco categorias e cônjuge, nome/telefone, consulta limitada, última vaga e família inteira, cancelamento/reativação, bloqueio concorrente, prazo Brasília, assinatura/replay, permissões por conta e papel, migração sem perda de dados e publicação consolidada.
+Os 53 testes de regras usam o código .gs em simulador das APIs Google. Cobrem cadastro e idempotência, preço das cinco categorias e cônjuge, nome/telefone, consulta limitada, última vaga e família inteira, cancelamento/reativação, bloqueio concorrente, prazo Brasília, assinatura/replay, permissões por conta e papel, migração sem perda de dados e publicação consolidada.
+
+Quatro testes da manutenção verificam a limpeza única autorizada: identidade do proprietário, cópia validada antes de esvaziar, preservação de comprovantes/configurações, bloqueio de repetição e proteção em falhas. O arquivo de manutenção é separado e não entra nas implantações.
 
 Os testes financeiros cobrem comprovantes privados, tipo/assinatura/tamanho, pasta privada, duplicação, recusa e reenvio, autorização de pagamento temporária sem acesso completo, expiração dessa autorização, secretaria autorizada, auditoria, confirmação tardia sem ultrapassar lotação, reserva expirada sem alterar linha, preservação de pagas, entrada somente após pagamento e cancelamento sem simular estorno.
 

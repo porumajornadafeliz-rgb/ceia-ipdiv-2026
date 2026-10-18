@@ -14,3 +14,5 @@ Registrar reserva os lugares até 20/12/2026, às 23h59 Brasília. O participant
 O WhatsApp comum exige que a pessoa toque em Enviar. A mensagem inclui dados, quantidade, valor e situação; o comprovante fica disponível no painel. Não há confirmação bancária automática nem envio silencioso.
 
 Os projetos anteriores foram publicados e a consulta por nome/WhatsApp foi confirmada pelo proprietário. Esta atualização ainda precisa ser aplicada aos dois projetos. Os testes locais não alteram a conta Google.
+
+- **LIMPAR-TESTES-IPDIV-2026.zip**: manutenção única autorizada pelo proprietário antes da divulgação. Arquiva os testes e esvazia a base ativa, preservando documentos e configurações. Executar no editor do Público e remover o arquivo temporário após conferir; não incluir na implantação.
