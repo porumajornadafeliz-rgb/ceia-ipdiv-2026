@@ -7,6 +7,7 @@ Use **ATUALIZAR-PAGAMENTO-SIMPLIFICADO-IPDIV-2026.zip** para esta revisão do P�
 - **DEMONSTRACAO-IPDIV-v12.zip** e **DEMONSTRACAO-IPDIV.zip**: demonstração atual sem rede, sem pagamentos reais e sem envio de WhatsApp. Extraia e abra ABRIR-DEMONSTRACAO.html. Zero registros e 200 vagas ao abrir; testes descartados ao fechar/recarregar. Use somente comprovantes fictícios.
 - **PUBLICAR-CEIA-IPDIV-2026-v2.zip** e **PUBLICAR-CEIA-IPDIV-2026.zip**: instalação nova, com guia COMECE-AQUI.txt.
 - **ceia-ipdiv-2026.zip**: fontes, testes, documentação, marca oficial e projetos gerados.
+- **LIMPEZA-FINAL-PARA-DIVULGAR-IPDIV-2026.zip**: nova limpeza dos testes autorizada em 18/10. Uso temporário no editor Público; arquiva e valida antes de esvaziar o aplicativo. Ainda precisa ser executada pelo proprietário. Não publicar esse arquivo temporário.
 - **LIMPAR-TESTES-IPDIV-2026.zip**: manutenção única já executada pelo proprietário. Não usar para atualizar ou remover novos registros. O arquivo de limpeza não entra nas implantações.
 - Os pacotes anteriores de Pix, tela final e parcelamento e demonstrações v6–v11 são históricos. Não use aqueles códigos para esta atualização de parcelamento.
 
