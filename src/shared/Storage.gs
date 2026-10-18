@@ -1,4 +1,4 @@
-var HEADERS_ = ['id', 'createdAt', 'name', 'phone', 'counts', 'people', 'total', 'status', 'reportedAt', 'paidAt', 'paidBy', 'entryAt', 'entryBy', 'entryOverride', 'tokenHash', 'requestHash', 'payloadHash', 'audit', 'proofId', 'proofMime', 'proofAt', 'cancelledAt'];
+var HEADERS_ = ['id', 'createdAt', 'name', 'phone', 'counts', 'people', 'total', 'status', 'reportedAt', 'paidAt', 'paidBy', 'entryAt', 'entryBy', 'entryOverride', 'tokenHash', 'requestHash', 'payloadHash', 'audit', 'proofId', 'proofMime', 'proofAt', 'cancelledAt', 'paymentPlan'];
 function props_() { return PropertiesService.getScriptProperties(); }
 function capacityForRows_(rows) {
   var p = props_(), raw = p.getProperty('MAX_PARTICIPANTS') || '';
@@ -25,13 +25,14 @@ function readRows_(sheet) {
     HEADERS_.forEach(function(key, col) { row[key] = values[col]; });
     ['createdAt', 'reportedAt', 'paidAt', 'entryAt', 'proofAt', 'cancelledAt'].forEach(function(key) { if (row[key] instanceof Date) row[key] = row[key].toISOString(); });
     row.counts = JSON.parse(row.counts); row.audit = JSON.parse(row.audit || '[]');
+    row.paymentPlan = row.paymentPlan ? JSON.parse(row.paymentPlan) : null;
     row.entryOverride = row.entryOverride === true || row.entryOverride === 'true';
     return row;
   });
 }
 function writeRow_(sheet, row) {
   var values = HEADERS_.map(function(key) {
-    return key === 'counts' || key === 'audit' ? JSON.stringify(row[key]) : row[key] === undefined ? '' : row[key];
+    return key === 'counts' || key === 'audit' || key === 'paymentPlan' ? JSON.stringify(row[key] || (key === 'paymentPlan' ? null : [])) : row[key] === undefined ? '' : row[key];
   });
   var index = row._row || sheet.getLastRow() + 1;
   if (index > sheet.getMaxRows()) {
@@ -69,7 +70,7 @@ function publicRow_(row) {
     paymentStatus: paymentState_(row), reservationStatus: reservationState_(row), proofSubmittedAt: row.proofAt || '',
     proofRejected: row.status === 'PROOF_REJECTED', paidAt: row.paidAt || '',
     reservationDeadline: EVENT_.deadline,
-    pix: ['CANCELLED', 'EXPIRED'].indexOf(reservationState_(row)) >= 0 || paymentState_(row) !== 'PENDING' ? '' : pix_(row.total, row.id), event: EVENT_ };
+    pix: paymentParts_(row).length === 1 && paymentOpen_(row) && partState_(paymentParts_(row)[0]) === 'PENDING' ? pix_(row.total, row.id) : '', payment: paymentOverview_(row), paymentOptions: payableOptions_(row), remindersEnabled: Boolean(row.paymentPlan && row.paymentPlan.remindersEnabled), canChangePlan: paymentOpen_(row) && !paymentParts_(row).some(function(p) { return p.proofId || partState_(p) === 'PAID'; }), event: EVENT_ };
 }
 function withErrors_(fn) {
   try { return { ok: true, data: fn() }; }

@@ -2,11 +2,11 @@
   "name": "ceia-ipdiv-2026",
   "version": "1.0.0",
   "private": true,
-  "description": "Inscrições gratuitas para a Ceia de Confraternização IPDiv 2026 — Google Apps Script",
+  "description": "Gestão de inscrições e pagamentos da Ceia de Confraternização IPDiv 2026 — Google Apps Script",
   "scripts": {
     "build": "node scripts/build.mjs && node scripts/build-offline.mjs && node scripts/build-publication.mjs",
     "test": "node --test tests/*.test.mjs",
-    "test:browser": "node tests/browser.mjs",
+    "test:browser": "node tests/browser.mjs && node tests/browser-installments.mjs",
     "test:offline": "node tests/offline.mjs",
     "dev": "node scripts/preview.mjs"
   },

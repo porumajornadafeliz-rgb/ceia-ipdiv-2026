@@ -2,15 +2,15 @@
 
 Sistema de inscrição familiar e entrada da **Igreja Presbiteriana de Divinópolis**, em **31/12/2026**. Culto de Ações de Graças às **20h30min**, no **Templo da IPDiv — Av. Paraná, 1098 — Sidil**. Ceia **após o culto, no Salão Imperatriz**, Rua Duarte, 70, Bairro Catalão, esquina com a Rua Paraná. Inscrições até **20/12/2026, às 23h59 (Brasília)**.
 
-**Registrar reserva as vagas; pagar e ter o comprovante conferido garante os lugares.** São 200 pessoas, incluindo crianças. Reservas pendentes ocupam vagas até **20/12/2026, às 23h59 (Brasília)**; depois deixam de ocupar automaticamente, preservando os registros. O participante paga por Pix e envia o comprovante privado. A secretaria confere o recebimento e confirma no painel. WhatsApp **(37) 3212-4980** recebe uma mensagem preparada, enviada pela própria pessoa. Não há envio automático pelo aplicativo comum nem confirmação bancária automática.
+**Registrar reserva os lugares; confirmar a primeira parcela garante as vagas.** São 200 pessoas, incluindo crianças. À vista em 25/10, 2x em 20/11 e 20/12 ou 3x em 25/10, 20/11 e 20/12, com o mesmo total. Parcelas vencidas são cobradas juntas. Pix ou depósito na conta Itaú da igreja, com comprovantes privados e conferência pela secretaria. Sem contratação de API: lembretes de amanhã aparecem no painel para envio manual pelo WhatsApp.
 
 O sistema inicia **sem inscrições e sem exemplos fictícios**, com **200 vagas disponíveis**. A inicialização de uma planilha existente preserva seus registros e históricos; não apaga inscrições reais.
 
-**A atualização de Pix e comprovantes foi preparada para as implantações existentes.** Precisa ser aplicada nos dois projetos pelo proprietário, incluindo o manifesto Público e a autorização do Drive. Use [o guia de atualização](docs/ATUALIZAR-PAGAMENTO.md) e o pacote `entrega/ATUALIZAR-PIX-E-COMPROVANTES-IPDIV-2026.zip`. Os testes locais não publicam alterações na conta Google.
+**Atualização de parcelamento preparada para os dois projetos existentes.** Use [o guia](docs/ATUALIZAR-PARCELAMENTO.md) e `entrega/ATUALIZAR-PARCELAMENTO-IPDIV-2026.zip`. O proprietário precisa aplicar os códigos, executar a migração protegida no Público e atualizar as implantações. Os testes locais não alteram o Google da igreja.
 
 ## Analisar sem instalar nada
 
-Baixe **`entrega/DEMONSTRACAO-IPDIV-v10.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
+Baixe **`entrega/DEMONSTRACAO-IPDIV-v11.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
 
 A demonstração começa vazia. Você pode registrar uma família e ver a baixa imediata das vagas, visualizar a mensagem da secretaria, salvar o PDF, consultar inscrições, cancelar/reativar e registrar a entrada. O painel **Inscrições e vagas** substitui a antiga tesouraria.
 
@@ -24,11 +24,11 @@ A demonstração começa vazia. Você pode registrar uma família e ver a baixa 
 - Vagas verificadas no servidor sob o mesmo bloqueio da gravação; uma família inteira é aceita ou recusada, sem ultrapassar a lotação.
 - Repetir o mesmo envio não cria inscrição nem baixa vagas em duplicidade, mesmo após perda de conexão, prazo ou esgotamento.
 - Consulta por nome e WhatsApp e registro para salvar em PDF legível no celular ou imprimir, identificado como **não sendo comprovante de pagamento**. O PDF mantém acesso particular clicável; a tela não pede guardar ou copiar link.
-- WhatsApp preparado com nome, telefone, inscrição, participantes, categorias e valor. Não inclui o token privado nem afirma que houve pagamento.
-- Área Pix com QR, chave e Copia e Cola; envio privado de comprovante e conferência financeira no painel. Não usa API bancária.
-- Administração com login Google e papéis autorizados; pesquisa, filtros, valores de referência, CSV, impressão e histórico.
+- WhatsApp preparado com nome, telefone, inscrição, participantes, categorias, plano, recebido e saldo. Não inclui o token privado e distingue valores conferidos de pagamentos pendentes.
+- À vista, 2x e 3x, Pix ou depósito, pagamentos vencidos juntos, comprovantes e conferência por pagamento. Não usa API bancária.
+- Administração com login Google e papéis autorizados; pesquisa, filtros, recebido/saldo, CSV de inscrições e parcelas, lembretes manuais, impressão e histórico.
 - Cancelamento e reativação com motivo e auditoria. Cancelar libera lugares; reativar exige disponibilidade para toda a família. Registros não são apagados.
-- Entrada familiar exige pagamento confirmado; cancelamentos e entradas duplicadas são bloqueados no servidor.
+- Entrada familiar exige quitação integral confirmada; cancelamentos e entradas duplicadas são bloqueados no servidor.
 
 ## Publicação e operação
 

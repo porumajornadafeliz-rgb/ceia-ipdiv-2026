@@ -6,9 +6,9 @@ O Público executa como proprietário e é o único projeto que acessa planilha 
 
 ## Reservas e confirmação
 
-Cadastro, envio de comprovante, conferência financeira, cancelamento, reativação e entrada usam o mesmo ScriptLock. Toda a família é aceita ou recusada. Idempotência do cadastro e do comprovante evita duplicações. Após 20/12/2026, 23h59 Brasília, reservas não confirmadas deixam de ocupar vagas automaticamente no cálculo; não é necessário gatilho nem apagar linhas. Pagas continuam ocupando. Confirmação tardia verifica vagas sob bloqueio. Entrada exige inscrição ativa e pagamento confirmado, e bloqueia duplicação.
+Cadastro, envio de comprovante, conferência financeira, cancelamento, reativação e entrada usam o mesmo ScriptLock. Toda a família é aceita ou recusada. Idempotência do cadastro e do comprovante evita duplicações. Após 20/12/2026, 23h59 Brasília, reservas sem a primeira parcela confirmada deixam de ocupar vagas automaticamente no cálculo; não é necessário gatilho nem apagar linhas. A primeira parcela confirmada mantém as vagas, mesmo com saldo pendente; não há cancelamento automático pelo atraso das demais. Confirmação tardia verifica vagas sob bloqueio. Entrada exige inscrição ativa e pagamento confirmado, e bloqueia duplicação.
 
-Os cabeçalhos financeiros existentes são reutilizados. A inicialização de cabeçalho compatível só acrescenta `cancelledAt` quando ausente; não reordena ou apaga os registros. Status e datas financeiras históricos são preservados.
+Os cabeçalhos financeiros existentes são reutilizados e uma coluna JSON paymentPlan é acrescentada após cancelledAt, sem alterar as 22 colunas anteriores. Ela guarda o calendário, cada comprovante, seu método e sua conferência. A inicialização de cabeçalho compatível só acrescenta `cancelledAt` quando ausente; não reordena ou apaga os registros. Status e datas financeiros históricos são preservados em um plano integral legado.
 
 ## Acesso de participantes
 
@@ -22,12 +22,12 @@ Até vinte resultados recentes por contato e oito tentativas por telefone/minuto
 
 Aceita apenas PDF, PNG e JPEG até 2 MB, com validação de base64, tamanho decodificado e assinatura inicial do formato. Isso não atesta autenticidade de um pagamento nem faz análise antimalware. A equipe deve conferir documentos e recebimento. A pasta precisa permanecer privada, sem editores ou leitores adicionais. Não há URL pública; download só pelo canal assinado a `admin`/`treasury`. `door` não recebe arquivos, valores ou auditoria financeira. Nomes dos arquivos são gerados pelo sistema.
 
-Reenvio idêntico é idempotente enquanto o comprovante está em conferência. Outro arquivo só é aceito após recusa. Versões anteriores permanecem privadas para preservar auditoria. Defina com a igreja o prazo de retenção e a exclusão posterior; não há limpeza automática dos documentos nesta versão.
+Reenvio idêntico é idempotente enquanto o comprovante está em conferência. Outro arquivo só é aceito após recusa. Cada comprovante pode cobrir uma parcela ou um conjunto vencido. A aprovação confere a versão do arquivo e confirma o conjunto todo sob bloqueio. Reutilizar o mesmo comprovante em outro conjunto da mesma inscrição é recusado. O recebimento é somado só após conferência. Versões anteriores permanecem privadas para preservar auditoria. Defina com a igreja o prazo de retenção e a exclusão posterior; não há limpeza automática dos documentos nesta versão.
 
 ## Dados e serviços
 
 Campos são renderizados com `textContent`, nomes iniciados por fórmulas são recusados, campos livres usam formato texto na planilha e CSV neutraliza fórmulas. Dinheiro usa centavos inteiros calculados no servidor, até cem participantes por cadastro. `sessionStorage` conserva somente a retomada na própria aba; a demonstração usa memória descartável.
 
-Pix estático não tem webhook ou confirmação bancária. Somente conferência autorizada confirma pagamento; cancelamento não faz estorno. WhatsApp comum exige ação da pessoa para enviar a mensagem e anexar/compartilhar arquivo. O site não verifica entrega. Não há credenciais de API bancária ou WhatsApp no pacote.
+Pix estático não tem webhook ou confirmação bancária. Somente conferência autorizada confirma pagamento; cancelamento não faz estorno. WhatsApp comum exige ação da pessoa para enviar a mensagem e anexar/compartilhar arquivo. O site não verifica entrega. Não há credenciais ou integração paga de API bancária, Meta ou WhatsApp no pacote. A fila de lembretes exige consentimento, é privada da secretaria, usa o dia seguinte em Brasília e não comprova entrega. O histórico registra somente abertura de conversa. Cancelamento dos lembretes é permitido pelo acesso de pagamento; ativar exige acesso completo ou consentimento no cadastro.
 
 Apps Script, Planilhas e Drive possuem cotas: https://developers.google.com/apps-script/guides/services/quotas. Cada consulta lê a aba inteira, adequado ao porte comunitário previsto. O bloqueio espera até vinte segundos. Testes locais não comprovam configuração Google, privacidade efetiva ou disponibilidade da conta; a publicação exige conferência no ambiente da igreja.

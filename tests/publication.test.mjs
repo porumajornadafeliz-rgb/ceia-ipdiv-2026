@@ -54,7 +54,7 @@ test('páginas públicas e administrativas consolidadas renderizam marca, botõe
   p.public.HtmlService = htmlService(p.public); p.admin.HtmlService = htmlService(p.admin);
   const publicHtml = p.public.doGet().getContent(), adminHtml = p.admin.doGet().getContent();
   for (const html of [publicHtml, adminHtml]) { assert.ok(html.includes('data:image/png;base64,')); assert.ok(!html.includes('<?!=')); assert.ok(!html.includes('test-secret-never-production')); assert.ok(!html.includes('bridge-test-never-production')); }
-  assert.match(publicHtml, /CONFIRMAR E PAGAR COM PIX/); assert.match(adminHtml, /Inscrições e vagas/);
+  assert.match(publicHtml, /CONFIRMAR E ESCOLHER PAGAMENTO/); assert.match(adminHtml, /Inscrições e vagas/);
   assert.match(publicHtml, /"url":"https:\/\/script.google.com\/macros\/s\/TEST\/exec"/);
 });
 test('configuração inicial cria uma planilha sem exemplos e reutiliza a planilha em novas execuções', () => {

@@ -13,6 +13,7 @@ var EVENT_ = Object.freeze({
   },
   mealTiming: 'Após o culto',
   secretariat: { phone: '(37) 3212-4980', whatsapp: '553732124980' },
+  paymentPolicy: { guarantee: 'FIRST_PART', late: 'COLLECT_OVERDUE' },
   deadline: '2026-12-21T03:00:00.000Z', // 21/12 00h00 em Brasília (UTC−3), limite exclusivo.
   categories: [
     { key: 'adultMembers', label: 'Adultos membros', price: 8000 },
@@ -59,7 +60,7 @@ function registrationInput_(input) {
   var contact = contactInput_(input);
   if (typeof input.requestId !== 'string' || !/^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i.test(input.requestId)) fail_('Atualize a página e tente novamente.');
   var calculated = calculate_(input.counts);
-  return { name: contact.name, phone: contact.phone, counts: calculated.counts, people: calculated.people, total: calculated.total, requestId: input.requestId };
+  return { name: contact.name, phone: contact.phone, counts: calculated.counts, people: calculated.people, total: calculated.total, requestId: input.requestId, plan: input.plan || '', remindersEnabled: input.remindersEnabled === true };
 }
 function statusName_(name) { return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\s+/g, ' ').trim(); }
 /** Consulta limitada de situação; a API acrescenta acesso temporário exclusivo ao pagamento. */
@@ -76,29 +77,40 @@ function assertOpen_(now) {
 /** Reservas ocupam lugares até o prazo; pagamentos confirmados mantêm a ocupação. */
 function registrationState_(row) { return row.cancelledAt ? 'CANCELLED' : 'REGISTERED'; }
 function paymentState_(row) {
-  if (row.paidAt || row.status === 'PAID') return 'PAID';
-  if (row.proofId && row.status !== 'PROOF_REJECTED') return 'PROOF_SUBMITTED';
-  return 'PENDING';
+  if (!row.paymentPlan) {
+    if (row.paidAt || row.status === 'PAID') return 'PAID';
+    if (row.proofId && row.status !== 'PROOF_REJECTED') return 'PROOF_SUBMITTED';
+    return 'PENDING';
+  }
+  var totals = paymentTotals_(row);
+  if (totals.balance === 0) return 'PAID';
+  if (paymentParts_(row).some(function(p) { return partState_(p) === 'PROOF_SUBMITTED'; })) return 'PROOF_SUBMITTED';
+  return totals.received > 0 ? 'PARTIALLY_PAID' : 'PENDING';
 }
 function reservationState_(row) {
   if (row.cancelledAt) return 'CANCELLED';
-  if (paymentState_(row) === 'PAID') return 'CONFIRMED';
+  if (partState_(paymentParts_(row)[0]) === 'PAID') return 'CONFIRMED';
   return Date.now() >= Date.parse(EVENT_.deadline) ? 'EXPIRED' : 'RESERVED';
 }
 function occupiesSeats_(row) { return ['RESERVED', 'CONFIRMED'].indexOf(reservationState_(row)) >= 0; }
-function paymentTransition_(row, actor, approved, now, note) {
+function paymentTransition_(row, actor, approved, now, note, number) {
   assertRole_(actor, ['admin', 'treasury']);
   if (row.cancelledAt) fail_('Inscrição cancelada. Reative antes de confirmar pagamento.');
   if (typeof approved !== 'boolean') fail_('Situação de pagamento inválida.');
-  if (approved && paymentState_(row) === 'PAID') return false;
-  if (!approved && paymentState_(row) === 'PAID') fail_('Pagamento já confirmado. Esta ação não realiza estorno ou devolução.');
-  if (!row.proofId || !row.proofAt) fail_('É necessário conferir o comprovante enviado antes de confirmar pagamento.');
-  if (!approved && row.status === 'PROOF_REJECTED') return false;
-  if (approved && row.status === 'PROOF_REJECTED') fail_('Comprovante recusado. Aguarde um novo envio para confirmar o pagamento.');
+  ensurePaymentPlan_(row);
+  var part = partFor_(row, number), group = part.proofGroup || [part.number];
+  var targets = group.map(function(n) { return partFor_(row, n); });
+  if (approved && targets.every(function(p) { return partState_(p) === 'PAID'; })) return false;
+  if (!approved && targets.some(function(p) { return partState_(p) === 'PAID'; })) fail_('Pagamento já confirmado. Esta ação não realiza estorno ou devolução.');
+  if (!part.proofId || !part.proofAt) fail_('É necessário conferir o comprovante enviado antes de confirmar pagamento.');
+  if (!approved && targets.every(function(p) { return p.status === 'PROOF_REJECTED'; })) return false;
+  if (approved && targets.some(function(p) { return p.status === 'PROOF_REJECTED'; })) fail_('Comprovante recusado. Aguarde um novo envio para confirmar o pagamento.');
+  if (targets.some(function(p) { return p.proofId !== part.proofId || JSON.stringify(p.proofGroup || [p.number]) !== JSON.stringify(group); })) fail_('O conjunto de parcelas mudou. Atualize a conferência.');
   var reason = cleanText_(note, 250, approved ? 'a conferência do comprovante' : 'o motivo da recusa do comprovante');
-  row.status = approved ? 'PAID' : 'PROOF_REJECTED';
-  if (approved) { row.paidAt = now; row.paidBy = actor.email; }
-  row.audit.push({ at: now, by: actor.email, action: approved ? 'PAYMENT_CONFIRMED' : 'PROOF_REJECTED', note: reason });
+  targets.forEach(function(p) { p.status = approved ? 'PAID' : 'PROOF_REJECTED'; if (approved) { p.paidAt = now; p.paidBy = actor.email; } });
+  syncPayment_(row);
+  if(approved && paymentTotals_(row).balance===0){row.paidAt=now;row.paidBy=actor.email;}
+  row.audit.push({ at: now, by: actor.email, action: approved ? 'PAYMENT_CONFIRMED' : 'PROOF_REJECTED', parts: group, amount: targets.reduce(function(sum,p) { return sum + p.amount; },0), note: reason });
   return true;
 }
 function capacity_(rows, limit) {
@@ -134,12 +146,13 @@ function entryTransition_(row, actor, now) {
 }
 function metrics_(rows) {
   return rows.reduce(function(m, r) {
-    if (paymentState_(r) === 'PAID') m.receivedTotal += r.total;
+    m.receivedTotal += paymentTotals_(r).received;
     if (r.cancelledAt) { m.cancelledFamilies++; return m; }
     m.families++; m.people += r.people; m.declaredTotal += r.total;
     if (reservationState_(r) === 'CONFIRMED') { m.confirmedFamilies++; m.confirmedPeople += r.people; }
     else if (reservationState_(r) === 'EXPIRED') m.expiredFamilies++;
-    else { m.pendingFamilies++; m.pendingTotal += r.total; }
+    else m.pendingFamilies++;
+    if (reservationState_(r) !== 'EXPIRED') m.pendingTotal += paymentTotals_(r).balance;
     if (r.entryAt) { m.enteredFamilies++; m.enteredPeople += r.people; }
     return m;
   }, { families: 0, people: 0, declaredTotal: 0, enteredFamilies: 0, enteredPeople: 0, cancelledFamilies: 0,

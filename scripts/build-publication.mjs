@@ -6,10 +6,10 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 for (const project of ['public', 'admin']) {
   const input = path.join(root, 'dist', project), output = path.join(root, 'dist/publicacao', project === 'public' ? 'PUBLICO' : 'ADMINISTRACAO');
   await mkdir(output, { recursive: true });
-  const names = project === 'public' ? ['Index', 'Styles', 'Brand', 'Client', 'Qr', 'Pdf', 'PublicClient'] : ['Admin', 'Styles', 'Brand', 'Client', 'AdminClient'];
+  const names = project === 'public' ? ['Index', 'Styles', 'Brand', 'Client', 'Qr', 'Pdf', 'PaymentClient', 'PublicClient'] : ['Admin', 'Styles', 'Brand', 'Client', 'AdminClient'];
   const html = {};
   for (const name of names) html[name] = await readFile(path.join(input, name + '.html'), 'utf8');
-  const sources = project === 'public' ? ['Domain.gs', 'Pix.gs', 'Storage.gs', 'Config.gs', 'Public.gs', 'Payments.gs', 'Bridge.gs'] : ['Domain.gs', 'Admin.gs'];
+  const sources = project === 'public' ? ['Domain.gs', 'Installments.gs', 'Pix.gs', 'Storage.gs', 'Config.gs', 'Public.gs', 'Payments.gs', 'Bridge.gs'] : ['Domain.gs', 'Installments.gs', 'Admin.gs'];
   let code = '// Ceia IPDiv 2026 — projeto ' + project + '. Gerado; não contém credenciais.\n';
   code += 'var PACKAGED_HTML_ = ' + JSON.stringify(html).replaceAll('\u2028', '\\u2028').replaceAll('\u2029', '\\u2029') + ';\n\n';
   for (const file of sources) {

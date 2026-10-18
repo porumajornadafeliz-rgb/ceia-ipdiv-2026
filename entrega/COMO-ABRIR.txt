@@ -1,22 +1,22 @@
-CEIA IPDIV 2026 — DEMONSTRAÇÃO V10: PIX E COMPROVANTES
+CEIA IPDIV 2026 — DEMONSTRAÇÃO V11: PARCELAS, PIX E DEPÓSITO
 
-Extraia DEMONSTRACAO-IPDIV-v10.zip em uma nova pasta e abra
+Extraia DEMONSTRACAO-IPDIV-v11.zip em uma nova pasta e abra
 ABRIR-DEMONSTRACAO.html no Edge ou Chrome. Não exige instalação ou rede.
 
-Começa com zero inscrições e 200 vagas. Cadastre uma família, veja o Pix
-simulado e envie um arquivo fictício PDF, PNG ou JPG de até 2 MB.
-No painel INSCRIÇÕES E VAGAS, baixe esse arquivo, abra CONFERIR PAGAMENTO,
-informe o resultado e o motivo. A entrada exige confirmação do pagamento.
+Começa sem inscrições e com 200 vagas. Registre uma família, escolha
+à vista, 2x ou 3x e veja as datas, parcelas e valores. Pagamentos vencidos
+são cobrados juntos. Pix e depósito são simulados: não pague valores reais.
 
-Não faça pagamentos reais. O QR e a chave desta demonstração não são
-válidos para pagar. O WhatsApp não envia mensagens reais. Arquivos e
-cadastros ficam só na memória desta aba; recarregar ou fechar apaga tudo.
-Não use comprovantes reais nesta análise.
+Envie apenas um arquivo fictício PDF, PNG ou JPG de até 2 MB. No painel
+INSCRIÇÕES E VAGAS, baixe o arquivo, confira e use CONFERIR PAGAMENTO para
+a parcela ou conjunto indicado. A primeira parcela confirmada garante
+as vagas; a entrada exige quitar o saldo. Exportações detalham as parcelas.
 
-O cadastro reserva os lugares até 20/12/2026, 23h59 Brasília. Depois só
-pagamentos confirmados continuam ocupando vagas. Consultar, salvar PDF,
-enviar comprovante e confirmar pagamento não descontam a reserva duas vezes.
+Lembretes de amanhã aparecem somente para participantes que autorizaram.
+Na demonstração, nenhum WhatsApp real é aberto ou enviado.
 
-Para atualizar os projetos Google já existentes, use o pacote
-ATUALIZAR-PIX-E-COMPROVANTES-IPDIV-2026.zip e o guia incluso.
-A demonstração não publica mudanças na conta Google.
+Os arquivos e cadastros ficam apenas na memória desta aba. Fechar ou
+recarregar apaga tudo. A demonstração não grava na conta Google.
+
+Para atualizar os projetos já publicados, use o pacote
+ATUALIZAR-PARCELAMENTO-IPDIV-2026.zip e seu guia. Ele preserva os dados.

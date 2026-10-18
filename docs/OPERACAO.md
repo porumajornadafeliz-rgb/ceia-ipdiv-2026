@@ -1,35 +1,47 @@
 # Operação da ceia
 
-Em 31/12/2026: culto de Ações de Graças às 20h30min no Templo da IPDiv, Av. Paraná, 1098 — Sidil. Ceia após o culto no Salão Imperatriz, Rua Duarte, 70 — Catalão, esquina com Rua Paraná, Divinópolis/MG.
+Ceia em 31/12/2026, após o culto de Ações de Graças às 20h30min no Templo da IPDiv, Av. Paraná, 1098 — Sidil. Refeição no Salão Imperatriz, Rua Duarte, 70 — Catalão, esquina com Rua Paraná, Divinópolis/MG.
 
-## Cadastro e pagamento
+## Inscrição e pagamento
 
-1. O responsável informa nome, WhatsApp com DDD e quantidades. Valores são calculados no servidor. Crianças têm até 12 anos em 31/12/2026; filhos não membros usam tarifa de não membro. Um cônjuge não membro pode usar R$ 80 com adulto membro na inscrição.
-2. Ao confirmar o cadastro, os lugares são reservados e descontados do contador de 200 pessoas, incluindo crianças. A pessoa pode pagar com Pix imediatamente ou depois, consultando por nome e WhatsApp.
-3. A área de pagamento mostra valor, QR Code, chave CNPJ, favorecido e Pix Copia e Cola. Se já pagou, não repita o pagamento.
-4. Envie o comprovante PDF, PNG ou JPG de até 2 MB pelo site. A situação passa a **Comprovante em conferência**, ainda sem garantia das vagas.
-5. A secretaria baixa o comprovante no painel, confere favorecido, valor e recebimento, e usa **CONFERIR PAGAMENTO**, com motivo obrigatório. Confirmar registra conta e data e passa para **Pago — comprovante conferido / Vaga garantida**. Recusar permite novo envio.
+1. O responsável informa nome, WhatsApp com DDD e quantidades. Valores são calculados no servidor. Crianças têm até 12 anos em 31/12/2026; filhos não membros usam a tarifa de não membro. Um cônjuge não membro pode usar R$ 80 com adulto membro na inscrição.
+2. Confirmar o cadastro reserva imediatamente os lugares no limite de 200 pessoas, incluindo crianças.
+3. Na área de pagamento, escolha **À vista**, **2 vezes** ou **3 vezes**. Veja datas e valores e escolha Pix ou depósito. Pode pagar depois e consultar por nome e WhatsApp.
+4. Envie o comprovante PDF, PNG ou JPG de até 2 MB do pagamento selecionado. Fica em conferência, sem marcar como pago.
+5. A secretaria baixa e confere o comprovante e o recebimento. Confirmação registra conta e data. Recusa permite novo arquivo. Depois de enviar comprovante, o plano não pode ser alterado pelo participante.
 
-O registro de inscrição/PDF não é comprovante bancário. Não há integração bancária automática nem devolução financeira pelo sistema.
+À vista vence em 25/10; 2x em 20/11 e 20/12; 3x em 25/10, 20/11 e 20/12, todas em 2026. Parcelas já vencidas são cobradas juntas, com valor somado, um pagamento e um comprovante. Sem juros acrescentados pelo sistema. Centavos são distribuídos para conservar o total.
 
-## Prazo e vagas
+Pix usa chave CNPJ 20.896.270/0001-30, QR e Copia e Cola com valor exato. Depósito: Itaú, agência 0690, conta 16.405-8, Igreja Presbiteriana de Divinópolis. Se já pagou, não repita: envie o comprovante. Não há API bancária nem confirmação por autodeclaração.
 
-Inscrições e pagamento até **20/12/2026, às 23h59 (Brasília)**. Reservas sem pagamento confirmado deixam de ocupar vagas após o prazo, inclusive comprovantes aguardando análise. Os registros não são apagados. A secretaria deve concluir a conferência antes do prazo para garantir os lugares.
+## Vagas e prazo
 
-Vagas confirmadas continuam ocupadas. Confirmar tardiamente exige disponibilidade para toda a família; nunca ultrapassa a lotação. Cancelar libera lugares, preserva o histórico e não realiza devolução. Reativar depende de disponibilidade quando a inscrição ocupa lugares. Entrada registrada impede cancelamento.
+A primeira parcela confirmada garante as vagas. Um pagamento de outra parcela antes da primeira não garante. Pagamento parcial e garantia são situações diferentes: a família pode ter vaga garantida e saldo pendente.
 
-Copiar, consultar, abrir WhatsApp, enviar comprovante ou confirmar pagamento não desconta novamente uma reserva já contabilizada. Repetir o mesmo cadastro retorna a mesma inscrição. O contador atualiza ao abrir, voltar à aba, cadastrar e a cada 30 segundos visíveis; a gravação sempre relê a lotação sob bloqueio.
+Inscrições até 20/12/2026, às 23h59 (Brasília). Reservas sem a primeira parcela confirmada deixam de ocupar vagas após o prazo. O registro não é apagado. A confirmação tardia da primeira parcela verifica lugares para toda a família sob bloqueio. A garantia já obtida pela primeira parcela é mantida mesmo com saldo atrasado; não existe cancelamento automático pelo atraso das demais. O saldo continua devido e a entrada exige quitação.
 
-## Consulta e WhatsApp
+Cancelar libera lugares, preserva histórico e não faz devolução. Reativar uma inscrição que ocupará lugares depende de disponibilidade. Entrada registrada impede cancelamento. Consultar, baixar PDF, enviar comprovante e confirmar parcelas não descontam novamente lugares já reservados.
 
-A consulta por nome e WhatsApp exatos mostra situação, quantidade e data, e permite pagar/enviar comprovante depois. Não abre contato, categorias, histórico ou o documento completo. O botão de salvar PDF permanece na tela final. A consulta por nome e WhatsApp dispensa guardar ou colar link; o PDF mantém acesso particular clicável aos dados completos sem login.
+## Consulta, PDF e WhatsApp
 
-**ENVIAR RESUMO PELO WHATSAPP** prepara nome, telefone, número, participantes, valor e situação para `(37) 3212-4980`. A pessoa precisa tocar em **Enviar**. O site não comprova entrega da mensagem. O comprovante enviado pelo site fica disponível à secretaria, sem depender do WhatsApp. O compartilhamento de arquivo, quando disponível no celular, exige escolher a conversa e confirmar. Nunca há envio silencioso pelo aplicativo comum.
+Nome e WhatsApp exatos permitem consultar a situação e abrir pagamentos sem guardar ou colar link. A consulta oferece acesso temporário apenas ao pagamento e comprovantes de envio, sem expor arquivos privados, contato, histórico ou token completo. O PDF conserva acesso particular clicável aos dados completos, programação e valores. O bloco de guardar link foi retirado da tela.
 
-## Painel e relatório
+A tela concentra pagamentos e deixa detalhes da inscrição e programação recolhidos. PDF e impressão permanecem disponíveis. O registro não substitui comprovante bancário.
 
-`admin`: inscrições e entrada; `treasury`: secretaria e conferência financeira; `door`: entrada, sem valores ou comprovantes. Contas precisam constar da lista autorizada.
+Enviar resumo à secretaria prepara a mensagem para (37) 3212-4980. A pessoa confere e toca em Enviar. Compartilhar um arquivo exige escolher a conversa. O comprovante enviado pelo site fica privado no painel, independentemente do WhatsApp.
 
-Use pesquisa, filtros de inscrição, pagamento e entrada. **EXPORTAR RELATÓRIO CSV** e impressão respeitam os filtros. O CSV financeiro inclui valor, situação da reserva e pagamento, data de envio do comprovante, data e responsável pela conferência. Indicadores globais distinguem recebimentos confirmados, valores pendentes, vagas garantidas e reservas expiradas. Recebimentos de inscrição cancelada permanecem contabilizados, pois cancelar não faz estorno.
+## Secretaria e lembretes
 
-A entrada exige inscrição ativa e pagamento confirmado e registra a família inteira. Duplicações são bloqueadas no servidor. Pessoas nas entradas são estimativas pelas quantidades declaradas, sem conferência nominal individual. Em falta de internet, use lista impressa de inscrições garantidas e concilie os registros depois. Proteja relatórios e impressos com dados pessoais.
+`admin` usa inscrições e entrada; `treasury` confere pagamentos e relatórios; `door` acessa entrada sem valores, comprovantes ou contatos da fila de lembretes.
+
+O painel mostra recebido, saldo, condição, situação de cada parcela e vagas garantidas. Um comprovante conjunto tem uma única conferência para todas as parcelas indicadas. Cada aprovação verifica a versão do comprovante baixado, evitando conferir um arquivo que foi substituído.
+
+**Lembretes de amanhã** calcula parcelas com vencimento no dia seguinte, no horário de Brasília, com autorização do participante. Exclui canceladas, pagas e parcelas com comprovante em conferência. A secretaria precisa consultar o painel diariamente e usar **ABRIR WHATSAPP**, conferir e tocar em Enviar. O histórico registra abertura de conversa, sem atestar envio ou entrega. O participante pode cancelar lembretes pela consulta.
+
+Não há integração Meta contratada, serviço de mensagens pago ou envio automático. A preparação dos lembretes acontece no próprio sistema Google existente.
+
+## Relatórios e entrada
+
+**EXPORTAR RELATÓRIO CSV** contém uma linha por inscrição, total, recebido e saldo. **EXPORTAR PARCELAS CSV** contém uma linha por parcela, vencimento, valor, situação, forma e data/conta da conferência. Pesquisa e filtros são respeitados; indicadores são globais. Recebimentos de inscrição cancelada continuam nos indicadores: cancelar não faz estorno.
+
+Entrada exige inscrição ativa e quitação completa, registra a família inteira e bloqueia duplicação. Pessoas na entrada são estimativas pelas quantidades declaradas. Em falta de internet, use lista impressa de inscrições quitadas e concilie depois. Proteja relatórios, impressos e comprovantes.

@@ -36,7 +36,7 @@ try {
   await registration.getByRole('button', { name: 'CONFERIR INSCRIÇÃO' }).click();
   await registration.locator('#review-view').waitFor({ state: 'visible' });
   assert.match(await registration.locator('#review-summary').innerText(), /200,00/);
-  await registration.getByRole('button', { name: 'CONFIRMAR E PAGAR COM PIX' }).click();
+  await registration.getByRole('button', { name: 'CONFIRMAR E ESCOLHER PAGAMENTO' }).click();
   await registration.getByText('Sua reserva foi registrada!', { exact: true }).waitFor();
   await registration.getByText('198 vagas restantes', { exact: true }).waitFor();
   assert.equal(await registration.locator('#copy-link, #private-link, #share-receipt').count(), 0);
@@ -73,7 +73,7 @@ try {
   await admin.getByLabel('Inscrição', { exact:true }).selectOption('REGISTERED');
   await page.getByRole('button', { name: '1. INSCRIÇÃO', exact:true }).click();
   await registration.getByRole('button', { name:'CONSULTAR INSCRIÇÃO',exact:true }).click();
-  await registration.getByRole('button', { name:'PAGAR COM PIX / ENVIAR COMPROVANTE',exact:true }).click();
+  await registration.getByRole('button', { name:'VER PAGAMENTOS / ENVIAR COMPROVANTE',exact:true }).click();
   await registration.getByLabel('Comprovante desta inscrição').setInputFiles({name:'teste.pdf',mimeType:'application/pdf',buffer:Buffer.from('%PDF-1.4\nOffline simulation\n%%EOF')});
   await registration.locator('.lookup-payment-box').getByRole('button',{name:'ENVIAR COMPROVANTE',exact:true}).click();
   await registration.getByText(/Comprovante recebido/).waitFor();

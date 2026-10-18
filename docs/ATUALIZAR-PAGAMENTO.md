@@ -1,3 +1,5 @@
+> Guia de versão anterior ao parcelamento. Para a atualização atual, use ATUALIZAR-PARCELAMENTO.md e seu pacote específico.
+
 # Atualização: Pix, comprovantes e reservas
 
 Este pacote atualiza os projetos existentes. Não crie outra planilha e não altere as chaves, propriedades, contas autorizadas ou endereços `/exec`. Os registros existentes são preservados. Guarde uma cópia do código atual antes da troca.

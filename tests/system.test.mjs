@@ -166,15 +166,15 @@ test('planilha amplia a grade sem perder registros; primeira inicialização com
 test('migração preserva registros e históricos existentes, acrescenta cancelamento e ativa vagas por inscrição', () => {
   const p = platform(), row = value(p.publicApi('create', registration()));
   const sheet = p.sheets.get('Inscricoes');
-  sheet.rows[0].pop(); sheet.rows[1] = sheet.rows[1].slice(0, -1);
+  sheet.rows[0] = sheet.rows[0].slice(0,21); sheet.rows[1] = sheet.rows[1].slice(0,21);
   sheet.rows[1][7] = 'PAID'; sheet.rows[1][9] = '2026-10-17T12:00:00.000Z'; sheet.rows[1][17] = JSON.stringify([{ action: 'PAYMENT_CONFIRMED', by: 'conta@example.test' }]);
   const original = JSON.parse(JSON.stringify(sheet.rows));
   p.properties.SEAT_POLICY = 'PAID';
   const accounts = p.properties.ADMIN_ACCOUNTS, secret = p.properties.TOKEN_SECRET;
   p.public.initializePublic_();
   assert.equal(p.properties.SEAT_POLICY, 'REGISTERED'); assert.equal(p.properties.ADMIN_ACCOUNTS, accounts); assert.equal(p.properties.TOKEN_SECRET, secret);
-  assert.deepEqual(sheet.rows[0].slice(0, -1), original[0]); assert.deepEqual(sheet.rows[1].slice(0, 21), original[1]);
-  assert.equal(sheet.rows[0].at(-1), 'cancelledAt');
+  assert.deepEqual(sheet.rows[0].slice(0,21), original[0]); assert.deepEqual(sheet.rows[1].slice(0, 21), original[1]);
+  assert.equal(sheet.rows[0][21], 'cancelledAt'); assert.equal(sheet.rows[0][22], 'paymentPlan');
   const migrated = value(p.publicApi('lookup', access(row))); assert.equal(migrated.status, 'REGISTERED'); assert.equal(migrated.pix, '', 'pagamento histórico não gera outro Pix');
   assert.equal(value(p.publicApi('capacity')).remaining, 199);
   delete p.properties.ADMIN_ACCOUNTS; p.public.initializePublic_();

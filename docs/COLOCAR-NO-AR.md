@@ -1,4 +1,4 @@
-PARA ATUALIZAR PROJETOS JÁ PUBLICADOS: use o guia ATUALIZAR-PAGAMENTO.md.
+PARA ATUALIZAR PROJETOS JÁ PUBLICADOS: use o guia ATUALIZAR-PARCELAMENTO.md.
 Este guia abaixo é para uma instalação NOVA, com planilha vazia.
 
 CEIA IPDIV 2026 — COLOCAR A VERSÃO DEFINITIVA NO AR
@@ -7,9 +7,12 @@ COMO OS MEMBROS VÃO USAR
 
 Será um link que abre no navegador do celular ou computador, sem instalar
 aplicativo. O cadastro já reserva os lugares. A lotação é de 200 pessoas,
-incluindo crianças. O pagamento é feito por Pix, com comprovante privado e conferência no painel.
-Reservas sem pagamento confirmado expiram após 20/12/2026, 23h59 Brasília.
-Apenas pagamentos confirmados garantem as vagas.
+incluindo crianças. O pagamento é feito por Pix ou depósito, com comprovante privado
+e conferência no painel.
+Reservas sem a primeira parcela confirmada expiram após 20/12/2026, 23h59 Brasília.
+A primeira parcela confirmada garante as vagas; o saldo deve ser quitado até 20/12.
+O participante escolhe à vista, 2x ou 3x, com Pix ou depósito. Parcelas vencidas
+são cobradas juntas. Lembretes aparecem no painel para envio manual.
 
 Este pacote contém a aplicação real para publicar no Google. Ele não é
 um arquivo de demonstração para abrir com dois cliques. O endereço para
@@ -98,7 +101,7 @@ PASSO 4 — CONFERIR ANTES DE DIVULGAR
 
 1. Pelo link público, registre uma inscrição identificada como teste,
    com um participante. O contador deve cair de 200 para 199 e o link
-   individual deve ficar disponível, sem exigir confirmação de pagamento.
+   em PDF deve ficar disponível, sem exigir confirmação de pagamento.
 2. Pelo link administrativo, confirme que a mesma inscrição aparece.
 3. Confira o destino (37) 3212-4980 e o texto preparado no WhatsApp.
    Não é necessário enviar a mensagem nem fazer pagamento neste teste.

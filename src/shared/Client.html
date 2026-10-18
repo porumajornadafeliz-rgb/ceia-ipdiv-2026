@@ -3,7 +3,7 @@
 const $ = (id) => document.getElementById(id);
 const money = (n) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n / 100);
 const dateTime = (v) => v ? new Date(v).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' }) : '—';
-const paymentText = value => ({ PENDING: 'PAGAMENTO PENDENTE', PROOF_SUBMITTED: 'COMPROVANTE EM CONFERÊNCIA', PAID: 'PAGO — COMPROVANTE CONFERIDO' }[value] || 'PAGAMENTO PENDENTE');
+const paymentText = value => ({ PENDING: 'PAGAMENTO PENDENTE', PARTIALLY_PAID: 'PAGAMENTO PARCIAL', PROOF_SUBMITTED: 'COMPROVANTE EM CONFERÊNCIA', PAID: 'PAGO — COMPROVANTE CONFERIDO' }[value] || 'PAGAMENTO PENDENTE');
 const reservationText = value => ({ RESERVED: 'RESERVA PROVISÓRIA', CONFIRMED: 'VAGA GARANTIDA', EXPIRED: 'RESERVA EXPIRADA', CANCELLED: 'INSCRIÇÃO CANCELADA' }[value] || 'RESERVA PROVISÓRIA');
 function el(tag, text, className) { const e = document.createElement(tag); if (text !== undefined) e.textContent = text; if (className) e.className = className; return e; }
 function message(id, text, success = false) { const e = $(id); e.textContent = text || ''; e.className = success ? 'success' : 'error'; e.hidden = !text; if (text && !success) e.focus(); }

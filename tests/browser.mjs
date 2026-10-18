@@ -61,7 +61,7 @@ try {
   await page.locator('#review-view').waitFor({ state: 'visible' });
   assert.match(await page.locator('#review-summary').innerText(), /340,00/);
   assert.match(await page.locator('#review-summary').innerText(), /4 pessoas/);
-  await page.getByRole('button', { name: 'CONFIRMAR E PAGAR COM PIX' }).click();
+  await page.getByRole('button', { name: 'CONFIRMAR E ESCOLHER PAGAMENTO' }).click();
   await page.getByText('Sua reserva foi registrada!', { exact: true }).waitFor();
   await page.getByText('196 vagas restantes', { exact: true }).waitFor();
   const id = await page.locator('#registration-id').innerText(), link = await page.evaluate(() => privateLink());
@@ -93,7 +93,7 @@ try {
   await page.evaluate(() => {
     current.name = ('Ana de Conceição & Família '.repeat(6)).slice(0, 120);
     CONFIG.event.categories.forEach(c => current.counts[c.key] = 1);
-    current.people = 5; current.total = CONFIG.event.categories.reduce((total, c) => total + c.price, 0);
+    current.people = 5; current.total = CONFIG.event.categories.reduce((total, c) => total + c.price, 0); current.payment.balance=current.total; current.payment.parts[0].amount=current.total;
   });
   const longPdf = page.waitForEvent('download'); await page.locator('#save-receipt').click();
   await checkReceiptPdf(await longPdf, [/Ana de Conceição/, /Cônjuge adulto não-membro da igreja/, /5 pessoas/, /380,00/]);
@@ -150,14 +150,14 @@ try {
   await admin.getByLabel('Inscrição', { exact: true }).selectOption('REGISTERED');
   // Sem o link privado, o participante paga e envia comprovante pelo resultado da consulta.
   await queryStatus();
-  await statusPage.getByRole('button', { name: 'PAGAR COM PIX / ENVIAR COMPROVANTE', exact:true }).click();
+  await statusPage.getByRole('button', { name: 'VER PAGAMENTOS / ENVIAR COMPROVANTE', exact:true }).click();
   await statusPage.getByLabel('Comprovante desta inscrição').setInputFiles({ name:'comprovante.pdf', mimeType:'application/pdf', buffer:Buffer.from('%PDF-1.4\nSynthetic test receipt\n%%EOF') });
   await statusPage.locator('.lookup-payment-box').getByRole('button', { name:'ENVIAR COMPROVANTE', exact:true }).click();
   await statusPage.getByText(/Comprovante recebido/).waitFor();
   assert.equal(app.publicApi('lookup', { id,token }).data.paymentStatus,'PROOF_SUBMITTED');
   assert.equal(app.publicApi('capacity').data.remaining,196);
   await page.locator('#refresh-payment').click();
-  await page.getByText('COMPROVANTE EM CONFERÊNCIA', { exact:true }).waitFor();
+  await page.locator('#financial-status').getByText('COMPROVANTE EM CONFERÊNCIA', { exact:true }).waitFor();
   assert.match(await page.locator('#payment-policy-message').innerText(), /Não repita o Pix/);
   assert.equal(await page.locator('#pay-later').innerText(), 'VOLTAR AO INÍCIO');
   assert.equal(await page.locator('#proof-section').isVisible(), false);

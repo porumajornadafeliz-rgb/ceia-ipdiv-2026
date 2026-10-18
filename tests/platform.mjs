@@ -56,7 +56,7 @@ export function platform({ now = '2026-10-17T15:00:00Z', actor = 'tesouraria@exa
     LockService: { getScriptLock: () => ({ tryLock() { if (lock) return false; lock = true; return true; }, releaseLock() { lock = false; } }) },
     ContentService: { MimeType: { JSON: 'json' }, createTextOutput: text => ({ text, setMimeType() { return this; } }) }
   });
-  for (const file of ['shared/Domain.gs', 'shared/Pix.gs', 'shared/Storage.gs', 'public/Config.gs', 'public/Public.gs', 'public/Payments.gs', 'public/Bridge.gs']) vm.runInContext(readFileSync(path.join(root, 'src', file), 'utf8'), publicContext, { filename: file });
+  for (const file of ['shared/Domain.gs', 'shared/Installments.gs', 'shared/Pix.gs', 'shared/Storage.gs', 'public/Config.gs', 'public/Public.gs', 'public/Payments.gs', 'public/Bridge.gs']) vm.runInContext(readFileSync(path.join(root, 'src', file), 'utf8'), publicContext, { filename: file });
   publicContext.initializePublic_();
   const adminProperties = { PUBLIC_WEB_APP_URL: 'https://script.google.com/macros/s/TEST/exec', ADMIN_BRIDGE_SECRET: properties.ADMIN_BRIDGE_SECRET };
   const adminContext = vm.createContext({ Date: Clock, console, Utilities: utilities,

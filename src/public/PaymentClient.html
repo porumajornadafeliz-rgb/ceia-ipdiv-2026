@@ -1,0 +1,59 @@
+<script>
+function paymentPlanLabel(plan) { const values=plan.parts.map(p=>p.amount);return values.length===1?'À vista · '+money(values[0]):values.every(v=>v===values[0])?values.length+'x de '+money(values[0]):values.length+'x · '+values.map(money).join(' + '); }
+async function proofPayload(file) {
+  if (!file || !file.size || file.size > 2097152) throw new Error('Selecione um comprovante em PDF, JPG ou PNG de até 2 MB.');
+  const known = ['application/pdf','image/png','image/jpeg'];
+  const mime = known.includes(file.type) ? file.type : /\.pdf$/i.test(file.name) ? 'application/pdf' : /\.png$/i.test(file.name) ? 'image/png' : /\.jpe?g$/i.test(file.name) ? 'image/jpeg' : '';
+  if (!mime) throw new Error('Use um arquivo PDF, JPG ou PNG.');
+  const data = await new Promise((resolve,reject) => { const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result).split(',')[1]); reader.onerror=()=>reject(new Error('Não foi possível ler o arquivo.')); reader.readAsDataURL(file); });
+  return {data,mime};
+}
+function drawPaymentPanel(root,data,credentials,onUpdate,main=false) {
+  const previousFile=root.querySelector('input[type=file]');
+  if (previousFile?.files.length && root.dataset.state===JSON.stringify([data.paymentStatus,data.payment,data.paymentOptions,data.remindersEnabled])) return;
+  root.dataset.state=JSON.stringify([data.paymentStatus,data.payment,data.paymentOptions,data.remindersEnabled]);root.replaceChildren();
+  const payment=data.payment, options=data.paymentOptions || [], active=data.status!=='CANCELLED' && data.reservationStatus!=='CANCELLED' && data.reservationStatus!=='EXPIRED';
+  const overview=el('div',undefined,'installment-overview');
+  overview.append(el('h3','Pagamento da inscrição'),el('p','Total: '+money(data.total)+' · Recebido: '+money(payment.received)+' · Falta: '+money(payment.balance),'small'));
+  payment.parts.forEach(p=> { const line=el('div',undefined,'installment-row');line.append(el('strong','Parcela '+p.number+'/'+payment.parts.length+' · '+money(p.amount)),el('span',dueLabel_(p.dueDate)),el('span',paymentText(p.status),'small'));overview.append(line); });root.append(overview);
+  if (data.canChangePlan) {
+    const field=el('div',undefined,'field'),label=el('label','Como deseja pagar?'),select=el('select');select.id=main?'payment-plan':'plan-'+data.id;label.htmlFor=select.id;
+    if(payment.plan==='LEGACY'){const old=el('option','Pagamento integral atual');old.value='LEGACY';select.append(old);}
+    availableSchedules_(data.total,Date.now(),'COLLECT_OVERDUE').forEach(plan=>{const option=el('option',paymentPlanLabel(plan));option.value=plan.key;select.append(option);});select.value=payment.plan;
+    const preview=el('p','A primeira parcela confirmada garante as vagas. Parcelas já vencidas devem ser pagas agora.','small muted');field.append(label,select,preview);root.append(field);
+    select.onchange=async()=>{root.querySelectorAll('button,input,select').forEach(control=>control.disabled=true);preview.textContent='Atualizando parcelas…';try{await onUpdate(await api('paymentPlan',{...credentials,plan:select.value}));}catch(error){root.dataset.state='';onUpdate(data);message(main?'payment-error':'status-lookup-error',error.message);}};
+  }
+  const result=el('p','', 'payment-proof-note');result.setAttribute('role','status');root.append(result);
+  let preference=null;
+  if(data.remindersEnabled){const cancel=el('button','CANCELAR LEMBRETES POR WHATSAPP','text-btn full');cancel.type='button';cancel.onclick=()=>busy(cancel,async()=>{try{await onUpdate(await api('reminderPreference',{...credentials,enabled:false}));}catch(error){result.textContent=error.message;}});preference=cancel;}
+  if(!active || payment.balance===0){if(preference)root.append(preference);return;}
+  const pendingProof=payment.parts.some(p=>p.status==='PROOF_SUBMITTED');
+  if(pendingProof)result.textContent='Comprovante recebido. Aguarde a conferência; não repita esse pagamento.';
+  if(!options.length){if(preference)root.append(preference);return;}
+  const field=el('div',undefined,'field'),label=el('label','Pagamento que deseja realizar'),selection=el('select');selection.id=main?'payment-group':'group-'+data.id;label.htmlFor=selection.id;
+  if(pendingProof){const blank=el('option','Escolher outro pagamento (opcional)');blank.value='';selection.append(blank);}
+  options.forEach((group,i)=>{const past=group.parts.length>1 || group.dueDate < brasiliaDay_();const o=el('option',(group.parts.length>1?'Parcelas '+group.parts.join(' e '):'Parcela '+group.parts[0]+'/'+payment.parts.length)+' · '+money(group.amount)+(past?' · pagar agora':' · '+dueLabel_(group.dueDate)));o.value=String(i);selection.append(o);});
+  field.append(label,selection);root.append(field);
+  const controls=el('div');root.append(controls);if(preference)root.append(preference);
+  function renderOption(){
+    controls.replaceChildren(); if(selection.value==='')return;
+    const group=options[Number(selection.value)],methodField=el('div',undefined,'field'),methodLabel=el('label','Forma de pagamento'),method=el('select');method.id=main?'payment-method':'method-'+data.id;methodLabel.htmlFor=method.id;
+    [['PIX','Pix'],['DEPOSIT','Depósito em conta']].forEach(([v,t])=>{const o=el('option',t);o.value=v;method.append(o);});methodField.append(methodLabel,method);controls.append(methodField,el('p','Valor deste pagamento','small muted'),el('p',money(group.amount),'payment-amount'));
+    const pix=el('section');pix.id=main?'pix-section':'pix-'+data.id;pix.className='payment-choice';const qrRoot=el('div',undefined,'qr');qrRoot.id=main?'qr':'qr-'+data.id;
+    const qr=qrcode(0,'M');qr.addData(group.pix,'Byte');qr.make();qrRoot.innerHTML=qr.createSvgTag({cellSize:4,margin:16,scalable:true});
+    const code=el('textarea');code.readOnly=true;code.className='pix-code';code.value=group.pix;code.id=main?'pix-code':'pix-code-'+data.id;code.setAttribute('aria-label','Pix Copia e Cola desta inscrição');
+    const copy=el('button','COPIAR PIX COPIA E COLA','btn full');copy.type='button';copy.id=main?'copy-pix':'copy-'+data.id;copy.onclick=()=>copyText(group.pix,copy);
+    const key=el('button','COPIAR CHAVE PIX','btn secondary full');key.type='button';key.id=main?'copy-key':'key-'+data.id;key.onclick=()=>copyText('20896270000130',key);
+    pix.append(el('h3','Pague com Pix'),el('p','Escaneie o QR Code ou use o Pix Copia e Cola no aplicativo do seu banco.','small'),qrRoot,el('p','Chave CNPJ: 20.896.270/0001-30','small'),key,copy,code);controls.append(pix);
+    const bank=el('div',undefined,'notice bank-details');bank.append(el('strong','Confira o favorecido antes de pagar:'),el('p','Igreja Presbiteriana de Divinópolis · CNPJ 20.896.270/0001-30'),el('p','Itaú · Agência 0690 · Conta corrente 16.405-8'),el('p','Se já pagou, não repita o pagamento. Envie o comprovante abaixo.'));controls.append(bank);
+    method.onchange=()=>{pix.hidden=method.value==='DEPOSIT';};
+    const proof=el('section');proof.id=main?'proof-section':'proof-'+data.id;proof.className='payment-choice';proof.append(el('h3','Já pagou? Envie o comprovante'),el('p','PDF, JPG ou PNG de até 2 MB. A secretaria conferirá o recebimento.','small'));
+    const file=el('input');file.type='file';file.accept='application/pdf,image/png,image/jpeg';file.id=main?'proof-file':'file-'+data.id;const fileLabel=el('label',main?'Comprovante de pagamento':'Comprovante desta inscrição');fileLabel.htmlFor=file.id;file.setAttribute('aria-label',main?'Comprovante de pagamento':'Comprovante desta inscrição');
+    const upload=el('button',main?'ENVIAR COMPROVANTE PARA CONFERÊNCIA':'ENVIAR COMPROVANTE','btn full');upload.type='button';upload.id=main?'proof-button':'upload-'+data.id;proof.append(fileLabel,file,upload);controls.append(proof);
+    upload.onclick=()=>busy(upload,async()=>{try{const attachment=file.files[0],payload=await proofPayload(attachment);const updated=await api('proof',{...credentials,...payload,parts:group.parts,method:method.value});await onUpdate(updated);if(main)message('payment-success','Comprovante recebido para conferência. O pagamento ainda não está confirmado.',true);
+      if(!window.CEIA_DEMO && navigator.canShare?.({files:[attachment]})){const share=el('button','COMPARTILHAR COMPROVANTE NO WHATSAPP','btn secondary full');share.type='button';share.onclick=async()=>{try{await navigator.share({files:[attachment],title:'Comprovante da ceia IPDiv',text:'Comprovante da inscrição '+data.id+' · Parcelas '+group.parts.join(', ')+' · '+money(group.amount)});}catch(error){if(error.name!=='AbortError')result.textContent='Abra a conversa da secretaria e anexe o comprovante.';}};root.append(share);}
+    }catch(error){result.textContent=error.message;}});
+  }
+  selection.onchange=renderOption;renderOption();
+}
+</script>

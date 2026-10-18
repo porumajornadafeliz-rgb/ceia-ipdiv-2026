@@ -10,6 +10,8 @@ function publicApi(action, input) {
     if (action === 'capacity') return locked_(function() { return capacityForRows_(readRows_(sheet_())); });
     if (action === 'create') return create_(input);
     if (action === 'status') return registrationStatus_(input);
+    if (action === 'paymentPlan') return changePaymentPlan_(input);
+    if (action === 'reminderPreference') return reminderPreference_(input);
     if (action === 'paymentDetails') return paymentDetails_(input);
     if (action === 'proof') return submitProof_(input);
     if (action === 'lookup' || action === 'report' || action === 'confirmation') return accessRegistration_(action, input);
@@ -36,11 +38,14 @@ function create_(input) {
   var valid = registrationInput_(input);
   return locked_(function() {
     var sheet = sheet_(), rows = readRows_(sheet), requestHash = digest_(valid.requestId);
-    var payloadHash = digest_(JSON.stringify({ name: valid.name, phone: valid.phone, counts: valid.counts }));
+    var baseFingerprint = { name: valid.name, phone: valid.phone, counts: valid.counts };
+    var fingerprint = { name: valid.name, phone: valid.phone, counts: valid.counts };
+    if (valid.plan) { fingerprint.plan = valid.plan; fingerprint.remindersEnabled = valid.remindersEnabled; }
+    var payloadHash = digest_(JSON.stringify(fingerprint));
     var existing = rows.find(function(r) { return r.requestHash === requestHash; });
     var token = tokenFor_(valid.requestId);
     if (existing) {
-      if (existing.payloadHash !== payloadHash) fail_('Este envio já foi recebido com outros dados. Consulte a inscrição ou inicie uma nova inscrição.');
+      if (existing.payloadHash !== payloadHash && !(!existing.paymentPlan && existing.payloadHash === digest_(JSON.stringify(baseFingerprint)))) fail_('Este envio já foi recebido com outros dados. Consulte a inscrição ou inicie uma nova inscrição.');
       var result = publicRow_(existing); result.token = token; return result;
     }
     assertOpen_(Date.now());
@@ -51,6 +56,7 @@ function create_(input) {
     var row = { id: id, createdAt: new Date().toISOString(), name: valid.name, phone: valid.phone,
       counts: valid.counts, people: valid.people, total: valid.total, status: 'REGISTERED',
       tokenHash: digest_(token), requestHash: requestHash, payloadHash: payloadHash, audit: [] };
+    if (valid.plan) { row.paymentPlan = chosenSchedule_(row.total, valid.plan); row.paymentPlan.remindersEnabled = valid.remindersEnabled; if (valid.remindersEnabled) row.paymentPlan.reminderConsentAt = row.createdAt; }
     writeRow_(sheet, row);
     var result = publicRow_(row); result.token = token; return result;
   });
@@ -93,12 +99,13 @@ function initializePublic_() {
       sheet.getRange(2, HEADERS_.indexOf(key) + 1, sheet.getMaxRows() - 1, 1).setNumberFormat('@');
     });
   }
-  // Acrescentar a nova coluna sem apagar ou reordenar registros e históricos existentes.
-  var previousHeaders = HEADERS_.slice(0, -1);
-  var currentHeaders = sheet.getRange(1, 1, 1, HEADERS_.length).getValues()[0];
-  if (JSON.stringify(currentHeaders.slice(0, -1)) === JSON.stringify(previousHeaders) && currentHeaders[currentHeaders.length - 1] === '') {
-    sheet.getRange(1, HEADERS_.length).setValue('cancelledAt');
-    sheet.getRange(2, HEADERS_.length, sheet.getMaxRows() - 1, 1).setNumberFormat('@');
+  // Migração apenas por acréscimo: cabeçalhos de 21, 22 ou 23 colunas.
+  var currentHeaders = sheet.getRange(1, 1, 1, HEADERS_.length).getValues()[0], filled = currentHeaders.length;
+  while (filled && currentHeaders[filled-1] === '') filled--;
+  if (filled < 21 || JSON.stringify(currentHeaders.slice(0,filled)) !== JSON.stringify(HEADERS_.slice(0,filled))) fail_('Cabeçalhos incompatíveis. Nenhum registro foi migrado.');
+  for (var column = filled; column < HEADERS_.length; column++) {
+    sheet.getRange(1,column+1).setValue(HEADERS_[column]);
+    sheet.getRange(2,column+1,sheet.getMaxRows()-1,1).setNumberFormat('@');
   }
   sheet_();
 }

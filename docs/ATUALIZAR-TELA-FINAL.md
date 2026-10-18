@@ -1,3 +1,5 @@
+> Guia de versão anterior ao parcelamento. Para a atualização atual, use ATUALIZAR-PARCELAMENTO.md e seu pacote específico.
+
 # Correção da tela final da inscrição
 
 Esta correção é para o Público que já recebeu a atualização de Pix e comprovantes e foi autorizado a acessar o Drive. Retira o bloco “Guarde seu link de inscrição”, o campo de endereço e os botões de copiar/compartilhar link. Mantém o PDF, a consulta por nome e WhatsApp e o acesso particular dos PDFs existentes.

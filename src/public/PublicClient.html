@@ -12,7 +12,7 @@ let availability = null, capacityRequest = null;
 function renderAvailability() {
   const c = availability;
   $('capacity-summary').textContent = !c ? 'Não foi possível consultar as vagas.' : !c.configured ? 'Limite de vagas em definição' : c.remaining === 0 ? 'Vagas esgotadas' : c.remaining + (c.remaining === 1 ? ' vaga restante' : ' vagas restantes');
-  $('capacity-detail').textContent = c?.configured ? 'Limite de ' + c.limit + ' pessoas, incluindo crianças. O cadastro reserva lugares até 20/12/2026. Garanta as vagas com Pix e comprovante conferido.' : 'Atualize a consulta antes de se inscrever. Se persistir, procure a secretaria.';
+  $('capacity-detail').textContent = c?.configured ? 'Limite de ' + c.limit + ' pessoas, incluindo crianças. O cadastro reserva lugares até 20/12/2026. A primeira parcela confirmada garante as vagas.' : 'Atualize a consulta antes de se inscrever. Se persistir, procure a secretaria.';
   $('begin').disabled = !CONFIG.open || !c?.configured || c.remaining === 0;
   $('begin').textContent = !CONFIG.open ? 'INSCRIÇÕES ENCERRADAS' : c?.configured && c.remaining === 0 ? 'VAGAS ESGOTADAS' : 'FAZER MINHA INSCRIÇÃO';
   renderCounts();
@@ -33,6 +33,7 @@ installPhoneMask($('phone'));
 installPhoneMask($('status-phone'));
 const views = ['home', 'form', 'review', 'payment', 'lookup'];
 function show(view) {
+  const policy=document.querySelector('.registration-policy');if(policy)policy.hidden=view!=='home';
   views.forEach(v => $(v + '-view').hidden = v !== view);
   const title = $(view + '-title');
   if (title) { title.focus({ preventScroll: true }); title.scrollIntoView({ block: 'start' }); } else window.scrollTo(0, 0);
@@ -99,6 +100,7 @@ $('edit').onclick = () => show('form');
 async function submitRegistration(button) { return busy(button, async () => {
   message('review-error', ''); $('edit').disabled = true;
   try {
+    draft.plan = draft.plan || 'ONCE'; draft.remindersEnabled = $('reminder-consent').checked;
     try { sessionStorage.setItem('ceia-pending', JSON.stringify(draft)); } catch {}
     const result = await api('create', draft); access = { id: result.id, token: result.token };
     try { sessionStorage.removeItem('ceia-pending'); } catch {}
@@ -116,64 +118,25 @@ function updateHash() {
   else google.script.history.replace({}, {}, hash);
 }
 function renderPayment(data) {
-  current = data; const active = data.status === 'REGISTERED';
-  const reserved = data.reservationStatus === 'RESERVED', paid = data.paymentStatus === 'PAID', awaiting = data.paymentStatus === 'PROOF_SUBMITTED';
-  $('payment-status').textContent = reservationText(data.reservationStatus);
-  $('payment-status').className = 'status' + (paid && active ? ' paid' : '');
-  $('financial-status').textContent = paymentText(data.paymentStatus);
-  $('payment-title').textContent = !active ? 'Esta inscrição foi cancelada.' : paid ? 'Pagamento confirmado. Vagas garantidas!' : reserved ? 'Sua reserva foi registrada!' : 'Sua reserva expirou.';
-  $('payment-description').textContent = !active ? 'Os lugares foram liberados. Procure a secretaria se precisar de orientação.' : paid ? 'O comprovante foi conferido e o pagamento está confirmado no sistema.' : awaiting && reserved ? 'Seu comprovante já foi recebido. Aguarde a conferência da secretaria e consulte a situação pelo seu nome e WhatsApp.' : reserved ? 'Próximo passo: pague com Pix e envie o comprovante. Você também pode pagar depois, até 20/12/2026.' : 'A reserva sem pagamento confirmado foi liberada após o prazo. Se já pagou, procure a organização antes de fazer outro pagamento.';
-  $('registration-notice').textContent = !active || data.reservationStatus === 'EXPIRED' ? 'Esta inscrição não ocupa vagas e não autoriza a entrada.' : paid ? 'Pagamento confirmado: estes lugares estão garantidos.' : 'Reserva provisória: a garantia depende do pagamento e do comprovante conferido.';
-  $('payment-policy-message').textContent = !active ? 'Inscrição cancelada. Procure a secretaria se precisar de orientação.' : data.reservationStatus === 'EXPIRED' ? 'A reserva foi liberada após o prazo. Se já pagou, procure a secretaria antes de fazer outro pagamento.' : paid ? 'Guarde este registro para a entrada. Ele não substitui o comprovante bancário.' : awaiting ? 'Seu comprovante foi recebido e está aguardando conferência. Não repita o Pix. As vagas serão garantidas após a confirmação do pagamento pela secretaria.' : 'Pague até 20/12/2026 e envie o comprovante para conferência. Reservas sem confirmação serão liberadas após o prazo.';
-  $('registration-id').textContent = data.id; $('receipt-name').textContent = data.name; summary('receipt-summary', data.counts);
-  $('confirmed-section').hidden = !active;
-  $('pix-section').hidden = !active || !data.pix;
-  $('pix-amount').textContent = money(data.total);
-  $('proof-section').hidden = !reserved || data.paymentStatus === 'PROOF_SUBMITTED';
-  $('pay-later').hidden = !reserved || paid;
-  $('pay-later').textContent = awaiting ? 'VOLTAR AO INÍCIO' : 'VOLTAR AO INÍCIO E PAGAR DEPOIS';
-  $('proof-state').textContent = paid ? 'Pagamento conferido em ' + dateTime(data.paidAt) + '.' : data.paymentStatus === 'PROOF_SUBMITTED' ? 'Comprovante recebido em ' + dateTime(data.proofSubmittedAt) + '. Aguarde a conferência; enviar um arquivo não confirma o pagamento.' : data.proofRejected ? 'O comprovante anterior não foi aceito. Confira os dados e envie o comprovante correto.' : '';
-  if (active && data.pix) {
-    $('pix-code').value = data.pix;
-    const qr = qrcode(0, 'M'); qr.addData(data.pix, 'Byte'); qr.make();
-    $('qr').innerHTML = qr.createSvgTag({ cellSize: 4, margin: 16, scalable: true });
-  } else { $('qr').replaceChildren(); $('pix-code').value = ''; }
-  $('report-pix').href = secretariatWhatsAppLink(data);
-  $('whatsapp-message-preview').textContent = secretariatMessage(data);
-  $('reported-message').textContent = 'A mensagem contém nome, quantidade, valor e situação do pagamento. ' + (data.reportedAt ? 'Conversa preparada em ' + dateTime(data.reportedAt) + '. ' : '') + 'No WhatsApp, confira e toque em Enviar. O comprovante enviado pelo site fica disponível no painel da secretaria.';
+  const previousStatus=current?.paymentStatus;if(previousStatus && previousStatus!==data.paymentStatus)message('payment-success','');
+  current=data;const active=data.status==='REGISTERED',paid=data.paymentStatus==='PAID',guaranteed=data.reservationStatus==='CONFIRMED',awaiting=data.paymentStatus==='PROOF_SUBMITTED';
+  $('payment-status').textContent=reservationText(data.reservationStatus);$('payment-status').className='status'+(guaranteed?' paid':'');
+  $('financial-status').textContent=paymentText(data.paymentStatus);
+  $('payment-title').textContent=!active?'Esta inscrição foi cancelada.':paid?'Pagamento quitado. Vagas garantidas!':guaranteed?'Vagas garantidas. Acompanhe suas parcelas.':data.reservationStatus==='RESERVED'?'Sua reserva foi registrada!':'Sua reserva expirou.';
+  $('payment-description').textContent=!active?'Os lugares foram liberados.':data.reservationStatus==='EXPIRED'?'A reserva sem primeira parcela confirmada foi liberada após o prazo. Procure a secretaria se já pagou.':awaiting?'Seu comprovante foi recebido. Aguarde a conferência da secretaria.':paid?'O pagamento integral foi conferido. Guarde o PDF da inscrição.':'Escolha à vista, 2x ou 3x. Pague por Pix ou depósito e envie o comprovante.';
+  $('registration-notice').textContent=guaranteed?'Primeira parcela confirmada: vagas garantidas. Quite as demais parcelas até 20/12/2026.':!active || data.reservationStatus==='EXPIRED'?'Esta inscrição não ocupa vagas nem autoriza entrada.':'Reserva provisória: a primeira parcela precisa ser confirmada para garantir as vagas.';
+  $('payment-policy-message').textContent=awaiting?'Comprovante recebido. Não repita o Pix ou depósito desse pagamento. Aguarde a conferência.':paid?'Inscrição quitada. Este registro não substitui o comprovante bancário.':'A primeira parcela confirmada garante as vagas. Parcelas já vencidas devem ser pagas na inscrição.';
+  $('registration-id').textContent=data.id;$('receipt-name').textContent=data.name;summary('receipt-summary',data.counts);$('confirmed-section').hidden=!active;
+  drawPaymentPanel($('payment-controls'),data,access,updated=>renderPayment(updated),true);
+  $('pay-later').hidden=!active || data.reservationStatus==='EXPIRED' || paid;$('pay-later').textContent=awaiting?'VOLTAR AO INÍCIO':'VOLTAR AO INÍCIO E PAGAR DEPOIS';
+  $('report-pix').href=secretariatWhatsAppLink(data);$('whatsapp-message-preview').textContent=secretariatMessage(data);
+  $('reported-message').textContent='A mensagem contém os dados e a situação das parcelas. No WhatsApp, confira e toque em Enviar. Os comprovantes enviados pelo site ficam disponíveis no painel da secretaria.';
+
 }
-$('copy-pix').onclick = () => { if (current?.pix) copyText(current.pix, $('copy-pix')); };
-$('copy-key').onclick = () => copyText('20896270000130', $('copy-key'));
-$('pay-later').onclick = () => show('home');
-let lastProofFile = null;
-async function proofPayload(file) {
-  if (!file || !file.size || file.size > 2097152) throw new Error('Selecione um comprovante em PDF, JPG ou PNG de até 2 MB.');
-  const known = ['application/pdf', 'image/png', 'image/jpeg'];
-  const mime = known.includes(file.type) ? file.type : /\.pdf$/i.test(file.name) ? 'application/pdf' : /\.png$/i.test(file.name) ? 'image/png' : /\.jpe?g$/i.test(file.name) ? 'image/jpeg' : '';
-  if (!mime) throw new Error('Use um arquivo PDF, JPG ou PNG.');
-  const data = await new Promise((resolve, reject) => {
-    const reader = new FileReader(); reader.onload = () => resolve(String(reader.result).split(',')[1]); reader.onerror = () => reject(new Error('Não foi possível ler o arquivo. Selecione novamente.')); reader.readAsDataURL(file);
-  });
-  return { data, mime };
-}
-$('proof-button').onclick = () => busy($('proof-button'), async () => {
-  message('payment-error', '');
-  try {
-    const file = $('proof-file').files[0], payload = await proofPayload(file);
-    renderPayment(await api('proof', { ...access, ...payload }));
-    lastProofFile = file; $('proof-file').value = '';
-    $('share-proof').hidden = !navigator.canShare?.({ files: [file] });
-    message('payment-success', 'Comprovante recebido para conferência. O pagamento ainda não está confirmado.', true);
-  } catch (error) { message('payment-error', error.message); }
-});
-$('share-proof').onclick = async () => {
-  if (!lastProofFile) return;
-  try { await navigator.share({ files: [lastProofFile], title: 'Comprovante da ceia IPDiv', text: secretariatMessage(current) }); }
-  catch (error) { if (error.name !== 'AbortError') message('payment-error', 'Abra a conversa da secretaria pelo botão Enviar resumo pelo WhatsApp e anexe o comprovante.'); }
-};
+$('pay-later').onclick=()=>show('home');
 function secretariatMessage(data) {
   const categories = CONFIG.event.categories.filter(c => data.counts[c.key]).map(c => data.counts[c.key] + ' × ' + c.label).join('\n');
-  return 'Olá, secretaria! Seguem os dados da minha inscrição para a Ceia de Confraternização IPDiv 2026:\n\nResponsável: ' + data.name + '\nWhatsApp: ' + formatPhone(data.phone) + '\nInscrição: ' + data.id + '\nParticipantes: ' + data.people + '\n' + categories + '\nValor da inscrição: ' + money(data.total) + '\n\nReserva: ' + reservationText(data.reservationStatus) + '\nPagamento: ' + paymentText(data.paymentStatus) + (data.proofSubmittedAt ? '\nComprovante enviado no sistema em: ' + dateTime(data.proofSubmittedAt) : '\nComprovante: ainda não enviado pelo sistema.') + '\n\nEsta mensagem não é comprovante de pagamento. A garantia das vagas depende do pagamento e do comprovante conferido.';
+  return 'Olá, secretaria! Seguem os dados da minha inscrição para a Ceia de Confraternização IPDiv 2026:\n\nResponsável: ' + data.name + '\nWhatsApp: ' + formatPhone(data.phone) + '\nInscrição: ' + data.id + '\nParticipantes: ' + data.people + '\n' + categories + '\nValor da inscrição: ' + money(data.total) + '\nRecebido: ' + money(data.payment.received) + '\nSaldo: ' + money(data.payment.balance) + '\nPlano: ' + data.payment.planLabel + '\n' + data.payment.parts.map(p => 'Parcela ' + p.number + '/' + data.payment.parts.length + ': ' + money(p.amount) + ' · ' + dueLabel_(p.dueDate) + ' · ' + paymentText(p.status)).join('\n') + '\n\nReserva: ' + reservationText(data.reservationStatus) + '\nPagamento: ' + paymentText(data.paymentStatus) + (data.proofSubmittedAt ? '\nComprovante enviado no sistema em: ' + dateTime(data.proofSubmittedAt) : '\nComprovante: ainda não enviado pelo sistema.') + '\n\nEsta mensagem não é comprovante de pagamento. A primeira parcela confirmada garante as vagas; o saldo deve ser quitado até 20/12/2026.';
 }
 function secretariatWhatsAppLink(data) {
   const text = secretariatMessage(data);
@@ -264,7 +227,9 @@ function receiptPdf() {
   ensure(85);
   text('Total de participantes: ' + current.people + (current.people === 1 ? ' pessoa' : ' pessoas'), 17, true);
   text('Valor da inscrição: ' + money(current.total), 21, true);
-  text('Pagamento pelo Pix da igreja. Vaga garantida somente após comprovante conferido. Não é comprovante de pagamento.', 15);
+  text('Recebido: ' + money(current.payment.received) + ' · Saldo: ' + money(current.payment.balance), 15, true);
+  current.payment.parts.forEach(p => text('Parcela ' + p.number + ': ' + money(p.amount) + ' · ' + dueLabel_(p.dueDate) + ' · ' + paymentText(p.status), 13));
+  text('Pagamento por Pix ou depósito. A primeira parcela confirmada garante as vagas. Não é comprovante de pagamento.', 15);
   text('Registro em: ' + dateTime(current.createdAt), 12);
   text('Emitido em: ' + dateTime(new Date().toISOString()), 12);
   ensure(86); y += 7;
@@ -297,47 +262,16 @@ $('save-receipt').onclick = () => {
   catch { message('payment-error', 'Não foi possível gerar o PDF. Tente novamente ou use Imprimir para salvar sua inscrição.'); }
 };
 $('print-receipt').onclick = () => window.print();
+window.addEventListener('beforeprint',()=>document.querySelectorAll('details.print-expand').forEach(d=>{d.dataset.wasOpen=d.open?'1':'0';d.open=true;}));
+window.addEventListener('afterprint',()=>document.querySelectorAll('details.print-expand').forEach(d=>{d.open=d.dataset.wasOpen==='1';}));
 function parseAccess(raw) {
   const hash = raw.includes('#') ? raw.slice(raw.indexOf('#') + 1) : raw.replace(/^#/, ''); const params = new URLSearchParams(hash);
   const id = params.get('id'), token = params.get('token');
   if (!/^IPD26[A-F0-9]{16}$/.test(id || '') || !/^[a-zA-Z0-9_-]{43}$/.test(token || '')) throw new Error('Cole o link individual completo, incluindo a parte depois de #.');
   return { id, token };
 }
-async function mountStatusPayment(card, credentials, button) {
-  await busy(button, async () => {
-    let box = card.querySelector('.lookup-payment-box');
-    if (box) { box.scrollIntoView({ block: 'start' }); return; }
-    try {
-      const contactName = $('status-name').value.trim(), contactPhone = $('status-phone').value.trim();
-      const data = await api('paymentDetails', credentials);
-      box = el('div', undefined, 'lookup-payment-box'); card.append(box);
-      const result = el('p', paymentText(data.paymentStatus), 'payment-proof-note'); box.append(el('h3', 'Pagamento com Pix'), result, el('p', 'Valor: ' + money(data.total)));
-      if (data.pix) {
-        const options = el('div'); box.append(options);
-        const qr = qrcode(0, 'M'); qr.addData(data.pix, 'Byte'); qr.make();
-        const image = el('div'); image.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 16, scalable: true }); image.setAttribute('aria-label', 'QR Code Pix para pagamento'); options.append(image);
-        options.append(el('p', 'Igreja Presbiteriana de Divinópolis · CNPJ 20.896.270/0001-30', 'small'));
-        const code = el('textarea'); code.readOnly = true; code.value = data.pix; code.setAttribute('aria-label', 'Pix Copia e Cola desta inscrição'); options.append(code);
-        const copy = el('button', 'COPIAR PIX COPIA E COLA', 'btn full'); copy.type = 'button'; copy.onclick = () => copyText(data.pix, copy); options.append(copy);
-        const key = el('button', 'COPIAR CHAVE PIX', 'btn secondary full'); key.type = 'button'; key.style.marginTop = '12px'; key.onclick = () => copyText('20896270000130', key); options.append(key);
-        options.append(el('p', 'Se já pagou, não repita o Pix. Envie o comprovante para conferência.', 'small muted'));
-        const file = el('input'); file.type = 'file'; file.accept = 'application/pdf,image/png,image/jpeg'; file.setAttribute('aria-label', 'Comprovante desta inscrição'); options.append(file);
-        const upload = el('button', 'ENVIAR COMPROVANTE', 'btn full'); upload.type = 'button'; upload.style.marginTop = '12px'; options.append(upload);
-        upload.onclick = () => busy(upload, async () => {
-          try {
-            const attachment = file.files[0];
-            const updated = await api('proof', { ...credentials, ...await proofPayload(attachment) });
-            options.hidden = true; result.textContent = 'Comprovante recebido. ' + paymentText(updated.paymentStatus);
-            card.querySelector('.lookup-payment-state').textContent = paymentText(updated.paymentStatus);
-            const text = 'Olá, secretaria! Inscrição na Ceia IPDiv 2026: ' + data.id + '\nResponsável: ' + contactName + '\nWhatsApp: ' + contactPhone + '\nParticipantes: ' + data.people + '\nValor: ' + money(data.total) + '\nSituação: ' + paymentText(updated.paymentStatus) + '\nComprovante enviado pelo site, disponível no painel. Aguardo conferência do recebimento.';
-            const link = el('a', 'ENVIAR RESUMO PELO WHATSAPP', 'btn full'); link.href = 'https://wa.me/' + CONFIG.event.secretariat.whatsapp + '?text=' + encodeURIComponent(text); link.target = '_blank'; link.rel = 'noopener noreferrer'; box.append(link, el('p', 'No WhatsApp, confira e toque em Enviar. O comprovante já está disponível no painel da secretaria.', 'small'));
-            if (navigator.canShare?.({ files: [attachment] })) { const share = el('button', 'COMPARTILHAR COMPROVANTE', 'btn secondary full'); share.type = 'button'; share.onclick = async () => { try { await navigator.share({ files:[attachment], text, title:'Comprovante da ceia IPDiv' }); } catch (error) { if (error.name !== 'AbortError') result.textContent = 'Anexe o comprovante na conversa da secretaria pelo WhatsApp.'; } }; box.append(share); }
-          } catch (error) { result.textContent = error.message; }
-        });
-      } else box.append(el('p', data.paymentStatus === 'PROOF_SUBMITTED' ? 'Seu comprovante está aguardando conferência. Não repita o pagamento.' : 'Não há pagamento disponível para esta reserva. Atualize a consulta.', 'small'));
-      box.scrollIntoView({ block: 'start' });
-    } catch (error) { message('status-lookup-error', error.message); }
-  });
+async function mountStatusPayment(card,credentials,button) {
+  await busy(button,async()=>{try{let box=card.querySelector('.lookup-payment-box');if(!box){box=el('div',undefined,'lookup-payment-box');card.append(box);}const render=data=>{drawPaymentPanel(box,data,credentials,render);card.querySelector('.lookup-payment-state').textContent=paymentText(data.paymentStatus);};render(await api('paymentDetails',credentials));box.scrollIntoView({block:'start'});}catch(error){message('status-lookup-error',error.message);}});
 }
 function renderStatusResults(result) {
   const root = $('status-results'); root.replaceChildren(); root.hidden = false;
@@ -355,8 +289,8 @@ function renderStatusResults(result) {
     card.append(el('p', row.people + (row.people === 1 ? ' participante' : ' participantes')));
     card.append(el('p', 'Cadastro em: ' + dateTime(row.createdAt), 'small muted'));
     if (row.entered) card.append(el('p', 'Entrada já registrada.', 'small'));
-    if (row.paymentAccess && row.paymentStatus !== 'PROOF_SUBMITTED') {
-      const pay = el('button', 'PAGAR COM PIX / ENVIAR COMPROVANTE', 'btn full'); pay.type = 'button'; pay.onclick = () => mountStatusPayment(card, row.paymentAccess, pay); card.append(pay);
+    if (row.paymentAccess) {
+      const pay = el('button', 'VER PAGAMENTOS / ENVIAR COMPROVANTE', 'btn full'); pay.type = 'button'; pay.onclick = () => mountStatusPayment(card, row.paymentAccess, pay); card.append(pay);
     }
     root.append(card);
   });

@@ -1,4 +1,4 @@
-> Projetos existentes: siga [Atualizar Pix e comprovantes](ATUALIZAR-PAGAMENTO.md), preservando planilha, segredos e endereços.
+> Projetos existentes: siga [Atualizar parcelamento e comprovantes](ATUALIZAR-PARCELAMENTO.md), preservando planilha, segredos e endereços.
 
 # Publicar gratuitamente na conta Google da Igreja
 
@@ -97,7 +97,7 @@ Se o Google solicitar configuração da tela de consentimento OAuth ou usuários
 
 Siga a lista de [TESTES.md](TESTES.md), **incluindo contas de tesouraria e entrada separadas e uma conta não autorizada**. O teste local não substitui a conferência da implantação, da identidade Google e da conta bancária.
 
-O participante paga por Pix e envia comprovante privado no site. A secretaria confere o recebimento no painel. Reservar desconta vagas; confirmar pagamento garante os lugares. Reservas sem confirmação expiram após 20/12/2026, às 23h59 (Brasília). Não é necessário contratar ou habilitar uma API Pix para este fluxo.
+O participante escolhe à vista, 2x ou 3x, paga por Pix ou depósito e envia comprovante privado no site. A secretaria confere o recebimento no painel. Reservar desconta vagas; confirmar a primeira parcela garante os lugares. Reservas sem a primeira parcela confirmada expiram após 20/12/2026, às 23h59 (Brasília). Não é necessário contratar ou habilitar uma API Pix para este fluxo.
 
 Confira os dados Pix antes de divulgar: chave **20.896.270/0001-30**, favorecido **Igreja Presbiteriana de Divinópolis**, Itaú, agência **0690**, conta **16405-8**, e valor correto no aplicativo do banco. O registro da inscrição não comprova pagamento.
 
@@ -105,7 +105,7 @@ Depois dos testes, compartilhe apenas o endereço público `/exec` com os partic
 
 ## 6. Atualizar e operar
 
-Para atualizar uma implantação anterior para a regra de vagas por inscrição, copie os arquivos atualizados dos dois projetos e execute `prepararPublicacao` novamente no projeto público. Ela acrescenta a coluna `cancelledAt`, configura `SEAT_POLICY=REGISTERED` e preserva registros, históricos, segredos e permissões. Confira `MAX_PARTICIPANTS=200` antes de publicar a nova versão. Reservas ativas ocupam lugares até o prazo; depois somente pagamentos confirmados mantêm a ocupação. Use o painel para cancelar inscrições de teste identificadas, sem apagar linhas manualmente.
+Para atualizar uma implantação anterior para a regra de vagas por inscrição, copie os arquivos atualizados dos dois projetos e execute `prepararPublicacao` novamente no projeto público. Ela acrescenta as colunas finais `cancelledAt` e `paymentPlan` quando ausentes, configura `SEAT_POLICY=REGISTERED` e preserva registros, históricos, segredos e permissões. Confira `MAX_PARTICIPANTS=200` antes de publicar a nova versão. Reservas ativas ocupam lugares até o prazo; depois a primeira parcela confirmada mantém a ocupação. Use o painel para cancelar inscrições de teste identificadas, sem apagar linhas manualmente.
 
 Após editar código, gere os arquivos novamente, copie os arquivos alterados no projeto correspondente e publique uma **nova versão da implantação existente** em **Implantar → Gerenciar implantações → Editar → Nova versão**. Isso preserva os endereços `/exec`. Salvar no editor sozinho não atualiza a versão pública.
 

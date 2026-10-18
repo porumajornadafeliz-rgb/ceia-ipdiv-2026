@@ -1,92 +1,36 @@
-// Simulador exclusivo da demonstração offline. Inicia vazio e nunca é publicado no Apps Script.
-const demoRows = [], demoRequests = new Map(), demoProofs = new Map(), demoGrants = new Map();
-const demoStatusAttempts = new Map();
-const demoCapacity = () => capacity_(demoRows, DEMO_CAPACITY.limit);
-const cloneDemo = value => JSON.parse(JSON.stringify(value));
-const demoNow = () => new Date().toISOString();
-function demoUuid() {
-  if (crypto.randomUUID) return crypto.randomUUID();
-  const b = crypto.getRandomValues(new Uint8Array(16)); b[6] = (b[6] & 15) | 64; b[8] = (b[8] & 63) | 128;
-  const h = Array.from(b, n => n.toString(16).padStart(2, '0')).join('');
-  return h.slice(0, 8) + '-' + h.slice(8, 12) + '-' + h.slice(12, 16) + '-' + h.slice(16, 20) + '-' + h.slice(20);
-}
-function demoToken() { return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, ''); }
-function demoPublicRow(row) {
-  return { id: row.id, name: row.name, phone: row.phone, counts: row.counts, people: row.people, total: row.total,
-    status: registrationState_(row), createdAt: row.createdAt, reportedAt: row.reportedAt || '', entryAt: row.entryAt || '', cancelledAt: row.cancelledAt || '',
-    paymentStatus: paymentState_(row), reservationStatus: reservationState_(row), proofSubmittedAt: row.proofAt || '', proofRejected: row.status === 'PROOF_REJECTED', paidAt: row.paidAt || '', reservationDeadline: EVENT_.deadline,
-    pix: reservationState_(row) !== 'RESERVED' || paymentState_(row) !== 'PENDING' ? '' : 'DEMONSTRACAO IPDIV 2026 - SEM VALIDADE PARA PAGAMENTO', event: EVENT_ };
-}
-function demoCreate(input) {
-  const valid = registrationInput_(input), payload = JSON.stringify([valid.name, valid.phone, valid.counts]);
-  if (demoRequests.has(valid.requestId)) {
-    const previous = demoRequests.get(valid.requestId);
-    if (previous.payload !== payload) fail_('Este envio já foi recebido com outros dados.');
-    return { ...demoPublicRow(previous.row), token: previous.row.token };
+// Demonstração em memória. Nunca faz chamadas bancárias, Google ou WhatsApp reais.
+const demoRows=[],demoRequests=new Map(),demoProofs=new Map(),demoGrants=new Map(),demoStatusAttempts=new Map();
+const demoCapacity=()=>capacity_(demoRows,DEMO_CAPACITY.limit),cloneDemo=v=>JSON.parse(JSON.stringify(v)),demoNow=()=>new Date().toISOString();
+function demoUuid(){if(crypto.randomUUID)return crypto.randomUUID();const b=crypto.getRandomValues(new Uint8Array(16));b[6]=(b[6]&15)|64;b[8]=(b[8]&63)|128;const h=Array.from(b,n=>n.toString(16).padStart(2,'0')).join('');return h.slice(0,8)+'-'+h.slice(8,12)+'-'+h.slice(12,16)+'-'+h.slice(16,20)+'-'+h.slice(20);}
+function demoToken(){return btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(32)))).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');}
+function demoOptions(row){return payableGroups_(row).map(parts=>({parts,amount:parts.reduce((sum,n)=>sum+partFor_(row,n).amount,0),dueDate:partFor_(row,parts[parts.length-1]).dueDate,pix:'DEMONSTRACAO IPDIV 2026 - SEM VALIDADE PARA PAGAMENTO'}));}
+function demoPublicRow(row){return{id:row.id,name:row.name,phone:row.phone,counts:row.counts,people:row.people,total:row.total,status:registrationState_(row),createdAt:row.createdAt,reportedAt:row.reportedAt||'',entryAt:row.entryAt||'',cancelledAt:row.cancelledAt||'',paymentStatus:paymentState_(row),reservationStatus:reservationState_(row),proofSubmittedAt:row.proofAt||'',proofRejected:row.status==='PROOF_REJECTED',paidAt:row.paidAt||'',reservationDeadline:EVENT_.deadline,payment:paymentOverview_(row),paymentOptions:demoOptions(row),remindersEnabled:Boolean(row.paymentPlan?.remindersEnabled),canChangePlan:paymentOpen_(row)&&!paymentParts_(row).some(p=>p.proofId||partState_(p)==='PAID'),pix:paymentParts_(row).length===1&&demoOptions(row).length?demoOptions(row)[0].pix:'',event:EVENT_};}
+function demoCreate(input){const valid=registrationInput_(input),payload=JSON.stringify(valid);if(demoRequests.has(valid.requestId)){const previous=demoRequests.get(valid.requestId);if(previous.payload!==payload)fail_('Este envio já foi recebido com outros dados.');return{...demoPublicRow(previous.row),token:previous.row.token};}assertSeats_(demoCapacity(),valid.people);const row={...valid,id:'IPD26'+demoUuid().replaceAll('-','').slice(0,16).toUpperCase(),token:demoToken(),createdAt:demoNow(),status:'REGISTERED',audit:[]};if(valid.plan){row.paymentPlan=chosenSchedule_(row.total,valid.plan);row.paymentPlan.remindersEnabled=valid.remindersEnabled;}demoRows.push(row);demoRequests.set(valid.requestId,{row,payload});return{...demoPublicRow(row),token:row.token};}
+function demoAuthorizedRow(input){const grant=demoGrants.get(input.grant),row=demoRows.find(r=>r.id===input.id);if(!row||!(row.token===input.token||(grant?.id===row.id&&grant.until>Date.now())))fail_('Acesso de demonstração inválido. Consulte novamente.');return row;}
+function demoApi(mode,action,input={},role='admin'){try{let result;
+ if(mode==='public'){
+  if(action==='capacity')result=demoCapacity();else if(action==='create')result=demoCreate(input);
+  else if(action==='status'){const contact=contactInput_(input),key=Math.floor(Date.now()/60000)+':'+contact.phone,n=demoStatusAttempts.get(key)||0;if(n>=8)fail_('Muitas consultas para este WhatsApp. Aguarde um minuto.');demoStatusAttempts.set(key,n+1);result=statusResults_(demoRows,contact);const matched=demoRows.filter(r=>statusName_(r.name)===statusName_(contact.name)&&r.phone===contact.phone).slice(-20).reverse();result.registrations.forEach((item,i)=>{if(paymentOpen_(matched[i])){const grant=demoToken();demoGrants.set(grant,{id:matched[i].id,until:Date.now()+600000});item.paymentAccess={id:matched[i].id,grant};}});}
+  else if(['paymentDetails','proof','paymentPlan','reminderPreference','lookup','report','confirmation'].includes(action)){
+   const row=demoAuthorizedRow(input);if(['lookup','report','confirmation'].includes(action)&&row.token!==input.token)fail_('Acesso completo exige link particular.');
+   if(action==='report'&&!row.reportedAt)row.reportedAt=demoNow();
+   if(action==='paymentPlan'){assertPlanChange_(row);const enabled=row.paymentPlan?.remindersEnabled;row.paymentPlan=chosenSchedule_(row.total,input.plan);row.paymentPlan.remindersEnabled=enabled;}
+   if(action==='reminderPreference'){if(input.enabled&&row.token!==input.token)fail_('Use o acesso completo para ativar.');ensurePaymentPlan_(row).remindersEnabled=input.enabled===true;}
+   if(action==='proof'){if(!paymentOpen_(row))fail_('Reserva indisponível para envio.');ensurePaymentPlan_(row);const targets=proofTargets_(row,input);if(targets.some(p=>partState_(p)!=='PENDING'))fail_('Comprovante já recebido.');if(!['application/pdf','image/png','image/jpeg'].includes(input.mime)||atob(input.data||'').length>2097152)fail_('Envie PDF, PNG ou JPG de até 2 MB.');const proofId=demoUuid(),numbers=targets.map(p=>p.number);demoProofs.set(proofId,input.data);targets.forEach(p=>{p.proofId=proofId;p.proofMime=input.mime;p.proofAt=demoNow();p.status='PROOF_SUBMITTED';p.method=input.method||'PIX';p.proofGroup=numbers;});syncPayment_(row);row.audit.push({action:'PROOF_SUBMITTED',by:'participante',at:demoNow(),parts:numbers});}
+   result=demoPublicRow(row);if(row.token!==input.token)for(const key of ['name','phone','counts','event'])delete result[key];
+  }else fail_('Ação inválida na demonstração.');
+ }else{
+  const actor={email:'demonstracao@exemplo.invalid',role};assertRole_(actor,['admin','door']);
+  if(action==='list'){const metrics=metrics_(demoRows);if(role==='door'){delete metrics.declaredTotal;delete metrics.receivedTotal;delete metrics.pendingTotal;}const reminders=role==='door'?[]:remindersForAdmin_(demoRows,Date.now(),'').map(item=>({...item,url:'#whatsapp-demo'}));result={actor,metrics,capacity:demoCapacity(),rows:demoRows.map(r=>adminRow_(r,actor)),reminders};}
+  else{const row=demoRows.find(r=>r.id===input.id);if(!row)fail_('Inscrição não encontrada.');
+   if(action==='getProof'){assertRole_(actor,['admin']);const part=partFor_(row,input.part);if(!part.proofId)fail_('Nenhum comprovante.');return{ok:true,data:{version:part.proofId,mime:part.proofMime,data:demoProofs.get(part.proofId),name:'comprovante-demonstracao.pdf'}};}
+   if(action==='payment'){assertRole_(actor,['admin']);const part=partFor_(row,input.part);if(part.proofId&&input.proofVersion!==part.proofId&&partState_(part)!=='PAID')fail_('O comprovante mudou. Baixe o arquivo atual.');if(input.approved&&!occupiesSeats_(row)&&!row.cancelledAt)assertSeats_(demoCapacity(),row.people);paymentTransition_(row,actor,input.approved,demoNow(),input.note,part.number);}
+   else if(action==='entry')entryTransition_(row,actor,demoNow());
+   else if(action==='cancel'){assertRole_(actor,['admin']);if(input.cancelled===false&&row.cancelledAt)assertSeats_(demoCapacity(),row.people);cancellationTransition_(row,actor,input.cancelled,demoNow(),input.note);}
+   else if(action==='reminderOpened'){assertRole_(actor,['admin']);row.audit.push({action:'REMINDER_OPENED',key:row.id+':'+input.part+':'+nextCivilDay_(brasiliaDay_()),at:demoNow(),by:actor.email});}
+   else fail_('Ação inválida na demonstração.');result=adminRow_(row,actor);
   }
-  assertSeats_(demoCapacity(), valid.people);
-  const row = { ...valid, id: 'IPD26' + demoUuid().replaceAll('-', '').slice(0, 16).toUpperCase(), token: demoToken(), createdAt: demoNow(), status: 'REGISTERED', audit: [] };
-  demoRows.push(row); demoRequests.set(valid.requestId, { row, payload });
-  return { ...demoPublicRow(row), token: row.token };
-}
-function demoAuthorizedRow(input) {
-  const row = demoRows.find(r => r.id === input.id);
-  if (!row || row.token !== input.token) fail_('Link de demonstração inválido. Ele funciona apenas enquanto esta análise estiver aberta.');
-  return row;
-}
-function demoApi(mode, action, input = {}, role = 'admin') {
-  try {
-    let result;
-    if (mode === 'public') {
-      if (action === 'capacity') result = demoCapacity();
-      else if (action === 'create') result = demoCreate(input);
-      else if (action === 'status') {
-        const contact = contactInput_(input), key = Math.floor(Date.now() / 60000) + ':' + contact.phone;
-        const attempts = demoStatusAttempts.get(key) || 0;
-        if (attempts >= 8) fail_('Muitas consultas para este WhatsApp. Aguarde um minuto e tente novamente.');
-        demoStatusAttempts.set(key, attempts + 1);
-        result = statusResults_(demoRows, contact); const matched = demoRows.filter(r => statusName_(r.name) === statusName_(contact.name) && r.phone === contact.phone).slice(-20).reverse(); result.registrations.forEach((item,i) => { const row = matched[i]; if (reservationState_(row) === 'RESERVED') { const grant = demoToken(); demoGrants.set(grant, { id: row.id, until: Date.now()+600000 }); item.paymentAccess = { id: row.id, grant }; } });
-      }
-      else if (['paymentDetails', 'proof'].includes(action)) {
-        const grant = demoGrants.get(input.grant), row = input.token ? demoAuthorizedRow(input) : demoRows.find(r => r.id === input.id && grant?.id === r.id && grant.until > Date.now());
-        if (!row) fail_('Consulte novamente sua inscrição.');
-        if (action === 'proof') {
-          if (reservationState_(row) !== 'RESERVED' || paymentState_(row) === 'PAID') fail_('Reserva indisponível para envio.');
-          if (!['application/pdf','image/png','image/jpeg'].includes(input.mime) || atob(input.data || '').length > 2097152) fail_('Envie PDF, PNG ou JPG de até 2 MB.');
-          row.proofId = demoUuid(); row.proofMime = input.mime; row.proofAt = demoNow(); row.status = 'PROOF_SUBMITTED'; demoProofs.set(row.proofId, input.data);
-          row.audit.push({ action:'PROOF_SUBMITTED', by:'participante', at:row.proofAt });
-        }
-        result = demoPublicRow(row); if (!input.token) for (const key of ['name','phone','counts','event']) delete result[key];
-      }
-      else if (['lookup', 'report', 'confirmation'].includes(action)) {
-        const row = demoAuthorizedRow(input);
-        if (action === 'report' && !row.reportedAt) row.reportedAt = demoNow();
-        result = demoPublicRow(row);
-      } else fail_('Ação inválida na demonstração.');
-    } else {
-      const actor = { email: 'demonstracao@exemplo.invalid', role };
-      assertRole_(actor, ['admin', 'door']);
-      if (action === 'list') {
-        const metrics = metrics_(demoRows);
-        if (role === 'door') { delete metrics.declaredTotal; delete metrics.receivedTotal; delete metrics.pendingTotal; }
-        result = { actor, metrics, capacity: demoCapacity(), rows: demoRows.map(r => adminRow_(r, actor)) };
-      } else {
-        const row = demoRows.find(r => r.id === input.id);
-        if (!row) fail_('Inscrição não encontrada.');
-        if (action === 'getProof') { assertRole_(actor, ['admin']); if (!row.proofId) fail_('Nenhum comprovante.'); return { ok:true, data: { version:row.proofId, mime:row.proofMime, data:demoProofs.get(row.proofId), name:'comprovante-demonstracao.pdf' } }; }
-        if (action === 'payment') { assertRole_(actor, ['admin']); if (row.proofId && input.proofVersion !== row.proofId && paymentState_(row) !== 'PAID') fail_('O comprovante mudou. Baixe o arquivo atual.'); if (input.approved === true && !occupiesSeats_(row) && !row.cancelledAt) assertSeats_(demoCapacity(), row.people); paymentTransition_(row,actor,input.approved,demoNow(),input.note); }
-        else if (action === 'entry') entryTransition_(row, actor, demoNow());
-        else if (action === 'cancel') {
-          assertRole_(actor, ['admin']);
-          if (input.cancelled === false && row.cancelledAt) assertSeats_(demoCapacity(), row.people);
-          cancellationTransition_(row, actor, input.cancelled, demoNow(), input.note);
-        } else fail_('Ação inválida na demonstração.');
-        result = adminRow_(row, actor);
-      }
-    }
-    return cloneDemo({ ok: true, data: result });
-  } catch (e) { return { ok: false, error: e.message || 'Falha na demonstração.' }; }
-}
-window.ceiaOfflineApi = demoApi;
-const demoSession = new Map();
-window.ceiaDemoSession = { getItem: key => demoSession.get(key) || null, setItem: (key, val) => demoSession.set(key, val), removeItem: key => demoSession.delete(key) };
+ }
+ return cloneDemo({ok:true,data:result});
+}catch(e){return{ok:false,error:e.message||'Falha na demonstração.'};}}
+window.ceiaOfflineApi=demoApi;const demoSession=new Map();window.ceiaDemoSession={getItem:key=>demoSession.get(key)||null,setItem:(key,value)=>demoSession.set(key,value),removeItem:key=>demoSession.delete(key)};
