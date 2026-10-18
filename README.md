@@ -10,9 +10,9 @@ O sistema inicia **sem inscrições e sem exemplos fictícios**, com **200 vagas
 
 ## Analisar sem instalar nada
 
-Baixe **`entrega/DEMONSTRACAO-IPDIV-v9.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
+Baixe **`entrega/DEMONSTRACAO-IPDIV-v10.zip`** pelo GitHub, use **Extrair Tudo** no Windows e abra **`ABRIR-DEMONSTRACAO.html`** com dois cliques, no Edge ou Chrome.
 
-A demonstração começa vazia. Você pode registrar uma família e ver a baixa imediata das vagas, visualizar a mensagem da secretaria, copiar o link, consultar inscrições, cancelar/reativar e registrar a entrada. O painel **Inscrições e vagas** substitui a antiga tesouraria.
+A demonstração começa vazia. Você pode registrar uma família e ver a baixa imediata das vagas, visualizar a mensagem da secretaria, salvar o PDF, consultar inscrições, cancelar/reativar e registrar a entrada. O painel **Inscrições e vagas** substitui a antiga tesouraria.
 
 É uma análise local: os testes ficam apenas na aba e são descartados ao fechar/recarregar. Não grava no Google, não envia WhatsApp real e não permite pagamento real. A versão publicada usa a mesma interface com armazenamento compartilhado no Google Planilhas e abre o WhatsApp com os dados para o participante conferir e enviar.
 
@@ -23,7 +23,7 @@ A demonstração começa vazia. Você pode registrar uma família e ver a baixa 
 - Categoria **Cônjuge adulto não-membro da igreja**, R$ 80 por pessoa, limitada a um cônjuge e com adulto membro na inscrição.
 - Vagas verificadas no servidor sob o mesmo bloqueio da gravação; uma família inteira é aceita ou recusada, sem ultrapassar a lotação.
 - Repetir o mesmo envio não cria inscrição nem baixa vagas em duplicidade, mesmo após perda de conexão, prazo ou esgotamento.
-- Link privado disponível imediatamente; consulta sem login; consulta da situação por nome e WhatsApp, consulta completa por link privado e registro para salvar em PDF legível no celular ou imprimir, identificado como **não sendo comprovante de pagamento**.
+- Consulta por nome e WhatsApp e registro para salvar em PDF legível no celular ou imprimir, identificado como **não sendo comprovante de pagamento**. O PDF mantém acesso particular clicável; a tela não pede guardar ou copiar link.
 - WhatsApp preparado com nome, telefone, inscrição, participantes, categorias e valor. Não inclui o token privado nem afirma que houve pagamento.
 - Área Pix com QR, chave e Copia e Cola; envio privado de comprovante e conferência financeira no painel. Não usa API bancária.
 - Administração com login Google e papéis autorizados; pesquisa, filtros, valores de referência, CSV, impressão e histórico.

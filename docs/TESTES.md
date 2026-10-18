@@ -6,7 +6,7 @@ Os 49 testes de regras usam o código .gs em simulador das APIs Google. Cobrem c
 
 Os testes financeiros cobrem comprovantes privados, tipo/assinatura/tamanho, pasta privada, duplicação, recusa e reenvio, autorização de pagamento temporária sem acesso completo, expiração dessa autorização, secretaria autorizada, auditoria, confirmação tardia sem ultrapassar lotação, reserva expirada sem alterar linha, preservação de pagas, entrada somente após pagamento e cancelamento sem simular estorno.
 
-No navegador, o fluxo usa cadastro, consulta com nome e WhatsApp sem link, QR decodificado por jsQR, upload de comprovante sintético, download autorizado e conferência no painel, relatório CSV e entrada. WhatsApp é interceptado, sem enviar mensagens. PDFs são lidos por pdftotext para conferir texto, limites e tamanho de página; inclui nomes extensos/Unicode e todas as categorias. Telas de 320 a 1280 pixels são verificadas quanto a transbordamento e erros JavaScript.
+No navegador, o fluxo usa cadastro, consulta com nome e WhatsApp sem link, QR decodificado por jsQR, ausência do bloco de guardar/copiar link, texto de aguardar conferência sem repetir pagamento, upload de comprovante sintético, download autorizado e conferência no painel, relatório CSV e entrada. WhatsApp é interceptado, sem enviar mensagens. PDFs são lidos por pdftotext para conferir texto, limites e tamanho de página; inclui nomes extensos/Unicode e todas as categorias. Telas de 320 a 1280 pixels são verificadas quanto a transbordamento e erros JavaScript.
 
 A demonstração autônoma também é testada sem rede, com arquivos fictícios em memória. O Chromium deste ambiente bloqueia file://; o HTML é injetado em página vazia sem servidor. Não equivale a um teste físico de duplo clique no Windows.
 

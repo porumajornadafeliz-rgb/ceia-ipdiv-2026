@@ -117,21 +117,21 @@ function updateHash() {
 }
 function renderPayment(data) {
   current = data; const active = data.status === 'REGISTERED';
-  const reserved = data.reservationStatus === 'RESERVED', paid = data.paymentStatus === 'PAID';
+  const reserved = data.reservationStatus === 'RESERVED', paid = data.paymentStatus === 'PAID', awaiting = data.paymentStatus === 'PROOF_SUBMITTED';
   $('payment-status').textContent = reservationText(data.reservationStatus);
   $('payment-status').className = 'status' + (paid && active ? ' paid' : '');
   $('financial-status').textContent = paymentText(data.paymentStatus);
   $('payment-title').textContent = !active ? 'Esta inscrição foi cancelada.' : paid ? 'Pagamento confirmado. Vagas garantidas!' : reserved ? 'Sua reserva foi registrada!' : 'Sua reserva expirou.';
-  $('payment-description').textContent = !active ? 'Os lugares foram liberados. Procure a secretaria se precisar de orientação.' : paid ? 'O comprovante foi conferido e o pagamento está confirmado no sistema.' : reserved ? 'Próximo passo: pague com Pix e envie o comprovante. Você também pode pagar depois, até 20/12/2026.' : 'A reserva sem pagamento confirmado foi liberada após o prazo. Se já pagou, procure a organização antes de fazer outro pagamento.';
+  $('payment-description').textContent = !active ? 'Os lugares foram liberados. Procure a secretaria se precisar de orientação.' : paid ? 'O comprovante foi conferido e o pagamento está confirmado no sistema.' : awaiting && reserved ? 'Seu comprovante já foi recebido. Aguarde a conferência da secretaria e consulte a situação pelo seu nome e WhatsApp.' : reserved ? 'Próximo passo: pague com Pix e envie o comprovante. Você também pode pagar depois, até 20/12/2026.' : 'A reserva sem pagamento confirmado foi liberada após o prazo. Se já pagou, procure a organização antes de fazer outro pagamento.';
   $('registration-notice').textContent = !active || data.reservationStatus === 'EXPIRED' ? 'Esta inscrição não ocupa vagas e não autoriza a entrada.' : paid ? 'Pagamento confirmado: estes lugares estão garantidos.' : 'Reserva provisória: a garantia depende do pagamento e do comprovante conferido.';
-  $('payment-policy-message').textContent = paid ? 'Guarde este registro para a entrada. Ele não substitui o comprovante bancário.' : 'Pague até 20/12/2026 e envie o comprovante para conferência. Reservas sem confirmação serão liberadas após o prazo.';
+  $('payment-policy-message').textContent = !active ? 'Inscrição cancelada. Procure a secretaria se precisar de orientação.' : data.reservationStatus === 'EXPIRED' ? 'A reserva foi liberada após o prazo. Se já pagou, procure a secretaria antes de fazer outro pagamento.' : paid ? 'Guarde este registro para a entrada. Ele não substitui o comprovante bancário.' : awaiting ? 'Seu comprovante foi recebido e está aguardando conferência. Não repita o Pix. As vagas serão garantidas após a confirmação do pagamento pela secretaria.' : 'Pague até 20/12/2026 e envie o comprovante para conferência. Reservas sem confirmação serão liberadas após o prazo.';
   $('registration-id').textContent = data.id; $('receipt-name').textContent = data.name; summary('receipt-summary', data.counts);
-  $('private-link').value = privateLink();
   $('confirmed-section').hidden = !active;
   $('pix-section').hidden = !active || !data.pix;
   $('pix-amount').textContent = money(data.total);
   $('proof-section').hidden = !reserved || data.paymentStatus === 'PROOF_SUBMITTED';
   $('pay-later').hidden = !reserved || paid;
+  $('pay-later').textContent = awaiting ? 'VOLTAR AO INÍCIO' : 'VOLTAR AO INÍCIO E PAGAR DEPOIS';
   $('proof-state').textContent = paid ? 'Pagamento conferido em ' + dateTime(data.paidAt) + '.' : data.paymentStatus === 'PROOF_SUBMITTED' ? 'Comprovante recebido em ' + dateTime(data.proofSubmittedAt) + '. Aguarde a conferência; enviar um arquivo não confirma o pagamento.' : data.proofRejected ? 'O comprovante anterior não foi aceito. Confira os dados e envie o comprovante correto.' : '';
   if (active && data.pix) {
     $('pix-code').value = data.pix;
@@ -171,7 +171,6 @@ $('share-proof').onclick = async () => {
   try { await navigator.share({ files: [lastProofFile], title: 'Comprovante da ceia IPDiv', text: secretariatMessage(current) }); }
   catch (error) { if (error.name !== 'AbortError') message('payment-error', 'Abra a conversa da secretaria pelo botão Enviar resumo pelo WhatsApp e anexe o comprovante.'); }
 };
-$('copy-link').onclick = () => { if (access) copyText(privateLink(), $('copy-link')); };
 function secretariatMessage(data) {
   const categories = CONFIG.event.categories.filter(c => data.counts[c.key]).map(c => data.counts[c.key] + ' × ' + c.label).join('\n');
   return 'Olá, secretaria! Seguem os dados da minha inscrição para a Ceia de Confraternização IPDiv 2026:\n\nResponsável: ' + data.name + '\nWhatsApp: ' + formatPhone(data.phone) + '\nInscrição: ' + data.id + '\nParticipantes: ' + data.people + '\n' + categories + '\nValor da inscrição: ' + money(data.total) + '\n\nReserva: ' + reservationText(data.reservationStatus) + '\nPagamento: ' + paymentText(data.paymentStatus) + (data.proofSubmittedAt ? '\nComprovante enviado no sistema em: ' + dateTime(data.proofSubmittedAt) : '\nComprovante: ainda não enviado pelo sistema.') + '\n\nEsta mensagem não é comprovante de pagamento. A garantia das vagas depende do pagamento e do comprovante conferido.';
@@ -198,9 +197,6 @@ async function refreshRegistration(announce = false) {
   try { await registrationRequest; } finally { registrationRequest = null; }
 }
 $('refresh-payment').onclick = () => busy($('refresh-payment'), async () => { message('payment-error', ''); message('payment-success', ''); await refreshRegistration(true); });
-function receiptText() {
-  return 'CEIA DE CONFRATERNIZAÇÃO 2026\nIgreja Presbiteriana de Divinópolis\n\nInscrição: ' + current.id + '\nResponsável: ' + current.name + '\nParticipantes: ' + current.people + '\nValor da inscrição: ' + money(current.total) + '\n' + reservationText(current.reservationStatus) + '\n' + paymentText(current.paymentStatus) + '\nRegistro em: ' + dateTime(current.createdAt) + '\nPagamento pelo Pix da igreja. Vaga garantida somente após comprovante conferido. Não é comprovante de pagamento.\n\n' + CONFIG.event.date + ' — ' + CONFIG.event.thanksgiving.name + ' às ' + CONFIG.event.thanksgiving.time + '\n' + CONFIG.event.thanksgiving.venue + ' — ' + CONFIG.event.thanksgiving.address + '\n\nCeia após o culto — ' + CONFIG.event.venue + '\n' + CONFIG.event.address + '\n\nConsulta privada: ' + privateLink();
-}
 function receiptPdf() {
   // Página estreita, proporcional à tela do telefone, sem reduzir o tamanho das letras.
   const pdf = new jspdf.jsPDF({ unit: 'pt', format: [420, 900], compress: true });
@@ -301,11 +297,6 @@ $('save-receipt').onclick = () => {
   catch { message('payment-error', 'Não foi possível gerar o PDF. Tente novamente ou use Imprimir para salvar sua inscrição.'); }
 };
 $('print-receipt').onclick = () => window.print();
-$('share-receipt').onclick = async () => {
-  const text = receiptText();
-  try { if (navigator.share) await navigator.share({ title: CONFIG.event.name, text }); else await copyText(text, $('share-receipt')); }
-  catch (e) { if (e.name !== 'AbortError') await copyText(text, $('share-receipt')); }
-};
 function parseAccess(raw) {
   const hash = raw.includes('#') ? raw.slice(raw.indexOf('#') + 1) : raw.replace(/^#/, ''); const params = new URLSearchParams(hash);
   const id = params.get('id'), token = params.get('token');

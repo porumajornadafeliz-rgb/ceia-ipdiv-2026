@@ -39,8 +39,8 @@ try {
   await registration.getByRole('button', { name: 'CONFIRMAR E PAGAR COM PIX' }).click();
   await registration.getByText('Sua reserva foi registrada!', { exact: true }).waitFor();
   await registration.getByText('198 vagas restantes', { exact: true }).waitFor();
-  assert.equal(await registration.locator('#copy-link').isDisabled(), false);
-  assert.match(await registration.locator('#private-link').inputValue(), /#id=.*&token=/);
+  assert.equal(await registration.locator('#copy-link, #private-link, #share-receipt').count(), 0);
+  assert.equal(await registration.locator('#save-receipt').isEnabled(), true);
   const id = await registration.locator('#registration-id').innerText();
   const qrImage = PNG.sync.read(await registration.locator('#qr').screenshot());
   assert.equal(jsQR(new Uint8ClampedArray(qrImage.data), qrImage.width, qrImage.height)?.data, 'DEMONSTRACAO IPDIV 2026 - SEM VALIDADE PARA PAGAMENTO');

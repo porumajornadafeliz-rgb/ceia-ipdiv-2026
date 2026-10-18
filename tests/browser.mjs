@@ -64,12 +64,9 @@ try {
   await page.getByRole('button', { name: 'CONFIRMAR E PAGAR COM PIX' }).click();
   await page.getByText('Sua reserva foi registrada!', { exact: true }).waitFor();
   await page.getByText('196 vagas restantes', { exact: true }).waitFor();
-  const id = await page.locator('#registration-id').innerText(), link = await page.locator('#private-link').inputValue();
+  const id = await page.locator('#registration-id').innerText(), link = await page.evaluate(() => privateLink());
   assert.match(id, /^IPD26[A-F0-9]{16}$/); assert.match(link, /#id=.*&token=/);
-  assert.equal(await page.locator('#copy-link').isDisabled(), false);
-  await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: base });
-  await page.locator('#copy-link').click();
-  await page.waitForFunction(async expected => (await navigator.clipboard.readText()) === expected, link);
+  assert.equal(await page.locator('#copy-link, #private-link, #share-receipt').count(), 0, 'Bloco de guardar e compartilhar link removido');
   assert.equal(app.publicApi('capacity').data.remaining, 196);
   await page.screenshot({ path: 'test-results/registration-mobile.png', fullPage: true });
   await page.locator('#pix-section').screenshot({ path:'test-results/pix-mobile.png' });
@@ -108,7 +105,7 @@ try {
   await page.locator('#home-view').waitFor({ state: 'visible' });
   await page.getByRole('button', { name: 'Consultar minha inscrição', exact: true }).click();
   await page.locator('#payment-view').waitFor({ state: 'visible' });
-  assert.equal(await page.locator('#private-link').inputValue(), link, 'Consulta na mesma aba usa o link já conhecido');
+  assert.equal(await page.evaluate(() => privateLink()), link, 'Consulta na mesma aba usa o link já conhecido');
   assert.equal(app.publicApi('capacity').data.remaining, 196, 'Consultar e baixar PDFs não descontam novas vagas');
   const consulta = await context.newPage(); await consulta.goto(link); await consulta.getByText('Sua reserva foi registrada!', { exact: true }).waitFor();
   const statusPage = await context.newPage(); await statusPage.goto(base);
@@ -124,7 +121,7 @@ try {
   await queryStatus();
   await statusPage.locator('#status-results').getByText('RESERVA PROVISÓRIA', { exact: true }).waitFor();
   assert.match(await statusPage.locator('#status-results').innerText(), /4 participantes/);
-  assert.equal(await statusPage.locator('#private-link').isVisible(), false, 'Busca por contato não abre os dados completos');
+  assert.equal(await statusPage.locator('#payment-view').isVisible(), false, 'Busca por contato não abre os dados completos');
   await statusPage.setViewportSize({ width: 320, height: 844 });
   assert.ok(await statusPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   await statusPage.screenshot({ path: 'test-results/consulta-sem-link-mobile.png', fullPage: true });
@@ -159,6 +156,11 @@ try {
   await statusPage.getByText(/Comprovante recebido/).waitFor();
   assert.equal(app.publicApi('lookup', { id,token }).data.paymentStatus,'PROOF_SUBMITTED');
   assert.equal(app.publicApi('capacity').data.remaining,196);
+  await page.locator('#refresh-payment').click();
+  await page.getByText('COMPROVANTE EM CONFERÊNCIA', { exact:true }).waitFor();
+  assert.match(await page.locator('#payment-policy-message').innerText(), /Não repita o Pix/);
+  assert.equal(await page.locator('#pay-later').innerText(), 'VOLTAR AO INÍCIO');
+  assert.equal(await page.locator('#proof-section').isVisible(), false);
   await admin.locator('#reload').click();
   const proofDownload = admin.waitForEvent('download'); await admin.getByRole('button', { name:'BAIXAR COMPROVANTE', exact:true }).click();
   assert.match(await readFile(await (await proofDownload).path(),'utf8'), /Synthetic test receipt/);
@@ -188,7 +190,7 @@ try {
   await consulta.bringToFront(); await consulta.getByRole('button', { name: 'Atualizar inscrição', exact: true }).click();
   await consulta.getByText('Vagas esgotadas', { exact: true }).waitFor();
   assert.equal(await consulta.locator('#payment-status').innerText(), 'VAGA GARANTIDA');
-  assert.equal(await consulta.locator('#copy-link').isDisabled(), false, 'Inscrito mantém o link quando lota');
+  assert.equal(await consulta.locator('#save-receipt').isEnabled(), true, 'Inscrito mantém o PDF quando lota');
   await consulta.setViewportSize({ width: 320, height: 800 });
   assert.ok(await consulta.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
   assert.deepEqual(errors, [], 'Nenhum erro JavaScript');

@@ -22,7 +22,7 @@ Copiar, consultar, abrir WhatsApp, enviar comprovante ou confirmar pagamento nã
 
 ## Consulta e WhatsApp
 
-A consulta por nome e WhatsApp exatos mostra situação, quantidade e data, e permite pagar/enviar comprovante depois. Não abre contato, categorias, histórico ou o documento completo. O link particular continua disponível na tela final e no PDF, para acesso completo sem login. A consulta não precisa colar esse link.
+A consulta por nome e WhatsApp exatos mostra situação, quantidade e data, e permite pagar/enviar comprovante depois. Não abre contato, categorias, histórico ou o documento completo. O botão de salvar PDF permanece na tela final. A consulta por nome e WhatsApp dispensa guardar ou colar link; o PDF mantém acesso particular clicável aos dados completos sem login.
 
 **ENVIAR RESUMO PELO WHATSAPP** prepara nome, telefone, número, participantes, valor e situação para `(37) 3212-4980`. A pessoa precisa tocar em **Enviar**. O site não comprova entrega da mensagem. O comprovante enviado pelo site fica disponível à secretaria, sem depender do WhatsApp. O compartilhamento de arquivo, quando disponível no celular, exige escolher a conversa e confirmar. Nunca há envio silencioso pelo aplicativo comum.
 

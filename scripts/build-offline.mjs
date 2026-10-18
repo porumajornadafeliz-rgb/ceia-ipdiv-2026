@@ -35,7 +35,7 @@ for (const [panel, project, role] of [['registration', 'public', 'admin'], ['reg
     .replace(/<div class="notice bank-details">[\s\S]*?<\/div>/, '<div class="notice bank-details"><strong>DEMONSTRAÇÃO — SEM COBRANÇA</strong><p>Nenhuma conta bancária é acionada. O registro da inscrição já ocupa os lugares. Envie um arquivo de teste e simule a conferência no painel administrativo.</p></div>')
     .replace('O link já está liberado. Ele é particular e permite consultar esta inscrição. Copiar ou enviar a mensagem novamente não desconta outras vagas.', 'O link já está liberado e funciona somente nesta análise aberta. Copiar ou visualizar a mensagem novamente não desconta outras vagas. A versão publicada terá o link individual para consulta.')
     .replace("return 'CEIA DE CONFRATERNIZAÇÃO 2026\\n", "return 'DEMONSTRAÇÃO — SEM VALIDADE PARA ENTRADA OU PAGAMENTO\\nCEIA DE CONFRATERNIZAÇÃO 2026\\n")
-    .replace('id="share-receipt"', 'id="share-receipt" disabled title="Compartilhamento real disponível após a publicação no Google"');
+;
   html = html.replace("link.href = 'https://wa.me/' + CONFIG.event.secretariat.whatsapp + '?text=' + encodeURIComponent(text);", "link.href = '#whatsapp-demo'; link.onclick = event => event.preventDefault();");
   html = html.replaceAll('20896270000130', 'CHAVE-DE-DEMONSTRACAO').replaceAll('20.896.270/0001-30', 'CHAVE DE DEMONSTRAÇÃO');
   html = html.replace('</head>', '<style>@media print{body::before{content:"DEMONSTRAÇÃO — SEM VALIDADE PARA PAGAMENTO OU ENTRADA";display:block;font-weight:bold;padding:15px;border:2px solid #000}}</style></head>');

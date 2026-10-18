@@ -1,6 +1,6 @@
-CEIA IPDIV 2026 — DEMONSTRAÇÃO V9: PIX E COMPROVANTES
+CEIA IPDIV 2026 — DEMONSTRAÇÃO V10: PIX E COMPROVANTES
 
-Extraia DEMONSTRACAO-IPDIV-v9.zip em uma nova pasta e abra
+Extraia DEMONSTRACAO-IPDIV-v10.zip em uma nova pasta e abra
 ABRIR-DEMONSTRACAO.html no Edge ou Chrome. Não exige instalação ou rede.
 
 Começa com zero inscrições e 200 vagas. Cadastre uma família, veja o Pix
@@ -14,7 +14,7 @@ cadastros ficam só na memória desta aba; recarregar ou fechar apaga tudo.
 Não use comprovantes reais nesta análise.
 
 O cadastro reserva os lugares até 20/12/2026, 23h59 Brasília. Depois só
-pagamentos confirmados continuam ocupando vagas. Consultar, copiar link,
+pagamentos confirmados continuam ocupando vagas. Consultar, salvar PDF,
 enviar comprovante e confirmar pagamento não descontam a reserva duas vezes.
 
 Para atualizar os projetos Google já existentes, use o pacote
