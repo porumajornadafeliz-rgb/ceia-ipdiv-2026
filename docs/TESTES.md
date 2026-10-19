@@ -6,7 +6,7 @@ Os testes de regras usam o código .gs em simulador das APIs Google. Cobrem cada
 
 Quatro testes da manutenção verificam a limpeza única autorizada: identidade do proprietário, cópia validada antes de esvaziar, preservação de comprovantes/configurações, bloqueio de repetição e proteção em falhas. O arquivo de manutenção é separado e não entra nas implantações.
 
-O parcelamento acrescenta testes de centavos exatos, calendários em Brasília, cobrança conjunta de vencidas, primeiro pagamento garantindo vagas, manutenção da garantia com saldo, quitação para entrada, conferência conjunta, não reaproveitar comprovante, migração de 21/22 colunas e retentativas de cadastros anteriores. Lembretes verificam consentimento, privacidade por papel e abertura sem alegar envio.
+O parcelamento acrescenta testes de centavos exatos, calendários em Brasília, cobrança conjunta de vencidas, confirmação manual garantindo vagas, manutenção da garantia com saldo, quitação para entrada, conferência conjunta, não reaproveitar comprovante, migração de 21/22 colunas e retentativas de cadastros anteriores. Lembretes verificam consentimento, privacidade por papel e abertura sem alegar envio.
 
 Os testes financeiros cobrem comprovantes privados, tipo/assinatura/tamanho, pasta privada, duplicação, recusa e reenvio, autorização de pagamento temporária sem acesso completo, expiração dessa autorização, secretaria autorizada, auditoria, confirmação tardia sem ultrapassar lotação, reserva expirada sem alterar linha, preservação de pagas, entrada somente após pagamento e cancelamento sem simular estorno.
 
@@ -21,7 +21,7 @@ A demonstração autônoma também é testada sem rede, com arquivos fictícios 
 - Inscrição pendente mostra Pix com valor e favorecido corretos. Não efetue pagamento apenas para testar a interface.
 - Comprovante real de inscrição válida fica em conferência; secretaria consegue baixar, conferir o recebimento e registrar o resultado.
 - Consulta por nome/WhatsApp permite retomar o pagamento sem colar link. Não expõe contato, token completo, categorias ou arquivo privado.
-- A primeira parcela confirmada garante vagas; quitação e saldo aparecem nos relatórios. Abrir WhatsApp não confirma pagamento nem comprova entrega.
+- A marcação de CONFIRMAR garante vagas; quitação e saldo aparecem nos relatórios. Abrir WhatsApp não confirma pagamento nem comprova entrega.
 - Arquivo, PDF, consulta e botões funcionam nos celulares da equipe e participantes.
 - Somente em cópia de homologação, simule o prazo: pendentes expiram; pagas permanecem; confirmação tardia respeita a lotação.
 
@@ -33,6 +33,6 @@ A limpeza final autorizada em 18/10 tem quatro verificações próprias: só o p
 
 A conclusão da Administração verifica no navegador a distinção entre reserva provisória e vaga garantida, a exigência de quitação para entrada, a conferência do comprovante por parcela ou conjunto, saldo e relatórios CSV. Inclui lembrete À vista em 19/12 para vencimento em 20/12. A publicação Google e os números atuais da igreja dependem da conferência no painel real após atualização.
 
-A confirmação simples verifica download obrigatório antes de liberar o botão, confirmação em um clique sem formulário, parcelas e saldo, conta/data no histórico, proteção contra repetição e contra comprovante substituído. A recusa continua disponível em Outras ações. O fluxo real de interface do WhatsApp é exercitado com uma API local e todas as conversas interceptadas: arquivo inválido não abre conversa definitiva, envio válido abre resumo sem token privado, popup bloqueado oferece alternativa e consulta por nome/telefone acompanha a confirmação. Nenhuma mensagem real é enviada. As regras de garantia, vencimento e quitação continuam as mesmas.
+A versão atual usa a caixa CONFIRMAR editável. Os testes verificam marcar e desmarcar sem comprovante, inclusive em vaga oferecida, sem gerar receita nem alterar saldo; desmarcar após pagamento preserva o financeiro e o arquivo; a escolha do plano preserva a decisão; a consulta pública acompanha as mudanças. O navegador verifica a caixa habilitada marcada e desmarcada, persistência ao recarregar, conferência financeira separada, arquivo substituído e abertura do WhatsApp sem mensagem real.
 
-A caixa CONFIRMAR é verificada em todas as inscrições, inclusive sem comprovante: visível e desmarcada enquanto pendente, habilitada após download e marcada de forma persistente após a confirmação. O teste recarrega o painel para verificar o estado salvo e preserva os valores das demais parcelas e de outras inscrições.
+A nova ação administrativa é limitada a administrador e secretaria. Casos de versão desatualizada, repetição, replay, bloqueio de gravação, cancelamento e lotação após o prazo são exercitados com o canal assinado real do simulador. A regra manual é armazenada no histórico existente, sem colunas novas; os dados anteriores são lidos sem migração nem mutação. Confirmar dinheiro não garante vaga por conta própria, e desmarcar a vaga não realiza estorno.

@@ -7,10 +7,10 @@ const create=(p,plan='THRICE')=>value(p.publicApi('create',registration({plan,re
 const proof=(p,r,parts,data=proofFixture.data,method='PIX')=>p.publicApi('proof',{...access(r),parts,data,mime:'application/pdf',method});
 const approve=(p,r,part,approved=true)=>{const file=value(p.adminApi('getProof',{id:r.id,part}));return p.adminApi('payment',{id:r.id,part,approved,proofVersion:file.version,note:'Comprovante e recebimento conferidos no teste'});};
 const pdf=n=>Buffer.from('%PDF-1.4\nSynthetic receipt '+n+'\n%%EOF').toString('base64');
-test('primeira parcela garante vagas; saldo continua pendente e entrada exige quitação',()=>{
+test('garantia manual preserva vagas com saldo pendente e entrada exige quitação',()=>{
  const p=platform({actor:'admin@example.test'}),r=create(p);
  assert.deepEqual(r.payment.parts.map(p=>p.amount),[10667,10667,10666]);assert.equal(r.paymentOptions[0].amount,10667);
- value(proof(p,r,[1]));value(approve(p,r,1));let current=value(p.publicApi('lookup',access(r)));
+ value(proof(p,r,[1]));value(approve(p,r,1));const listed=value(p.adminApi('list')).rows[0];value(p.adminApi('reservation',{id:r.id,confirmed:true,version:listed.reservationVersion}));let current=value(p.publicApi('lookup',access(r)));
  assert.equal(current.reservationStatus,'CONFIRMED');assert.equal(current.paymentStatus,'PARTIALLY_PAID');assert.equal(current.payment.received,10667);assert.equal(current.payment.balance,21333);
  assert.equal(value(p.publicApi('capacity')).remaining,196);deny(p.adminApi('entry',{id:r.id}),/Pagamento pendente/);
  p.setTime('2026-12-21T03:00:00Z');assert.equal(value(p.publicApi('capacity')).remaining,196,'Primeira confirmada mantém garantia após o prazo');

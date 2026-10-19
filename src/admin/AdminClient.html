@@ -47,11 +47,9 @@ function renderTable() {
         const suffix=r.payment.parts.length===1?'':' · '+p.proofGroup.join(' e '), downloaded=proofViewed.has(r.id+':'+p.number);
         let button=actionButton('BAIXAR COMPROVANTE'+suffix,()=>viewProof(r,p,button));actions.append(button,el('br'));
         if(active && p.status==='PROOF_SUBMITTED'){
-          if(!p.proofGroup.includes(1)){
-            let confirm=actionButton('CONFIRMAR RECEBIMENTO'+suffix,()=>confirmReceipt(r,p,confirm),!downloaded);
-            confirm.title=downloaded?'Confirma o recebimento desta parcela.':'Baixe e confira o comprovante antes de confirmar.';
-            actions.append(confirm,el('br'));
-          }
+          let confirm=actionButton('CONFIRMAR RECEBIMENTO'+suffix,()=>confirmReceipt(r,p,confirm),!downloaded);
+          confirm.title=downloaded?'Confirma o recebimento desta parcela.':'Baixe e confira o comprovante antes de confirmar.';
+          actions.append(confirm,el('br'));
           const more=el('details'),summary=el('summary','Outras ações'+suffix);
           more.append(summary,actionButton('RECUSAR COMPROVANTE'+suffix,()=>openPayment(r,p),!downloaded));actions.append(more);
         }
@@ -68,16 +66,22 @@ function renderTable() {
 }
 function guaranteeControl(row){
   const box=el('div',undefined,'guarantee-control'),label=el('label',undefined,'guarantee-check'),check=el('input'),help=el('small');
-  const first=row.payment.parts.find(p=>p.number===1),guaranteed=row.reservationStatus==='CONFIRMED',downloaded=proofViewed.has(row.id+':1');
-  check.type='checkbox';check.checked=guaranteed;check.disabled=guaranteed||row.status!=='REGISTERED'||!first?.hasProof||first.status!=='PROOF_SUBMITTED'||!downloaded;
+  check.type='checkbox';check.checked=row.reservationStatus==='CONFIRMED';check.disabled=row.status!=='REGISTERED';
   help.id='guarantee-help-'+row.id;check.setAttribute('aria-describedby',help.id);
-  help.textContent=guaranteed?'Primeira parcela confirmada.':row.status!=='REGISTERED'?'Inscrição cancelada.':!first?.hasProof?'Aguardando comprovante da primeira parcela.':first.status!=='PROOF_SUBMITTED'?'Aguardando novo comprovante.':!downloaded?'Baixe e confira o comprovante para marcar.':'Marque após conferir o recebimento no banco.';
-  check.onchange=()=>{check.checked=false;confirmReceipt(row,first,check);};
+  help.textContent=row.status!=='REGISTERED'?'Inscrição cancelada.':check.checked?'Vaga garantida pela organização. Pode desmarcar.':'Marque para garantir a vaga, inclusive sem comprovante.';
+  check.onchange=()=>{const confirmed=check.checked;check.checked=!confirmed;changeReservation(row,confirmed,check);};
   label.append(check,el('span','CONFIRMAR'));box.append(label,help);return box;
+}
+async function changeReservation(row,confirmed,check){
+  await busy(check,async()=>{message('admin-error','');try{
+    const updated=await api('reservation',{id:row.id,confirmed,version:row.reservationVersion});
+    state.rows=state.rows.map(r=>r.id===updated.id?updated:r);renderTable();
+    message('admin-success',confirmed?'Vaga garantida.':'Garantia desmarcada. A inscrição segue as regras de reserva e prazo.',true);await load();
+  }catch(error){await load();message('admin-error',error.message);}});
 }
 async function load() {
   message('admin-error', '');
-  try { state = await api('list'); renderMetrics(); renderTable(); renderReminders(); $('updated-at').textContent = 'Dados atualizados em ' + dateTime(new Date().toISOString()) + ' (Brasília). Pix ou depósito. A primeira parcela confirmada garante as vagas; a entrada exige quitação.'; }
+  try { state = await api('list'); renderMetrics(); renderTable(); renderReminders(); $('updated-at').textContent = 'Dados atualizados em ' + dateTime(new Date().toISOString()) + ' (Brasília). Pix ou depósito. A caixa CONFIRMAR controla a garantia da vaga, independentemente do pagamento. A entrada exige quitação.'; }
   catch (e) { message('admin-error', e.message); $('result-count').textContent = 'Não foi possível carregar a lista.'; }
 }
 $('reload').onclick = () => busy($('reload'), load);
@@ -103,7 +107,7 @@ async function confirmReceipt(row,part,button){
     const version=proofViewed.get(row.id+':'+part.number);
     if(!version)throw new Error('Baixe e confira o comprovante antes de confirmar.');
     await api('payment',{id:row.id,part:part.number,approved:true,proofVersion:version,note:'Comprovante e recebimento conferidos na conta da igreja; confirmação registrada no painel.'});
-    message('admin-success',part.proofGroup.includes(1)?'Vaga garantida. Recebimento registrado e saldo atualizado.':'Recebimento registrado e saldo atualizado.',true);await load();
+    message('admin-success','Recebimento registrado e saldo atualizado. A garantia da vaga é controlada pela caixa CONFIRMAR.',true);await load();
   }catch(error){proofViewed.delete(row.id+':'+part.number);renderTable();message('admin-error',error.message);}});
 }
 function openPayment(row, part) {
@@ -133,7 +137,7 @@ async function confirmEntry(row, button) {
 function openAudit(row) {
   const root = $('audit-content'); root.replaceChildren(el('h3', row.name), el('p', row.id, 'small muted'));
   const audit = el('div', undefined, 'audit');
-  const labels = { PAYMENT_PLAN_SELECTED:'Condição de pagamento escolhida', PAYMENT_DUE_DATE_UPDATED:'Vencimento do pagamento atualizado', REMINDER_OPENED:'Conversa de lembrete aberta', REMINDERS_ENABLED:'Lembretes autorizados', REMINDERS_DISABLED:'Lembretes cancelados', PROOF_SUBMITTED: 'Comprovante enviado', PROOF_REJECTED: 'Comprovante recusado', REGISTRATION_CANCELLED: 'Inscrição cancelada', REGISTRATION_RESTORED: 'Inscrição reativada', ENTRY_CONFIRMED: 'Entrada confirmada', PAYMENT_CONFIRMED: 'Pagamento confirmado', PAYMENT_REVERSED: 'Pagamento desfeito (histórico anterior)', ENTRY_OVERRIDE: 'Liberação excepcional (histórico anterior)' };
+  const labels = { RESERVATION_CONFIRMED:'Vaga garantida manualmente', RESERVATION_RELEASED:'Garantia da vaga desmarcada', PAYMENT_PLAN_SELECTED:'Condição de pagamento escolhida', PAYMENT_DUE_DATE_UPDATED:'Vencimento do pagamento atualizado', REMINDER_OPENED:'Conversa de lembrete aberta', REMINDERS_ENABLED:'Lembretes autorizados', REMINDERS_DISABLED:'Lembretes cancelados', PROOF_SUBMITTED: 'Comprovante enviado', PROOF_REJECTED: 'Comprovante recusado', REGISTRATION_CANCELLED: 'Inscrição cancelada', REGISTRATION_RESTORED: 'Inscrição reativada', ENTRY_CONFIRMED: 'Entrada confirmada', PAYMENT_CONFIRMED: 'Pagamento confirmado', PAYMENT_REVERSED: 'Pagamento desfeito (histórico anterior)', ENTRY_OVERRIDE: 'Liberação excepcional (histórico anterior)' };
   if (!row.audit?.length) audit.append(el('p', 'Nenhuma alteração registrada.'));
   (row.audit || []).forEach(a => audit.append(el('p', (labels[a.action] || a.action) + '\n' + dateTime(a.at) + ' · ' + a.by + (a.note ? '\n' + a.note : ''))));
   audit.style.whiteSpace = 'pre-wrap'; root.append(audit); $('audit-dialog').showModal();

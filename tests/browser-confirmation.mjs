@@ -41,20 +41,28 @@ try{
  const pending=value(app.publicApi('create',registration({name:'Família Sem Comprovante',phone:'37999995555',plan:'TWICE'})));
  const admin=await context.newPage();await admin.goto(base+'/admin');
  const pendingRow=admin.locator('#table-body tr').filter({hasText:pending.name}),pendingBox=pendingRow.getByRole('checkbox',{name:'CONFIRMAR',exact:true});
- assert.equal(await admin.getByRole('checkbox',{name:'CONFIRMAR',exact:true}).count(),3,'Uma caixa visível em cada inscrição, inclusive sem comprovante');assert.equal(await pendingBox.isVisible(),true);assert.equal(await pendingBox.isChecked(),false);assert.equal(await pendingBox.isDisabled(),true);await pendingRow.getByText('RESERVA PROVISÓRIA',{exact:true}).waitFor();
+ assert.equal(await admin.getByRole('checkbox',{name:'CONFIRMAR',exact:true}).count(),3,'Uma caixa visível em cada inscrição, inclusive sem comprovante');assert.equal(await pendingBox.isVisible(),true);assert.equal(await pendingBox.isChecked(),false);assert.equal(await pendingBox.isEnabled(),true);await pendingRow.getByText('RESERVA PROVISÓRIA',{exact:true}).waitFor();
  const secondRow=admin.locator('#table-body tr').filter({hasText:second.name});
- const mark=secondRow.getByRole('checkbox',{name:'CONFIRMAR',exact:true});assert.equal(await mark.isDisabled(),true);
+ const mark=secondRow.getByRole('checkbox',{name:'CONFIRMAR',exact:true});assert.equal(await mark.isEnabled(),true);
+ // Garantia sem arquivo: a igreja pode oferecer a vaga sem inventar um recebimento.
+ await pendingBox.click();await pendingRow.getByText('VAGA GARANTIDA',{exact:true}).waitFor();assert.equal(value(app.adminApi('list')).metrics.receivedTotal,0);
+ await pendingBox.click();await pendingRow.getByText('RESERVA PROVISÓRIA',{exact:true}).waitFor();assert.equal(await pendingBox.isChecked(),false);
+ // A caixa não depende do download, nem altera a situação financeira.
+ await mark.click();await secondRow.getByText('VAGA GARANTIDA',{exact:true}).waitFor();assert.equal(value(app.adminApi('list')).metrics.receivedTotal,0);
  const download=admin.waitForEvent('download');await secondRow.getByRole('button',{name:'BAIXAR COMPROVANTE · 1',exact:true}).click();
  assert.deepEqual(await readFile(await(await download).path()),png.buffer);assert.equal(await mark.isEnabled(),true);
  const beforeFirst=JSON.stringify(value(app.adminApi('list')).rows.find(r=>r.id===id));
- // Um clique confirma só a primeira parcela, sem formulário. Cliques repetidos são bloqueados enquanto grava.
- await mark.click();await secondRow.getByText('PAGAMENTO PARCIAL',{exact:true}).waitFor();await secondRow.getByText('VAGA GARANTIDA',{exact:true}).waitFor();
+ // A conferência financeira é separada da garantia; só este botão registra o recebimento.
+ await secondRow.getByRole('button',{name:'CONFIRMAR RECEBIMENTO · 1',exact:true}).click();await secondRow.getByText('PAGAMENTO PARCIAL',{exact:true}).waitFor();await secondRow.getByText('VAGA GARANTIDA',{exact:true}).waitFor();
  const listing=value(app.adminApi('list')),paid=listing.rows.find(r=>r.id===second.id);
- assert.equal(await mark.isChecked(),true);assert.equal(await mark.isDisabled(),true);assert.equal(await mark.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(22, 119, 210)','Caixa confirmada marcada em azul');
+ assert.equal(await mark.isChecked(),true);assert.equal(await mark.isEnabled(),true);assert.equal(await mark.evaluate(e=>getComputedStyle(e).backgroundColor),'rgb(22, 119, 210)','Caixa confirmada marcada em azul');
  assert.equal(listing.metrics.receivedTotal,4000);assert.equal(paid.payment.balance,4000);assert.equal(paid.audit.filter(a=>a.action==='PAYMENT_CONFIRMED').length,1);
  assert.equal(JSON.stringify(listing.rows.find(r=>r.id===id)),beforeFirst,'Outra família não é alterada');
  assert.equal(await admin.locator('#action-dialog').isVisible(),false);
  await admin.reload();await secondRow.getByRole('checkbox',{name:'CONFIRMAR',exact:true}).waitFor();assert.equal(await mark.isChecked(),true,'A caixa permanece marcada após reabrir o painel');assert.equal(await pendingBox.isChecked(),false);assert.equal(value(app.publicApi('capacity')).remaining,196);
+ await mark.click();await secondRow.getByText('RESERVA PROVISÓRIA',{exact:true}).waitFor();assert.equal(value(app.adminApi('list')).metrics.receivedTotal,4000);
+ await limited.locator('#status-lookup-button').click();await limited.locator('.lookup-reservation-state').getByText('RESERVA PROVISÓRIA',{exact:true}).waitFor();
+ await mark.click();await secondRow.getByText('VAGA GARANTIDA',{exact:true}).waitFor();
  await limited.locator('#status-lookup-button').click();await limited.locator('.lookup-reservation-state').getByText('VAGA GARANTIDA',{exact:true}).waitFor();
  // Atualização limitada acompanha a confirmação feita em outra aba.
  await limited.getByRole('button',{name:'VER PAGAMENTOS / ENVIAR COMPROVANTE',exact:true}).click();await limited.locator('.lookup-payment-state').getByText('PAGAMENTO PARCIAL',{exact:true}).waitFor();
@@ -64,13 +72,13 @@ try{
  await firstRow.getByText('Outras ações · 1',{exact:true}).click();await firstRow.getByRole('button',{name:'RECUSAR COMPROVANTE · 1',exact:true}).click();
  await admin.getByLabel('Motivo obrigatório').fill('Comprovante divergente no cenário simulado');await admin.locator('#submit-action').click();await admin.locator('#action-dialog').waitFor({state:'hidden'});
  const other=Buffer.from('%PDF-1.4\nReplacement proof\n%%EOF').toString('base64');value(app.publicApi('proof',{id,token,data:other,mime:'application/pdf',parts:[1]}));
- await admin.locator('#reload').click();await firstRow.getByRole('checkbox',{name:'CONFIRMAR',exact:true}).click();
+ await admin.locator('#reload').click();await firstRow.getByRole('button',{name:'CONFIRMAR RECEBIMENTO · 1',exact:true}).click();
  await admin.locator('#admin-error').getByText(/O comprovante mudou/).waitFor();assert.equal(value(app.adminApi('list')).rows.find(r=>r.id===id).reservationStatus,'RESERVED');
- assert.equal(await firstRow.getByRole('checkbox',{name:'CONFIRMAR',exact:true}).isDisabled(),true);
+ assert.equal(await firstRow.getByRole('button',{name:'CONFIRMAR RECEBIMENTO · 1',exact:true}).isDisabled(),true);assert.equal(await firstRow.getByRole('checkbox',{name:'CONFIRMAR',exact:true}).isEnabled(),true);
  const replacementDownload=admin.waitForEvent('download');await firstRow.getByRole('button',{name:'BAIXAR COMPROVANTE · 1',exact:true}).click();
  assert.equal((await readFile(await(await replacementDownload).path())).toString('base64'),other);
- await firstRow.getByRole('checkbox',{name:'CONFIRMAR',exact:true}).click();await firstRow.getByText('VAGA GARANTIDA',{exact:true}).waitFor();
+ await firstRow.getByRole('button',{name:'CONFIRMAR RECEBIMENTO · 1',exact:true}).click();await firstRow.getByText('PAGAMENTO PARCIAL',{exact:true}).waitFor();await firstRow.getByRole('checkbox',{name:'CONFIRMAR',exact:true}).click();await firstRow.getByText('VAGA GARANTIDA',{exact:true}).waitFor();
  assert.equal(value(app.adminApi('list')).metrics.receivedTotal,12000);assert.equal(value(app.publicApi('capacity')).remaining,196);
  assert.deepEqual(errors,[]);assert.ok(requests.every(url=>url.startsWith(base)||url.startsWith('blob:'+base)||url.startsWith('data:')||url.startsWith('https://wa.me/')));
- console.log('Caixa por inscrição, inclusive sem comprovante; marcação persistente após recarregar; confirmação simples e WhatsApp: comprovante mantém reserva provisória; download antes de marcar; clique único, saldo, histórico, recusa, versão substituída e consulta atualizada aprovados. Conversa após salvar e alternativa com popup bloqueado verificadas sem mensagem real.');
+ console.log('Caixa editável: marcar/desmarcar sem comprovante e após pagamento; marcação persistente após recarregar; confirmação simples e WhatsApp: comprovante mantém reserva provisória; download para conferir recebimento; garantia sem arquivo, saldo, histórico, recusa, versão substituída e consulta atualizada aprovados. Conversa após salvar e alternativa com popup bloqueado verificadas sem mensagem real.');
 }finally{await browser?.close();await new Promise(r=>server.close(r));}

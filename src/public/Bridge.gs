@@ -39,11 +39,17 @@ function doPost(e) {
         if (!candidate.openedAt) row.audit.push({action:'REMINDER_OPENED',key:candidate.key,at:now,by:actor.email,note:'Conversa aberta; envio e entrega não comprovados.'});
       }
       else if (request.action === 'entry') entryTransition_(row, actor, now);
+      else if (request.action === 'reservation') {
+        assertRole_(actor, ['treasury','admin']);
+        if (typeof input.confirmed !== 'boolean') fail_('Confirmação da vaga inválida.');
+        if ((reservationState_(row) === 'CONFIRMED') !== input.confirmed && input.version !== reservationVersion_(row)) fail_('A inscrição mudou. Atualize os dados antes de marcar ou desmarcar a vaga.');
+        if (input.confirmed && !occupiesSeats_(row) && !row.cancelledAt) assertSeats_(capacityForRows_(rows), row.people);
+        reservationTransition_(row, actor, input.confirmed, now);
+      }
       else if (request.action === 'payment') {
         assertRole_(actor, ['treasury', 'admin']);
         var part = partFor_(row,input.part);
         if (part.proofId && !(input.approved === true && partState_(part) === 'PAID') && !safeEqual_(proofVersion_(row,part.number), input.proofVersion || '')) fail_('O comprovante mudou. Atualize os dados, baixe e confira o arquivo atual antes de registrar a conferência.');
-        if (input.approved === true && !occupiesSeats_(row) && !row.cancelledAt) assertSeats_(capacityForRows_(rows), row.people);
         paymentTransition_(row, actor, input.approved, now, input.note, part.number);
       }
       else if (request.action === 'cancel') {
@@ -64,6 +70,7 @@ function adminRow_(r, actor) {
   var out = { id: r.id, name: r.name, phone: r.phone, people: r.people, status: registrationState_(r),
     reservationStatus: reservationState_(r), paymentStatus: paymentState_(r), entryAt: r.entryAt || '', cancelledAt: r.cancelledAt || '' };
   if (actor.role !== 'door') {
+    out.reservationVersion = reservationVersion_(r);
     out.payment = paymentOverview_(r); out.payment.parts.forEach(function(p) { var original=partFor_(r,p.number); p.hasProof=Boolean(original.proofId);p.paidBy=original.paidBy || ''; p.proofGroup=original.proofGroup || [p.number]; });
     out.total = r.total; out.counts = r.counts; out.createdAt = r.createdAt; out.reportedAt = r.reportedAt || ''; out.audit = r.audit;
     out.proofSubmittedAt = r.proofAt || ''; out.hasProof = Boolean(r.proofId); out.proofRejected = r.status === 'PROOF_REJECTED'; out.paidAt = r.paidAt || ''; out.paidBy = r.paidBy || '';

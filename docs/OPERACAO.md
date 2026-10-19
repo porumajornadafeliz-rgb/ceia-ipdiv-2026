@@ -8,7 +8,7 @@ Ceia em 31/12/2026, após o culto de Ações de Graças às 20h30min no Templo d
 2. Confirmar o cadastro reserva imediatamente os lugares no limite de 200 pessoas, incluindo crianças.
 3. Na área de pagamento, escolha **À vista**, **2 vezes** ou **3 vezes**. Veja datas e valores e escolha Pix ou depósito. Pode pagar depois e consultar por nome e WhatsApp.
 4. Envie o comprovante PDF, PNG ou JPG de até 2 MB do pagamento selecionado. Fica em conferência, sem marcar como pago.
-5. A secretaria baixa o comprovante, confere o recebimento e marca a caixa **CONFIRMAR**, visível na mesma linha de todas as inscrições, sem formulário. Para parcelas seguintes, usa **CONFIRMAR RECEBIMENTO**. A confirmação registra conta e data. **Outras ações → RECUSAR COMPROVANTE** permite novo arquivo, com motivo registrado. Depois de enviar comprovante, o plano não pode ser alterado pelo participante.
+5. A secretaria baixa e confere o comprovante. **CONFIRMAR RECEBIMENTO** registra somente o valor da parcela, com conta e data. A caixa **CONFIRMAR**, ao lado de cada inscrição, controla a garantia da vaga e pode ser marcada ou desmarcada independentemente do comprovante ou do pagamento. **Outras ações → RECUSAR COMPROVANTE** permite novo arquivo, com motivo registrado.
 
 À vista vence em 20/12; 2x em 20/11 e 20/12; 3x em 25/10, 20/11 e 20/12, todas em 2026. Parcelas já vencidas são cobradas juntas, com valor somado, um pagamento e um comprovante. Sem juros acrescentados pelo sistema. Centavos são distribuídos para conservar o total.
 
@@ -16,9 +16,9 @@ Pix usa chave CNPJ 20.896.270/0001-30, QR e Copia e Cola com valor exato. Depós
 
 ## Vagas e prazo
 
-A primeira parcela confirmada garante as vagas. Um pagamento de outra parcela antes da primeira não garante. Pagamento parcial e garantia são situações diferentes: a família pode ter vaga garantida e saldo pendente.
+A caixa **CONFIRMAR** é editável pela organização. Marcar muda para VAGA GARANTIDA; desmarcar volta para RESERVA PROVISÓRIA enquanto o prazo estiver aberto, ou RESERVA EXPIRADA após o prazo. É permitido garantir uma vaga sem comprovante, por exemplo quando oferecida pela igreja. A garantia não registra receita, não quita parcelas nem altera o saldo. A confirmação financeira usa seu próprio botão.
 
-Inscrições até 20/12/2026, às 23h59 (Brasília). Reservas sem a primeira parcela confirmada deixam de ocupar vagas após o prazo. O registro não é apagado. A confirmação tardia da primeira parcela verifica lugares para toda a família sob bloqueio. A garantia já obtida pela primeira parcela é mantida mesmo com saldo atrasado; não existe cancelamento automático pelo atraso das demais. O saldo continua devido e a entrada exige quitação.
+Inscrições até 20/12/2026, às 23h59 (Brasília). Reservas não garantidas deixam de ocupar vagas após o prazo, sem apagar o registro. Garantir uma reserva expirada exige disponibilidade para a família inteira, verificada sob bloqueio. A vaga garantida permanece até a organização desmarcá-la ou cancelar a inscrição. A regra anterior de quitação para entrada permanece; uma eventual isenção financeira não é criada ao marcar a vaga.
 
 Cancelar libera lugares, preserva histórico e não faz devolução. Reativar uma inscrição que ocupará lugares depende de disponibilidade. Entrada registrada impede cancelamento. Consultar, baixar PDF, enviar comprovante e confirmar parcelas não descontam novamente lugares já reservados.
 
@@ -46,4 +46,4 @@ Não há integração Meta contratada, serviço de mensagens pago ou envio autom
 
 Entrada exige inscrição ativa e quitação completa, registra a família inteira e bloqueia duplicação. Pessoas na entrada são estimativas pelas quantidades declaradas. Em falta de internet, use lista impressa de inscrições quitadas e concilie depois. Proteja relatórios, impressos e comprovantes.
 
-A caixa **CONFIRMAR** aparece em todas as linhas, inclusive sem comprovante. As confirmações já feitas aparecem marcadas. A marcação é liberada após baixar o primeiro comprovante; permanece salva ao recarregar e confirma apenas o pagamento correspondente. Inscrições canceladas e reservas expiradas continuam seguindo suas próprias regras.
+A caixa **CONFIRMAR** aparece em todas as linhas, inclusive sem comprovante. As confirmações já feitas aparecem marcadas. Marcar e desmarcar funciona mesmo sem comprovante e permanece salvo ao recarregar, sem alterar pagamentos. Inscrições canceladas e reservas expiradas continuam seguindo suas próprias regras.

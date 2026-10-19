@@ -22,6 +22,15 @@ def package(name, files, date_time=(2026, 10, 18, 0, 0, 0)):
     print(name, (OUT / name).stat().st_size, 'bytes')
 
 files = {str(p.relative_to(PUBLICATION)): p for p in PUBLICATION.rglob('*') if p.is_file()}
+if '--editable-confirmation' in sys.argv:
+    update = {k: p for k, p in files.items() if k.startswith(('ADMINISTRACAO/', 'PUBLICO/'))}
+    assert set(update) == {'ADMINISTRACAO/Code.gs', 'ADMINISTRACAO/appsscript.json', 'PUBLICO/Code.gs', 'PUBLICO/appsscript.json'}
+    for folder in ['PUBLICO', 'ADMINISTRACAO']:
+        assert 'function limparTestesAntesDaDivulgacao' not in (PUBLICATION / folder / 'Code.gs').read_text()
+        assert json.loads((PUBLICATION / folder / 'appsscript.json').read_text())['runtimeVersion'] == 'V8'
+    update.update({'LEIA-PRIMEIRO.txt': ROOT / 'docs/ATUALIZAR-CONFIRMACAO-EDITAVEL.md', 'LICENCAS.txt': ROOT / 'THIRD_PARTY_NOTICES.md'})
+    package('ATUALIZAR-CONFIRMACAO-EDITAVEL-IPDIV-2026.zip', update, date_time=(2026, 10, 19, 0, 0, 0))
+    raise SystemExit(0)
 if '--confirm-checkbox' in sys.argv:
     admin = {k: p for k, p in files.items() if k.startswith('ADMINISTRACAO/')}
     assert set(admin) == {'ADMINISTRACAO/Code.gs', 'ADMINISTRACAO/appsscript.json'}

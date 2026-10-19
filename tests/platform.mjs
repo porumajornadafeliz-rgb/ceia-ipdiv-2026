@@ -95,11 +95,14 @@ export function pay(p, row) {
  if (!uploaded.ok) throw new Error(uploaded.error);
  const old = p.adminApi('list').data?.actor.email;
  p.setActor('tesouraria@example.test');
- const version = p.adminApi('getProof', {id:row.id}).data.version;
- const response = p.adminApi('payment', { id:row.id, proofVersion:version, approved:true, note:'Comprovante conferido e recebimento verificado no teste' });
- if (old) p.setActor(old);
- if (!response.ok) throw new Error(response.error);
- return response.data;
+ try {
+  const version = p.adminApi('getProof', {id:row.id}).data.version;
+  const response = p.adminApi('payment', { id:row.id, proofVersion:version, approved:true, note:'Comprovante conferido e recebimento verificado no teste' });
+  if (!response.ok) throw new Error(response.error);
+  const confirmation=p.adminApi('reservation',{id:row.id,confirmed:true,version:response.data.reservationVersion});
+  if(!confirmation.ok)throw new Error(confirmation.error);
+  return confirmation.data;
+ } finally { if (old) p.setActor(old); }
 }
 
 export const proofVersion = (p,r) => p.adminApi('getProof', {id:r.id}).data?.version;

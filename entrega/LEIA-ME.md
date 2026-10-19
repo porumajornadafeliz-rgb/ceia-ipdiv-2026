@@ -1,13 +1,11 @@
-# Entrega atual — Caixa CONFIRMAR
+# Entrega atual — CONFIRMAR editável
 
-Use **ATUALIZAR-CONFIRMAR-IPDIV-2026.zip** e leia [o guia](../docs/ATUALIZAR-CONFIRMAR.md). Contém somente ADMINISTRACAO/Code.gs, o manifesto e LEIA-PRIMEIRO.txt. Atualize a implantação administrativa existente. Há inscrições e pagamentos reais: preserve todos.
+Use **ATUALIZAR-CONFIRMACAO-EDITAVEL-IPDIV-2026.zip** e siga [o guia](../docs/ATUALIZAR-CONFIRMACAO-EDITAVEL.md). Este pacote contém PUBLICO/Code.gs e ADMINISTRACAO/Code.gs com os manifestos e LEIA-PRIMEIRO.txt. Atualize primeiro o Público e depois a Administração nas implantações existentes.
 
-Todas as linhas mostram uma caixa de seleção **CONFIRMAR**. Ela aparece desmarcada nas reservas provisórias e marcada nas vagas já garantidas. Após baixar o comprovante e conferir o recebimento, a secretaria marca a caixa e o sistema salva a confirmação e atualiza o status. A caixa continua marcada ao reabrir o painel. Sem comprovante, a caixa permanece visível, aguardando envio e conferência.
+A caixa **CONFIRMAR** pode ser marcada e desmarcada pela secretaria, mesmo sem comprovante. Marcar garante a vaga; desmarcar retira a garantia, respeitando o prazo da reserva. Funciona também em vagas oferecidas pela igreja. Cada alteração fica no histórico e permanece ao reabrir. A caixa não altera dinheiro recebido ou saldo; o registro financeiro usa CONFIRMAR RECEBIMENTO.
 
-O manifesto não muda. Não é necessário atualizar o Público para esta mudança. As próximas parcelas continuam com CONFIRMAR RECEBIMENTO; saldo, contador e histórico são preservados. Não execute funções de limpeza.
+As configurações, a planilha, os dados reais e os endereços são preservados. Os manifestos são iguais aos anteriores. Não execute configuração nem limpeza para atualizar.
 
-## Pacotes históricos
+## Histórico
 
-ATUALIZAR-CONFIRMACAO-SIMPLES-IPDIV-2026.zip traz a revisão anterior da confirmação e a abertura da conversa do WhatsApp após salvar o comprovante no Público. O participante ainda precisa tocar em Enviar. ATUALIZAR-ADMINISTRACAO-IPDIV-2026.zip e os demais pacotes anteriores são históricos. Para a caixa em todas as linhas, use a entrega atual acima.
-
-Os ZIPs de demonstração e instalação nova são versões anteriores. O arquivo ABRIR-DEMONSTRACAO.html da pasta é gerado com a interface atual e usa dados locais descartáveis. As rotinas de limpeza de 18/10 são históricas: não execute sobre inscrições reais.
+Os ZIPs ATUALIZAR-CONFIRMAR-IPDIV-2026, ATUALIZAR-CAIXA-VAGA-GARANTIDA-IPDIV-2026 e ATUALIZAR-CONFIRMACAO-SIMPLES-IPDIV-2026 trazem versões anteriores da caixa. A edição flexível está somente no pacote atual acima. Demonstrações e pacotes de instalação nova também são anteriores; o arquivo ABRIR-DEMONSTRACAO.html é gerado com a interface atual e só usa dados locais fictícios. As rotinas de limpeza são históricas e não devem ser usadas nas inscrições reais.

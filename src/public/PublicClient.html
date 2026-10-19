@@ -12,7 +12,7 @@ let availability = null, capacityRequest = null;
 function renderAvailability() {
   const c = availability;
   $('capacity-summary').textContent = !c ? 'Não foi possível consultar as vagas.' : !c.configured ? 'Limite de vagas em definição' : c.remaining === 0 ? 'Vagas esgotadas' : c.remaining + (c.remaining === 1 ? ' vaga restante' : ' vagas restantes');
-  $('capacity-detail').textContent = c?.configured ? 'Limite de ' + c.limit + ' pessoas, incluindo crianças. O cadastro reserva lugares até 20/12/2026. A primeira parcela confirmada garante as vagas.' : 'Atualize a consulta antes de se inscrever. Se persistir, procure a secretaria.';
+  $('capacity-detail').textContent = c?.configured ? 'Limite de ' + c.limit + ' pessoas, incluindo crianças. O cadastro reserva lugares até 20/12/2026. A organização confirma a garantia das vagas.' : 'Atualize a consulta antes de se inscrever. Se persistir, procure a secretaria.';
   $('begin').disabled = !CONFIG.open || !c?.configured || c.remaining === 0;
   $('begin').textContent = !CONFIG.open ? 'INSCRIÇÕES ENCERRADAS' : c?.configured && c.remaining === 0 ? 'VAGAS ESGOTADAS' : 'FAZER MINHA INSCRIÇÃO';
   renderCounts();
@@ -123,10 +123,10 @@ function renderPayment(data) {
   current=data;const active=data.status==='REGISTERED',paid=data.paymentStatus==='PAID',guaranteed=data.reservationStatus==='CONFIRMED',awaiting=data.paymentStatus==='PROOF_SUBMITTED';
   $('payment-status').textContent=reservationText(data.reservationStatus);$('payment-status').className='status'+(guaranteed?' paid':'');
   $('financial-status').textContent=paymentText(data.paymentStatus);
-  $('payment-title').textContent=!active?'Esta inscrição foi cancelada.':paid?'Pagamento quitado. Vagas garantidas!':guaranteed?'Vagas garantidas. Acompanhe suas parcelas.':data.reservationStatus==='RESERVED'?'Sua reserva foi registrada!':'Sua reserva expirou.';
-  $('payment-description').textContent=!active?'Os lugares foram liberados.':data.reservationStatus==='EXPIRED'?'A reserva sem primeira parcela confirmada foi liberada após o prazo. Procure a secretaria se já pagou.':awaiting?'Seu comprovante foi recebido. Aguarde a conferência da secretaria.':paid?'O pagamento integral foi conferido. Guarde o PDF da inscrição.':'Escolha à vista, 2x ou 3x. Pague por Pix ou depósito e envie o comprovante.';
-  $('registration-notice').textContent=guaranteed?'Primeira parcela confirmada: vagas garantidas. Quite as demais parcelas até 20/12/2026.':!active || data.reservationStatus==='EXPIRED'?'Esta inscrição não ocupa vagas nem autoriza entrada.':'Reserva provisória: a primeira parcela precisa ser confirmada para garantir as vagas.';
-  $('payment-policy-message').textContent=awaiting?'Comprovante recebido. Não repita o Pix ou depósito desse pagamento. Aguarde a conferência.':paid?'Inscrição quitada. Este registro não substitui o comprovante bancário.':'A primeira parcela confirmada garante as vagas. Parcelas já vencidas devem ser pagas na inscrição.';
+  $('payment-title').textContent=!active?'Esta inscrição foi cancelada.':paid&&guaranteed?'Pagamento quitado. Vagas garantidas!':guaranteed?'Vagas garantidas. Acompanhe suas parcelas.':data.reservationStatus==='RESERVED'?'Sua reserva foi registrada!':'Sua reserva expirou.';
+  $('payment-description').textContent=!active?'Os lugares foram liberados.':data.reservationStatus==='EXPIRED'?'A reserva não confirmada pela organização foi liberada após o prazo. Procure a secretaria se já pagou.':awaiting?'Seu comprovante foi recebido. Aguarde a conferência da secretaria.':paid?(guaranteed?'O pagamento integral foi conferido. Guarde o PDF da inscrição.':'O pagamento foi conferido. A garantia da vaga aguarda confirmação da organização.'):'Escolha à vista, 2x ou 3x. Pague por Pix ou depósito e envie o comprovante.';
+  $('registration-notice').textContent=guaranteed?'Vagas garantidas pela organização. A situação do pagamento aparece separadamente.':!active || data.reservationStatus==='EXPIRED'?'Esta inscrição não ocupa vagas nem autoriza entrada.':'Reserva provisória: aguarde a confirmação da organização para garantir as vagas.';
+  $('payment-policy-message').textContent=awaiting?'Comprovante recebido. Não repita o Pix ou depósito desse pagamento. Aguarde a conferência.':paid?'Inscrição quitada. Este registro não substitui o comprovante bancário.':'A organização confirma a garantia das vagas. Parcelas já vencidas devem ser pagas na inscrição.';
   $('registration-id').textContent=data.id;$('receipt-name').textContent=data.name;summary('receipt-summary',data.counts);$('confirmed-section').hidden=!active;
   const choosing=drawPaymentPanel($('payment-controls'),data,access,updated=>renderPayment(updated),true)===true;
   $('payment-financial-summary').hidden=choosing;$('payment-receipt').hidden=choosing;$('payment-status').hidden=choosing;$('payment-description').hidden=choosing;
@@ -140,7 +140,7 @@ $('pay-later').onclick=()=>show('home');
 function secretariatMessage(data) {
   const categories = data.counts ? CONFIG.event.categories.filter(c => data.counts[c.key]).map(c => data.counts[c.key] + ' × ' + c.label).join('\n') : '';
   const contactName=data.name || $('status-name')?.value.trim() || 'Responsável da inscrição', contactPhone=data.phone || $('status-phone')?.value || '';
-  return 'Olá, secretaria! Seguem os dados da minha inscrição para a Ceia de Confraternização IPDiv 2026:\n\nResponsável: ' + contactName + '\nWhatsApp: ' + formatPhone(contactPhone) + '\nInscrição: ' + data.id + '\nParticipantes: ' + data.people + '\n' + categories + '\nValor da inscrição: ' + money(data.total) + '\nRecebido: ' + money(data.payment.received) + '\nSaldo: ' + money(data.payment.balance) + '\nPlano: ' + data.payment.planLabel + '\n' + data.payment.parts.map(p => 'Parcela ' + p.number + '/' + data.payment.parts.length + ': ' + money(p.amount) + ' · ' + dueLabel_(p.dueDate) + ' · ' + paymentText(p.status)).join('\n') + '\n\nReserva: ' + reservationText(data.reservationStatus) + '\nPagamento: ' + paymentText(data.paymentStatus) + (data.proofSubmittedAt ? '\nComprovante enviado no sistema em: ' + dateTime(data.proofSubmittedAt) : '\nComprovante: ainda não enviado pelo sistema.') + '\n\nEsta mensagem não é comprovante de pagamento. A primeira parcela confirmada garante as vagas; o saldo deve ser quitado até 20/12/2026.';
+  return 'Olá, secretaria! Seguem os dados da minha inscrição para a Ceia de Confraternização IPDiv 2026:\n\nResponsável: ' + contactName + '\nWhatsApp: ' + formatPhone(contactPhone) + '\nInscrição: ' + data.id + '\nParticipantes: ' + data.people + '\n' + categories + '\nValor da inscrição: ' + money(data.total) + '\nRecebido: ' + money(data.payment.received) + '\nSaldo: ' + money(data.payment.balance) + '\nPlano: ' + data.payment.planLabel + '\n' + data.payment.parts.map(p => 'Parcela ' + p.number + '/' + data.payment.parts.length + ': ' + money(p.amount) + ' · ' + dueLabel_(p.dueDate) + ' · ' + paymentText(p.status)).join('\n') + '\n\nReserva: ' + reservationText(data.reservationStatus) + '\nPagamento: ' + paymentText(data.paymentStatus) + (data.proofSubmittedAt ? '\nComprovante enviado no sistema em: ' + dateTime(data.proofSubmittedAt) : '\nComprovante: ainda não enviado pelo sistema.') + '\n\nEsta mensagem não é comprovante de pagamento. A organização confirma a garantia das vagas; o saldo deve ser quitado até 20/12/2026.';
 }
 function secretariatWhatsAppLink(data) {
   const text = secretariatMessage(data);
@@ -233,7 +233,7 @@ function receiptPdf() {
   text('Valor da inscrição: ' + money(current.total), 21, true);
   text('Recebido: ' + money(current.payment.received) + ' · Saldo: ' + money(current.payment.balance), 15, true);
   current.payment.parts.forEach(p => text('Parcela ' + p.number + ': ' + money(p.amount) + ' · ' + dueLabel_(p.dueDate) + ' · ' + paymentText(p.status), 13));
-  text('Pagamento por Pix ou depósito. A primeira parcela confirmada garante as vagas. Não é comprovante de pagamento.', 15);
+  text('Pagamento por Pix ou depósito. A organização confirma a garantia das vagas. Não é comprovante de pagamento.', 15);
   text('Registro em: ' + dateTime(current.createdAt), 12);
   text('Emitido em: ' + dateTime(new Date().toISOString()), 12);
   ensure(86); y += 7;
@@ -277,7 +277,7 @@ function parseAccess(raw) {
 async function mountStatusPayment(card,credentials,button) {
   await busy(button,async()=>{try{let box=card.querySelector('.lookup-payment-box');if(!box){box=el('div',undefined,'lookup-payment-box');card.append(box);}const render=data=>{drawPaymentPanel(box,data,credentials,render);card.querySelector('.lookup-payment-state').textContent=paymentText(data.paymentStatus);const badge=card.querySelector('.lookup-reservation-state');badge.textContent=reservationText(data.reservationStatus);badge.className='status lookup-reservation-state'+(data.reservationStatus==='CONFIRMED'?' paid':'');card.querySelector('.lookup-reservation-message').textContent=lookupReservationMessage(data);};render(await api('paymentDetails',credentials));box.scrollIntoView({block:'start'});}catch(error){message('status-lookup-error',error.message);}});
 }
-function lookupReservationMessage(row){return row.reservationStatus==='CONFIRMED'?'Primeira parcela confirmada: lugares garantidos. Consulte abaixo o saldo restante.':row.reservationStatus==='RESERVED'?'Reserva até 20/12/2026. Os lugares serão garantidos após a secretaria conferir a primeira parcela.':'Os lugares desta inscrição foram liberados.';}
+function lookupReservationMessage(row){return row.reservationStatus==='CONFIRMED'?'Lugares confirmados pela organização. A situação do pagamento aparece separadamente.':row.reservationStatus==='RESERVED'?'Reserva até 20/12/2026. A organização precisa confirmar a garantia dos lugares.':'Os lugares desta inscrição foram liberados.';}
 function renderStatusResults(result) {
   const root = $('status-results'); root.replaceChildren(); root.hidden = false;
   if (!result.registrations.length) {

@@ -81,7 +81,10 @@ try {
   await registration.getByText(/Comprovante recebido/).waitFor();
   await page.getByRole('button', { name:'2. INSCRIÇÕES E VAGAS',exact:true }).click();
   const proof = page.waitForEvent('download'); await admin.getByRole('button',{name:'BAIXAR COMPROVANTE',exact:true}).click(); await proof;
+  await admin.getByRole('button',{name:'CONFIRMAR RECEBIMENTO',exact:true}).click();
+  await admin.locator('#table-body').getByText('PAGO — COMPROVANTE CONFERIDO',{exact:true}).waitFor();
   await admin.getByRole('checkbox',{name:'CONFIRMAR',exact:true}).click();
+  await admin.locator('#table-body').getByText('VAGA GARANTIDA',{exact:true}).waitFor();
   assert.equal(await admin.locator('#action-dialog').isVisible(),false);
   await admin.locator('#table-body').getByText('PAGO — COMPROVANTE CONFERIDO',{exact:true}).waitFor();
   await page.getByRole('button', { name: '3. ENTRADA', exact: true }).click();

@@ -14,7 +14,7 @@ test('comprovante fica privado e pendente; somente secretaria autorizada confirm
  for(const action of ['payment','getProof']) { p.setActor('entrada@example.test'); denied(p.adminApi(action,{id:r.id,proofVersion:proofVersion(p,r),approved:true,note:'Tentativa'}),/não autorizado/); }
  p.setActor('tesouraria@example.test'); const proof=value(p.adminApi('getProof',{id:r.id})); assert.equal(proof.data,proofFixture.data);
  const paid=value(p.adminApi('payment',{id:r.id,proofVersion:proofVersion(p,r),approved:true,note:'Recebimento e comprovante conferidos'}));
- assert.equal(paid.paymentStatus,'PAID'); assert.equal(paid.reservationStatus,'CONFIRMED'); assert.equal(paid.paidBy,'tesouraria@example.test');
+ assert.equal(paid.paymentStatus,'PAID'); assert.equal(paid.reservationStatus,'RESERVED'); assert.equal(paid.paidBy,'tesouraria@example.test');
  assert.equal(value(p.adminApi('list')).metrics.receivedTotal,8000);
  assert.equal(value(p.publicApi('capacity')).remaining,199);
  const audit=paid.audit.length; assert.equal(value(p.adminApi('payment',{id:r.id,proofVersion:proofVersion(p,r),approved:true,note:'Repetição'})).audit.length,audit);
@@ -59,14 +59,16 @@ test('prazo libera reservas não confirmadas automaticamente e preserva pagas, c
  denied(upload(p,pending),/expirada/); assert.equal(value(p.adminApi('list')).metrics.expiredFamilies,2);
  assert.equal(value(p.publicApi('lookup',access(paid))).reservationStatus,'CONFIRMED');
 });
-test('confirmação tardia disputa vagas com bloqueio, não confirma família acima do saldo e replay não duplica',()=>{
+test('conferência financeira tardia não ocupa vagas e não duplica; garantia respeita a lotação',()=>{
  const p=platform(); p.properties.MAX_PARTICIPANTS='2';
  const rows=[value(p.publicApi('create',registration())),value(p.publicApi('create',registration()))]; rows.forEach(r=>value(upload(p,r)));
  p.setTime('2026-12-21T03:00:00Z'); p.properties.MAX_PARTICIPANTS='1';
  p.lock(true); denied(p.adminApi('payment',{id:rows[0].id,proofVersion:proofVersion(p,rows[0]),approved:true,note:'Conferido'}),/Muitos acessos/); p.lock(false);
  const envelope=p.signed('payment',{id:rows[0].id,proofVersion:proofVersion(p,rows[0]),approved:true,note:'Conferido'}); value(p.bridge(envelope)); value(p.bridge(envelope));
- denied(p.adminApi('payment',{id:rows[1].id,proofVersion:proofVersion(p,rows[1]),approved:true,note:'Conferido'}),/esgotadas/);
- assert.equal(value(p.publicApi('capacity')).used,1); assert.equal(value(p.adminApi('list')).metrics.receivedTotal,8000);
+ const first=value(p.adminApi('list')).rows.find(r=>r.id===rows[0].id);value(p.adminApi('reservation',{id:first.id,confirmed:true,version:first.reservationVersion}));
+ value(p.adminApi('payment',{id:rows[1].id,proofVersion:proofVersion(p,rows[1]),approved:true,note:'Conferido'}));
+ const second=value(p.adminApi('list')).rows.find(r=>r.id===rows[1].id);denied(p.adminApi('reservation',{id:second.id,confirmed:true,version:second.reservationVersion}),/esgotadas/);
+ assert.equal(value(p.publicApi('capacity')).used,1); assert.equal(value(p.adminApi('list')).metrics.receivedTotal,16000);
 });
 test('cancelamento mantém auditoria financeira e não transforma cancelamento em devolução',()=>{
  const p=platform(),r=value(p.publicApi('create',registration())); pay(p,r);
