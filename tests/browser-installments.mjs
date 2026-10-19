@@ -38,7 +38,7 @@ try{
  const id=await page.locator('#registration-id').innerText();await page.locator('#proof-file').setInputFiles(receipt(1));await page.locator('#proof-button').click();await page.locator('#financial-status').getByText('COMPROVANTE EM CONFERÊNCIA',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'ALTERAR CONDIÇÃO DE PAGAMENTO',exact:true}).count(),0);
  const admin=await context.newPage();await admin.goto(base+'/admin');await admin.locator('#table-body').getByText('RESERVA PROVISÓRIA',{exact:true}).waitFor();assert.equal(await admin.locator('#table-body .status.paid').count(),0,'Reserva sem primeira parcela confirmada não aparece como garantida');assert.match(await admin.locator('#table-body').innerText(),/Aguarda quitação/);
  async function confirm(number){
-  const suffix=number===1?'1 e 2':'3',control=number===1?admin.getByRole('checkbox',{name:'Vaga garantida',exact:true}):admin.getByRole('button',{name:'CONFIRMAR RECEBIMENTO · '+suffix,exact:true});
+  const suffix=number===1?'1 e 2':'3',control=number===1?admin.getByRole('checkbox',{name:'CONFIRMAR',exact:true}):admin.getByRole('button',{name:'CONFIRMAR RECEBIMENTO · '+suffix,exact:true});
   assert.equal(await control.isDisabled(),true,'É preciso baixar primeiro');
   const download=admin.waitForEvent('download');await admin.getByRole('button',{name:'BAIXAR COMPROVANTE · '+suffix,exact:true}).click();
   assert.match(await readFile(await(await download).path(),'utf8'),/Synthetic installment receipt/);

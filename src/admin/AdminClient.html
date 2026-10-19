@@ -73,7 +73,7 @@ function guaranteeControl(row){
   help.id='guarantee-help-'+row.id;check.setAttribute('aria-describedby',help.id);
   help.textContent=guaranteed?'Primeira parcela confirmada.':row.status!=='REGISTERED'?'Inscrição cancelada.':!first?.hasProof?'Aguardando comprovante da primeira parcela.':first.status!=='PROOF_SUBMITTED'?'Aguardando novo comprovante.':!downloaded?'Baixe e confira o comprovante para marcar.':'Marque após conferir o recebimento no banco.';
   check.onchange=()=>{check.checked=false;confirmReceipt(row,first,check);};
-  label.append(check,el('span','Vaga garantida'));box.append(label,help);return box;
+  label.append(check,el('span','CONFIRMAR'));box.append(label,help);return box;
 }
 async function load() {
   message('admin-error', '');

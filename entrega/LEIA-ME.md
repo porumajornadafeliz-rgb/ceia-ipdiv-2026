@@ -1,8 +1,8 @@
-# Entrega atual — Caixa Vaga garantida
+# Entrega atual — Caixa CONFIRMAR
 
-Use **ATUALIZAR-CAIXA-VAGA-GARANTIDA-IPDIV-2026.zip** e leia [o guia](../docs/ATUALIZAR-CAIXA-VAGA-GARANTIDA.md). Contém somente ADMINISTRACAO/Code.gs, o manifesto e LEIA-PRIMEIRO.txt. Atualize a implantação administrativa existente. Há inscrições e pagamentos reais: preserve todos.
+Use **ATUALIZAR-CONFIRMAR-IPDIV-2026.zip** e leia [o guia](../docs/ATUALIZAR-CONFIRMAR.md). Contém somente ADMINISTRACAO/Code.gs, o manifesto e LEIA-PRIMEIRO.txt. Atualize a implantação administrativa existente. Há inscrições e pagamentos reais: preserve todos.
 
-Todas as linhas mostram uma caixa de seleção **Vaga garantida**. Ela aparece desmarcada nas reservas provisórias e marcada nas vagas já garantidas. Após baixar o comprovante e conferir o recebimento, a secretaria marca a caixa e o sistema salva a confirmação e atualiza o status. A caixa continua marcada ao reabrir o painel. Sem comprovante, a caixa permanece visível, aguardando envio e conferência.
+Todas as linhas mostram uma caixa de seleção **CONFIRMAR**. Ela aparece desmarcada nas reservas provisórias e marcada nas vagas já garantidas. Após baixar o comprovante e conferir o recebimento, a secretaria marca a caixa e o sistema salva a confirmação e atualiza o status. A caixa continua marcada ao reabrir o painel. Sem comprovante, a caixa permanece visível, aguardando envio e conferência.
 
 O manifesto não muda. Não é necessário atualizar o Público para esta mudança. As próximas parcelas continuam com CONFIRMAR RECEBIMENTO; saldo, contador e histórico são preservados. Não execute funções de limpeza.
 
