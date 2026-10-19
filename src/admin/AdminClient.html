@@ -43,7 +43,18 @@ function renderTable() {
     const entry = el('td'); entry.append(el('span', r.entryAt ? 'Confirmada' : !active ? 'Não autorizada' : r.reservationStatus === 'EXPIRED' ? 'Reserva expirada' : r.paymentStatus !== 'PAID' ? 'Aguarda quitação' : 'Aguardando chegada')); if (r.entryAt) entry.append(el('small', dateTime(r.entryAt))); tr.append(entry);
     const actions = el('td');
     if (area === 'registrations') {
-      r.payment.parts.filter(p=>p.hasProof && p.number===p.proofGroup[0]).forEach(p=>{ const suffix=r.payment.parts.length===1?'':' · '+p.proofGroup.join(' e ');let button=actionButton('BAIXAR COMPROVANTE'+suffix,()=>viewProof(r,p,button));actions.append(button,el('br'));if(active && p.status==='PROOF_SUBMITTED')actions.append(actionButton('CONFERIR PAGAMENTO'+suffix,()=>openPayment(r,p)),el('br')); });
+      r.payment.parts.filter(p=>p.hasProof && p.number===p.proofGroup[0]).forEach(p=>{
+        const suffix=r.payment.parts.length===1?'':' · '+p.proofGroup.join(' e '), downloaded=proofViewed.has(r.id+':'+p.number);
+        let button=actionButton('BAIXAR COMPROVANTE'+suffix,()=>viewProof(r,p,button));actions.append(button,el('br'));
+        if(active && p.status==='PROOF_SUBMITTED'){
+          const label=p.proofGroup.includes(1)&&!guaranteed?'MARCAR VAGA GARANTIDA':'CONFIRMAR RECEBIMENTO';
+          let confirm=actionButton(label+suffix,()=>confirmReceipt(r,p,confirm),!downloaded);
+          confirm.title=downloaded?'Ao clicar, você confirma que conferiu o comprovante e o recebimento na conta da igreja.':'Baixe e confira o comprovante antes de confirmar.';
+          actions.append(confirm,el('br'));
+          const more=el('details'),summary=el('summary','Outras ações'+suffix);
+          more.append(summary,actionButton('RECUSAR COMPROVANTE'+suffix,()=>openPayment(r,p),!downloaded));actions.append(more);
+        }
+      });
       actions.append(actionButton(active ? 'CANCELAR INSCRIÇÃO' : 'REATIVAR INSCRIÇÃO', () => openDialog(r), Boolean(r.entryAt)));
       actions.append(el('br'), actionButton('Histórico', () => openAudit(r)));
     } else if (!active) actions.append(el('span', 'INSCRIÇÃO CANCELADA', 'small muted'));
@@ -69,15 +80,26 @@ function openDialog(row) {
   $('payment-decision-field')?.remove(); $('action-dialog').showModal();
 }
 async function viewProof(row, part, button) {
-  await busy(button, async () => { try { const proof = await api('getProof', { id: row.id, part:part.number }); const bytes = Uint8Array.from(atob(proof.data), c => c.charCodeAt(0)); download(proof.name, bytes, proof.mime); proofViewed.set(row.id+':'+part.number, proof.version); message('admin-success', 'Comprovante baixado. Confira o destinatário, o valor e o recebimento antes de confirmar.', true); } catch (e) { message('admin-error', e.message); } });
+  await busy(button, async () => { try {
+    const proof = await api('getProof', { id: row.id, part:part.number }), bytes = Uint8Array.from(atob(proof.data), c => c.charCodeAt(0));
+    download(proof.name, bytes, proof.mime); proofViewed.set(row.id+':'+part.number, proof.version);
+    message('admin-success', 'Comprovante baixado. Confira o valor e o recebimento na conta da igreja; depois marque a vaga ou confirme a parcela.', true); renderTable();
+  } catch (e) { message('admin-error', e.message); } });
+}
+// Confirmação normal após o download: um clique, com conta e data no histórico.
+async function confirmReceipt(row,part,button){
+  await busy(button,async()=>{message('admin-error','');try{
+    const version=proofViewed.get(row.id+':'+part.number);
+    if(!version)throw new Error('Baixe e confira o comprovante antes de confirmar.');
+    await api('payment',{id:row.id,part:part.number,approved:true,proofVersion:version,note:'Comprovante e recebimento conferidos na conta da igreja; confirmação registrada no painel.'});
+    message('admin-success',part.proofGroup.includes(1)?'Vaga garantida. Recebimento registrado e saldo atualizado.':'Recebimento registrado e saldo atualizado.',true);await load();
+  }catch(error){proofViewed.delete(row.id+':'+part.number);renderTable();message('admin-error',error.message);}});
 }
 function openPayment(row, part) {
-  openDialog(row); pendingAction = 'payment'; pendingPart = part; $('dialog-title').textContent = 'Conferir pagamento';
+  openDialog(row); pendingAction = 'payment'; pendingPart = part; $('dialog-title').textContent = 'Recusar comprovante';
   $('dialog-description').textContent = row.name+' · Parcelas '+part.proofGroup.join(' e ')+' · '+money(row.payment.parts.filter(p=>part.proofGroup.includes(p.number)).reduce((sum,p)=>sum+p.amount,0));
-  $('dialog-help').textContent = 'Baixe e confira o comprovante e o recebimento. Confirmar a primeira parcela garante as vagas. A entrada exige quitação. Recusar permite enviar outro comprovante. Reservas expiradas exigem vagas disponíveis.';
-  const field = el('div', undefined, 'field'); field.id = 'payment-decision-field'; const label = el('label', 'Resultado da conferência'); label.htmlFor = 'payment-decision';
-  const select = el('select'); select.id = 'payment-decision'; for (const [v,t] of [['approved','Confirmar pagamento recebido'],['rejected','Recusar comprovante']]) { const o = el('option',t); o.value = v; select.append(o); }
-  field.append(label,select); $('action-note').closest('.field').before(field); $('submit-action').textContent = 'REGISTRAR CONFERÊNCIA';
+  $('dialog-help').textContent = 'Informe a divergência encontrada. A recusa permite que o participante envie outro comprovante e fica registrada no histórico.';
+  $('submit-action').textContent = 'RECUSAR COMPROVANTE';
 }
 $('cancel-dialog').onclick = () => $('action-dialog').close();
 $('action-form').onsubmit = e => {
@@ -85,7 +107,7 @@ $('action-form').onsubmit = e => {
     message('dialog-error', '');
     try {
       if (pendingAction === 'payment' && !proofViewed.has(pendingRow.id+':'+pendingPart.number)) throw new Error('Baixe e confira o comprovante antes de confirmar ou recusar.');
-      await api(pendingAction, pendingAction === 'payment' ? { id: pendingRow.id, part:pendingPart.number, approved: $('payment-decision').value === 'approved', proofVersion: proofViewed.get(pendingRow.id+':'+pendingPart.number), note: $('action-note').value } : { id: pendingRow.id, cancelled: pendingRow.status === 'REGISTERED', note: $('action-note').value });
+      await api(pendingAction, pendingAction === 'payment' ? { id: pendingRow.id, part:pendingPart.number, approved: false, proofVersion: proofViewed.get(pendingRow.id+':'+pendingPart.number), note: $('action-note').value } : { id: pendingRow.id, cancelled: pendingRow.status === 'REGISTERED', note: $('action-note').value });
       $('action-dialog').close(); message('admin-success', 'Inscrição atualizada e vagas recalculadas. Alteração registrada no histórico.', true); await load();
     } catch (e) { message('dialog-error', e.message); }
   });

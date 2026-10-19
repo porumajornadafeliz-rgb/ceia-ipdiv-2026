@@ -37,7 +37,15 @@ try{
  await mkdir('test-results',{recursive:true});await page.setViewportSize({width:390,height:844});await page.screenshot({path:'test-results/parcelamento-mobile.png',fullPage:true});
  const id=await page.locator('#registration-id').innerText();await page.locator('#proof-file').setInputFiles(receipt(1));await page.locator('#proof-button').click();await page.locator('#financial-status').getByText('COMPROVANTE EM CONFERÊNCIA',{exact:true}).waitFor();assert.equal(await page.getByRole('button',{name:'ALTERAR CONDIÇÃO DE PAGAMENTO',exact:true}).count(),0);
  const admin=await context.newPage();await admin.goto(base+'/admin');await admin.locator('#table-body').getByText('RESERVA PROVISÓRIA',{exact:true}).waitFor();assert.equal(await admin.locator('#table-body .status.paid').count(),0,'Reserva sem primeira parcela confirmada não aparece como garantida');assert.match(await admin.locator('#table-body').innerText(),/Aguarda quitação/);
- async function confirm(number){const suffix=number===1?'1 e 2':'3';const download=admin.waitForEvent('download');await admin.getByRole('button',{name:'BAIXAR COMPROVANTE · '+suffix,exact:true}).click();assert.match(await readFile(await(await download).path(),'utf8'),/Synthetic installment receipt/);await admin.getByRole('button',{name:'CONFERIR PAGAMENTO · '+suffix,exact:true}).click();assert.match(await admin.locator('#dialog-help').innerText(),/primeira parcela garante as vagas/);await admin.getByLabel('Motivo obrigatório').fill('Valor e recebimento conferidos no teste');await admin.locator('#submit-action').click();await admin.locator('#action-dialog').waitFor({state:'hidden'});}
+ async function confirm(number){
+  const suffix=number===1?'1 e 2':'3',label=number===1?'MARCAR VAGA GARANTIDA':'CONFIRMAR RECEBIMENTO';
+  assert.equal(await admin.getByRole('button',{name:label+' · '+suffix,exact:true}).isDisabled(),true,'É preciso baixar primeiro');
+  const download=admin.waitForEvent('download');await admin.getByRole('button',{name:'BAIXAR COMPROVANTE · '+suffix,exact:true}).click();
+  assert.match(await readFile(await(await download).path(),'utf8'),/Synthetic installment receipt/);
+  await admin.getByRole('button',{name:label+' · '+suffix,exact:true}).click();
+  await admin.locator('#table-body').getByText(number===1?'PAGAMENTO PARCIAL':'PAGO — COMPROVANTE CONFERIDO',{exact:true}).first().waitFor();
+  assert.equal(await admin.locator('#action-dialog').isVisible(),false,'Confirmação em um clique, sem formulário');
+ }
  await confirm(1);await admin.locator('#table-body').getByText('PAGAMENTO PARCIAL',{exact:true}).waitFor();assert.equal(app.adminApi('list').data.metrics.receivedTotal,21334);assert.equal(await admin.locator('#table-body .status.paid').innerText(),'VAGA GARANTIDA');assert.match(await admin.locator('#table-body').innerText(),/Aguarda quitação/);
  await page.locator('#refresh-payment').click();await page.locator('#payment-status').getByText('VAGA GARANTIDA',{exact:true}).waitFor();assert.match(await page.locator('#payment-controls .payment-amount').innerText(),/106,66/);
  const pdfDownload=page.waitForEvent('download');await page.locator('#save-receipt').click();await checkReceiptPdf(await pdfDownload,[/Recebido: R\$\s213,34/,/Saldo: R\$\s106,66/,/20\/12\/2026/,/Valor da inscrição: R\$\s320,00/]);

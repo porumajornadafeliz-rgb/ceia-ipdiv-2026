@@ -81,8 +81,8 @@ try {
   await registration.getByText(/Comprovante recebido/).waitFor();
   await page.getByRole('button', { name:'2. INSCRIÇÕES E VAGAS',exact:true }).click();
   const proof = page.waitForEvent('download'); await admin.getByRole('button',{name:'BAIXAR COMPROVANTE',exact:true}).click(); await proof;
-  await admin.getByRole('button',{name:'CONFERIR PAGAMENTO',exact:true}).click();
-  await admin.getByLabel('Motivo obrigatório').fill('Conferência simulada'); await admin.locator('#submit-action').click();
+  await admin.getByRole('button',{name:'MARCAR VAGA GARANTIDA',exact:true}).click();
+  assert.equal(await admin.locator('#action-dialog').isVisible(),false);
   await admin.locator('#table-body').getByText('PAGO — COMPROVANTE CONFERIDO',{exact:true}).waitFor();
   await page.getByRole('button', { name: '3. ENTRADA', exact: true }).click();
   await admin.getByLabel('Pesquisar inscrição').fill('Familia de Teste');

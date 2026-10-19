@@ -8,7 +8,7 @@ Ceia em 31/12/2026, após o culto de Ações de Graças às 20h30min no Templo d
 2. Confirmar o cadastro reserva imediatamente os lugares no limite de 200 pessoas, incluindo crianças.
 3. Na área de pagamento, escolha **À vista**, **2 vezes** ou **3 vezes**. Veja datas e valores e escolha Pix ou depósito. Pode pagar depois e consultar por nome e WhatsApp.
 4. Envie o comprovante PDF, PNG ou JPG de até 2 MB do pagamento selecionado. Fica em conferência, sem marcar como pago.
-5. A secretaria baixa e confere o comprovante e o recebimento. Confirmação registra conta e data. Recusa permite novo arquivo. Depois de enviar comprovante, o plano não pode ser alterado pelo participante.
+5. A secretaria baixa o comprovante, confere o recebimento e clica em **MARCAR VAGA GARANTIDA** na mesma linha, sem formulário. Para parcelas seguintes, usa **CONFIRMAR RECEBIMENTO**. A confirmação registra conta e data. **Outras ações → RECUSAR COMPROVANTE** permite novo arquivo, com motivo registrado. Depois de enviar comprovante, o plano não pode ser alterado pelo participante.
 
 À vista vence em 20/12; 2x em 20/11 e 20/12; 3x em 25/10, 20/11 e 20/12, todas em 2026. Parcelas já vencidas são cobradas juntas, com valor somado, um pagamento e um comprovante. Sem juros acrescentados pelo sistema. Centavos são distribuídos para conservar o total.
 
@@ -28,7 +28,7 @@ Nome e WhatsApp exatos permitem consultar a situação e abrir pagamentos sem gu
 
 A tela concentra pagamentos e deixa detalhes da inscrição e programação recolhidos. PDF e impressão permanecem disponíveis. O registro não substitui comprovante bancário.
 
-Enviar resumo à secretaria prepara a mensagem para (37) 3212-4980. A pessoa confere e toca em Enviar. Compartilhar um arquivo exige escolher a conversa. O comprovante enviado pelo site fica privado no painel, independentemente do WhatsApp.
+Após salvar o comprovante, o site abre a conversa para (37) 3212-4980 com o resumo preenchido. A pessoa confere e toca em Enviar. Se o navegador bloquear a abertura, use ABRIR MENSAGEM PARA A SECRETARIA. O arquivo enviado pelo site fica privado no painel; o WhatsApp recebe o resumo quando a pessoa o envia. O botão de enviar resumo continua disponível na inscrição.
 
 ## Secretaria e lembretes
 

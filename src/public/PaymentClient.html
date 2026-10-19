@@ -8,6 +8,20 @@ async function proofPayload(file) {
   const data = await new Promise((resolve,reject) => { const reader=new FileReader(); reader.onload=()=>resolve(String(reader.result).split(',')[1]); reader.onerror=()=>reject(new Error('Não foi possível ler o arquivo.')); reader.readAsDataURL(file); });
   return {data,mime};
 }
+// A conversa é aberta por gesto do participante. O WhatsApp ainda exige tocar em Enviar.
+function prepareProofConversation(){
+  if(window.CEIA_DEMO)return null;
+  try{const conversation=window.open('about:blank','_blank');if(conversation){conversation.opener=null;conversation.document.title='Preparando mensagem para a secretaria';conversation.document.body.textContent='Salvando o comprovante. A conversa com a secretaria será aberta após o envio.';}return conversation;}catch{return null;}
+}
+function openProofConversation(conversation,data,root,credentials){
+  if(window.CEIA_DEMO)return;
+  const href=secretariatWhatsAppLink(data),note=el('p','Comprovante salvo no sistema. No WhatsApp, confira a mensagem e toque em Enviar. Se a conversa não abrir, use o botão abaixo.','small');
+  const link=el('a','ABRIR MENSAGEM PARA A SECRETARIA','btn secondary full');link.classList.add('proof-whatsapp-link');link.href=href;link.target='_blank';link.rel='noopener noreferrer';root.append(note,link);
+  let opened=false;try{if(conversation && !conversation.closed){conversation.location.replace(href);opened=true;}}catch{try{conversation?.close();}catch{}}
+  // Apenas registra abertura; não declara que a mensagem foi enviada ou entregue.
+  if(opened && credentials.token)api('report',credentials).catch(()=>{});
+}
+function proofSuccessText(data){return data.reservationStatus==='CONFIRMED'?'Comprovante recebido. Suas vagas estão garantidas. O pagamento continua em conferência.':'Comprovante recebido. Aguarde a conferência da secretaria para garantir as vagas.';}
 function drawPaymentPanel(root,data,credentials,onUpdate,main=false) {
   const signature=JSON.stringify([data.status,data.reservationStatus,data.canChangePlan,data.paymentStatus,data.payment,data.paymentOptions,data.remindersEnabled]);
   if(root.dataset.state===signature && root.querySelector('[data-plan-chooser]')) return true;
@@ -62,7 +76,7 @@ function drawPaymentPanel(root,data,credentials,onUpdate,main=false) {
   if(data.remindersEnabled){const cancel=el('button','CANCELAR LEMBRETES POR WHATSAPP','text-btn full');cancel.type='button';cancel.onclick=()=>busy(cancel,async()=>{try{await onUpdate(await api('reminderPreference',{...credentials,enabled:false}));}catch(error){result.hidden=false;result.textContent=error.message;}});preference=cancel;}
   if(!active || payment.balance===0){if(preference)root.append(preference);return;}
   const pendingProof=payment.parts.some(p=>p.status==='PROOF_SUBMITTED');
-  if(pendingProof){result.hidden=false;result.textContent='Comprovante recebido. Aguarde a conferência; não repita esse pagamento.';}
+  if(pendingProof){result.hidden=false;result.textContent=proofSuccessText(data)+' Não repita esse pagamento.';}
   if(!options.length){if(preference)root.append(preference);return;}
   const field=el('div',undefined,'field'),label=el('label','Pagamento que deseja realizar'),selection=el('select');selection.id=main?'payment-group':'group-'+data.id;label.htmlFor=selection.id;
   if(pendingProof){const blank=el('option','Escolher outro pagamento (opcional)');blank.value='';selection.append(blank);}
@@ -81,12 +95,21 @@ function drawPaymentPanel(root,data,credentials,onUpdate,main=false) {
     pix.append(el('h3','Pague com Pix'),el('p','Escaneie o QR Code ou use o Pix Copia e Cola no aplicativo do seu banco.','small'),qrRoot,el('p','Chave CNPJ: 20.896.270/0001-30','small'),key,copy,code);controls.append(pix);
     const bank=el('div',undefined,'notice bank-details');bank.append(el('strong','Confira o favorecido antes de pagar:'),el('p','Igreja Presbiteriana de Divinópolis · CNPJ 20.896.270/0001-30'),el('p','Itaú · Agência 0690 · Conta corrente 16.405-8'),el('p','Se já pagou, não repita o pagamento. Envie o comprovante abaixo.'));controls.append(bank);
     method.onchange=()=>{pix.hidden=method.value==='DEPOSIT';};
-    const proof=el('section');proof.id=main?'proof-section':'proof-'+data.id;proof.className='payment-choice';proof.append(el('h3','Já pagou? Envie o comprovante'),el('p','Envio obrigatório após o pagamento: PDF, JPG ou PNG de até 2 MB. A secretaria conferirá o recebimento.','small'));
+    const proof=el('section');proof.id=main?'proof-section':'proof-'+data.id;proof.className='payment-choice';proof.append(el('h3','Já pagou? Envie o comprovante'),el('p','Envio obrigatório: PDF, JPG ou PNG de até 2 MB. A secretaria confere o recebimento e confirma as vagas após a primeira parcela. Após salvar, abriremos a mensagem para a secretaria no WhatsApp.','small'));
     const file=el('input');file.type='file';file.accept='application/pdf,image/png,image/jpeg';file.id=main?'proof-file':'file-'+data.id;const fileLabel=el('label',main?'Comprovante de pagamento':'Comprovante desta inscrição');fileLabel.htmlFor=file.id;file.setAttribute('aria-label',main?'Comprovante de pagamento':'Comprovante desta inscrição');
     const upload=el('button',main?'ENVIAR COMPROVANTE PARA CONFERÊNCIA':'ENVIAR COMPROVANTE','btn full');upload.type='button';upload.id=main?'proof-button':'upload-'+data.id;proof.append(fileLabel,file,upload);controls.append(proof);
-    upload.onclick=()=>busy(upload,async()=>{try{const attachment=file.files[0],payload=await proofPayload(attachment);const updated=await api('proof',{...credentials,...payload,parts:group.parts,method:method.value});await onUpdate(updated);if(main)message('payment-success','Comprovante recebido para conferência. O pagamento ainda não está confirmado.',true);
-      if(!window.CEIA_DEMO && navigator.canShare?.({files:[attachment]})){const share=el('button','COMPARTILHAR COMPROVANTE NO WHATSAPP','btn secondary full');share.type='button';share.onclick=async()=>{try{await navigator.share({files:[attachment],title:'Comprovante da ceia IPDiv',text:'Comprovante da inscrição '+data.id+' · Parcelas '+group.parts.join(', ')+' · '+money(group.amount)});}catch(error){if(error.name!=='AbortError')result.textContent='Abra a conversa da secretaria e anexe o comprovante.';}};root.append(share);}
-    }catch(error){result.hidden=false;result.textContent=error.message;}});
+    upload.onclick=()=>busy(upload,async()=>{
+      let conversation=null;
+      try{
+        const attachment=file.files[0];
+        if(!attachment || !attachment.size || attachment.size>2097152)throw new Error('Selecione um comprovante em PDF, JPG ou PNG de até 2 MB.');
+        conversation=prepareProofConversation();
+        const payload=await proofPayload(attachment),updated=await api('proof',{...credentials,...payload,parts:group.parts,method:method.value});
+        await onUpdate(updated);
+        if(main)message('payment-success',proofSuccessText(updated),true);
+        openProofConversation(conversation,updated,root,credentials);
+      }catch(error){try{conversation?.close();}catch{}result.hidden=false;result.textContent=error.message;}
+    });
   }
   selection.onchange=renderOption;renderOption();
 }

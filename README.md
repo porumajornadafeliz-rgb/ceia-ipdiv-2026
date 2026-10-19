@@ -6,7 +6,7 @@ Sistema de inscrição familiar e entrada da **Igreja Presbiteriana de Divinópo
 
 O sistema inicia **sem inscrições e sem exemplos fictícios**, com **200 vagas disponíveis**. A inicialização de uma planilha existente preserva seus registros e históricos; não apaga inscrições reais.
 
-**Etapa atual: concluir a Administração.** Use [o guia](docs/ATUALIZAR-ADMINISTRACAO.md) e `entrega/ATUALIZAR-ADMINISTRACAO-IPDIV-2026.zip`. Atualiza somente o painel existente, com pagamentos por parcela, comprovantes, recebido/saldo, relatórios e lembretes manuais. Não executa limpeza nem exige mudar o Público. O proprietário confirmou a limpeza em 18/10: zero inscrições e 200 vagas naquele momento; registros posteriores devem ser preservados. A publicação Google da Administração ainda depende da aplicação pelo proprietário.
+**Atualização atual: confirmação simples.** Use [o guia](docs/ATUALIZAR-CONFIRMACAO-SIMPLES.md) e `entrega/ATUALIZAR-CONFIRMACAO-SIMPLES-IPDIV-2026.zip`. Na Administração, baixe o comprovante, confira o recebimento e clique em **MARCAR VAGA GARANTIDA**, sem formulário ou justificativa digitada. O clique confirma a primeira parcela e mantém o saldo das demais; conta e data ficam no histórico. No Público, após salvar o arquivo, abre-se a conversa da secretaria com o resumo; o participante ainda toca em Enviar. O pacote preserva inscrições, pagamentos, arquivos, propriedades e os endereços existentes. A aplicação no Google é feita pelo proprietário seguindo o guia.
 
 O Público já recebeu a [escolha simplificada](docs/ATUALIZAR-PAGAMENTO-SIMPLIFICADO.md): À vista, 2x ou 3x, prévia de valores/datas e depois Pix/depósito/comprovante. O endereço divulgado permanece. Os testes locais não alteram o Google da igreja.
 
