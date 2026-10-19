@@ -167,7 +167,7 @@ try {
   await admin.locator('#reload').click();
   const proofDownload = admin.waitForEvent('download'); await admin.getByRole('button', { name:'BAIXAR COMPROVANTE', exact:true }).click();
   assert.match(await readFile(await (await proofDownload).path(),'utf8'), /Synthetic test receipt/);
-  await admin.getByRole('button', { name:'MARCAR VAGA GARANTIDA', exact:true }).click();
+  await admin.getByRole('checkbox',{name:'Vaga garantida',exact:true}).click();
   assert.equal(await admin.locator('#action-dialog').isVisible(),false,'Confirmação normal sem formulário');
   await admin.locator('#table-body').getByText('PAGO — COMPROVANTE CONFERIDO', { exact:true }).waitFor();
   await admin.setViewportSize({width:1280,height:900}); await admin.screenshot({path:'test-results/pagamento-confirmado-admin.png',fullPage:true});

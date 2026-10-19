@@ -8,7 +8,7 @@ Ceia em 31/12/2026, após o culto de Ações de Graças às 20h30min no Templo d
 2. Confirmar o cadastro reserva imediatamente os lugares no limite de 200 pessoas, incluindo crianças.
 3. Na área de pagamento, escolha **À vista**, **2 vezes** ou **3 vezes**. Veja datas e valores e escolha Pix ou depósito. Pode pagar depois e consultar por nome e WhatsApp.
 4. Envie o comprovante PDF, PNG ou JPG de até 2 MB do pagamento selecionado. Fica em conferência, sem marcar como pago.
-5. A secretaria baixa o comprovante, confere o recebimento e clica em **MARCAR VAGA GARANTIDA** na mesma linha, sem formulário. Para parcelas seguintes, usa **CONFIRMAR RECEBIMENTO**. A confirmação registra conta e data. **Outras ações → RECUSAR COMPROVANTE** permite novo arquivo, com motivo registrado. Depois de enviar comprovante, o plano não pode ser alterado pelo participante.
+5. A secretaria baixa o comprovante, confere o recebimento e marca a caixa **Vaga garantida**, visível na mesma linha de todas as inscrições, sem formulário. Para parcelas seguintes, usa **CONFIRMAR RECEBIMENTO**. A confirmação registra conta e data. **Outras ações → RECUSAR COMPROVANTE** permite novo arquivo, com motivo registrado. Depois de enviar comprovante, o plano não pode ser alterado pelo participante.
 
 À vista vence em 20/12; 2x em 20/11 e 20/12; 3x em 25/10, 20/11 e 20/12, todas em 2026. Parcelas já vencidas são cobradas juntas, com valor somado, um pagamento e um comprovante. Sem juros acrescentados pelo sistema. Centavos são distribuídos para conservar o total.
 
@@ -45,3 +45,5 @@ Não há integração Meta contratada, serviço de mensagens pago ou envio autom
 **EXPORTAR RELATÓRIO CSV** contém uma linha por inscrição, total, recebido e saldo. **EXPORTAR PARCELAS CSV** contém uma linha por parcela, vencimento, valor, situação, forma e data/conta da conferência. Pesquisa e filtros são respeitados; indicadores são globais. Recebimentos de inscrição cancelada continuam nos indicadores: cancelar não faz estorno.
 
 Entrada exige inscrição ativa e quitação completa, registra a família inteira e bloqueia duplicação. Pessoas na entrada são estimativas pelas quantidades declaradas. Em falta de internet, use lista impressa de inscrições quitadas e concilie depois. Proteja relatórios, impressos e comprovantes.
+
+A caixa **Vaga garantida** aparece em todas as linhas, inclusive sem comprovante. As confirmações já feitas aparecem marcadas. A marcação é liberada após baixar o primeiro comprovante; permanece salva ao recarregar e confirma apenas o pagamento correspondente. Inscrições canceladas e reservas expiradas continuam seguindo suas próprias regras.

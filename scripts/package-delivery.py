@@ -22,6 +22,13 @@ def package(name, files, date_time=(2026, 10, 18, 0, 0, 0)):
     print(name, (OUT / name).stat().st_size, 'bytes')
 
 files = {str(p.relative_to(PUBLICATION)): p for p in PUBLICATION.rglob('*') if p.is_file()}
+if '--guarantee-checkbox' in sys.argv:
+    admin = {k: p for k, p in files.items() if k.startswith('ADMINISTRACAO/')}
+    assert set(admin) == {'ADMINISTRACAO/Code.gs', 'ADMINISTRACAO/appsscript.json'}
+    assert 'function limparTestesAntesDaDivulgacao' not in (PUBLICATION / 'ADMINISTRACAO/Code.gs').read_text()
+    admin.update({'LEIA-PRIMEIRO.txt': ROOT / 'docs/ATUALIZAR-CAIXA-VAGA-GARANTIDA.md', 'LICENCAS.txt': ROOT / 'THIRD_PARTY_NOTICES.md'})
+    package('ATUALIZAR-CAIXA-VAGA-GARANTIDA-IPDIV-2026.zip', admin, date_time=(2026, 10, 19, 0, 0, 0))
+    raise SystemExit(0)
 if '--simple-confirmation' in sys.argv:
     update = {k: p for k, p in files.items() if k.startswith(('ADMINISTRACAO/', 'PUBLICO/'))}
     assert set(update) == {'ADMINISTRACAO/Code.gs', 'ADMINISTRACAO/appsscript.json', 'PUBLICO/Code.gs', 'PUBLICO/appsscript.json'}

@@ -47,14 +47,16 @@ function renderTable() {
         const suffix=r.payment.parts.length===1?'':' · '+p.proofGroup.join(' e '), downloaded=proofViewed.has(r.id+':'+p.number);
         let button=actionButton('BAIXAR COMPROVANTE'+suffix,()=>viewProof(r,p,button));actions.append(button,el('br'));
         if(active && p.status==='PROOF_SUBMITTED'){
-          const label=p.proofGroup.includes(1)&&!guaranteed?'MARCAR VAGA GARANTIDA':'CONFIRMAR RECEBIMENTO';
-          let confirm=actionButton(label+suffix,()=>confirmReceipt(r,p,confirm),!downloaded);
-          confirm.title=downloaded?'Ao clicar, você confirma que conferiu o comprovante e o recebimento na conta da igreja.':'Baixe e confira o comprovante antes de confirmar.';
-          actions.append(confirm,el('br'));
+          if(!p.proofGroup.includes(1)){
+            let confirm=actionButton('CONFIRMAR RECEBIMENTO'+suffix,()=>confirmReceipt(r,p,confirm),!downloaded);
+            confirm.title=downloaded?'Confirma o recebimento desta parcela.':'Baixe e confira o comprovante antes de confirmar.';
+            actions.append(confirm,el('br'));
+          }
           const more=el('details'),summary=el('summary','Outras ações'+suffix);
           more.append(summary,actionButton('RECUSAR COMPROVANTE'+suffix,()=>openPayment(r,p),!downloaded));actions.append(more);
         }
       });
+      actions.append(guaranteeControl(r));
       actions.append(actionButton(active ? 'CANCELAR INSCRIÇÃO' : 'REATIVAR INSCRIÇÃO', () => openDialog(r), Boolean(r.entryAt)));
       actions.append(el('br'), actionButton('Histórico', () => openAudit(r)));
     } else if (!active) actions.append(el('span', 'INSCRIÇÃO CANCELADA', 'small muted'));
@@ -63,6 +65,15 @@ function renderTable() {
     else actions.append(actionButton('CONFIRMAR ENTRADA', () => confirmEntry(r, actions.firstChild)));
     tr.append(actions); root.append(tr);
   });
+}
+function guaranteeControl(row){
+  const box=el('div',undefined,'guarantee-control'),label=el('label',undefined,'guarantee-check'),check=el('input'),help=el('small');
+  const first=row.payment.parts.find(p=>p.number===1),guaranteed=row.reservationStatus==='CONFIRMED',downloaded=proofViewed.has(row.id+':1');
+  check.type='checkbox';check.checked=guaranteed;check.disabled=guaranteed||row.status!=='REGISTERED'||!first?.hasProof||first.status!=='PROOF_SUBMITTED'||!downloaded;
+  help.id='guarantee-help-'+row.id;check.setAttribute('aria-describedby',help.id);
+  help.textContent=guaranteed?'Primeira parcela confirmada.':row.status!=='REGISTERED'?'Inscrição cancelada.':!first?.hasProof?'Aguardando comprovante da primeira parcela.':first.status!=='PROOF_SUBMITTED'?'Aguardando novo comprovante.':!downloaded?'Baixe e confira o comprovante para marcar.':'Marque após conferir o recebimento no banco.';
+  check.onchange=()=>{check.checked=false;confirmReceipt(row,first,check);};
+  label.append(check,el('span','Vaga garantida'));box.append(label,help);return box;
 }
 async function load() {
   message('admin-error', '');

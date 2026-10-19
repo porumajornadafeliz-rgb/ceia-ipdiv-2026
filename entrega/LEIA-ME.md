@@ -1,13 +1,13 @@
-# Entrega atual — Confirmação simples
+# Entrega atual — Caixa Vaga garantida
 
-Use **ATUALIZAR-CONFIRMACAO-SIMPLES-IPDIV-2026.zip** e leia [o guia](../docs/ATUALIZAR-CONFIRMACAO-SIMPLES.md). Contém ADMINISTRACAO/Code.gs e PUBLICO/Code.gs, com os manifestos e LEIA-PRIMEIRO.txt. Atualize primeiro a Administração e depois o Público nas implantações existentes. Há inscrições e pagamentos reais; preserve todos os dados e as configurações.
+Use **ATUALIZAR-CAIXA-VAGA-GARANTIDA-IPDIV-2026.zip** e leia [o guia](../docs/ATUALIZAR-CAIXA-VAGA-GARANTIDA.md). Contém somente ADMINISTRACAO/Code.gs, o manifesto e LEIA-PRIMEIRO.txt. Atualize a implantação administrativa existente. Há inscrições e pagamentos reais: preserve todos.
 
-A secretaria baixa o comprovante, confere o recebimento e clica em **MARCAR VAGA GARANTIDA**, na mesma linha da inscrição. Não há formulário na confirmação normal. As próximas parcelas têm **CONFIRMAR RECEBIMENTO**, com saldo e histórico próprios. O comprovante enviado pelo site continua em conferência até essa confirmação.
+Todas as linhas mostram uma caixa de seleção **Vaga garantida**. Ela aparece desmarcada nas reservas provisórias e marcada nas vagas já garantidas. Após baixar o comprovante e conferir o recebimento, a secretaria marca a caixa e o sistema salva a confirmação e atualiza o status. A caixa continua marcada ao reabrir o painel. Sem comprovante, a caixa permanece visível, aguardando envio e conferência.
 
-Após salvar o comprovante, o Público abre a conversa da secretaria com o resumo preenchido. O participante ainda precisa tocar em Enviar. Há um botão alternativo se o navegador bloquear a abertura. Não há contratação de serviço nem envio automático de WhatsApp. Os manifestos não mudam. As atualizações foram testadas localmente e precisam ser aplicadas no Google pelo proprietário.
+O manifesto não muda. Não é necessário atualizar o Público para esta mudança. As próximas parcelas continuam com CONFIRMAR RECEBIMENTO; saldo, contador e histórico são preservados. Não execute funções de limpeza.
 
 ## Pacotes históricos
 
-Os ZIPs de atualização anteriores permanecem disponíveis como histórico, incluindo ATUALIZAR-ADMINISTRACAO-IPDIV-2026.zip. Não os use no lugar da atualização atual.
+ATUALIZAR-CONFIRMACAO-SIMPLES-IPDIV-2026.zip traz a revisão anterior da confirmação e a abertura da conversa do WhatsApp após salvar o comprovante no Público. O participante ainda precisa tocar em Enviar. ATUALIZAR-ADMINISTRACAO-IPDIV-2026.zip e os demais pacotes anteriores são históricos. Para a caixa em todas as linhas, use a entrega atual acima.
 
-DEMONSTRACAO-IPDIV-v12.zip e os ZIPs PUBLICAR-CEIA-IPDIV-2026 são versões anteriores. O arquivo ABRIR-DEMONSTRACAO.html na pasta é gerado com a interface atual e usa apenas dados locais descartáveis. As rotinas de limpeza de 18/10 são históricas: não execute limpeza sobre as inscrições reais.
+Os ZIPs de demonstração e instalação nova são versões anteriores. O arquivo ABRIR-DEMONSTRACAO.html da pasta é gerado com a interface atual e usa dados locais descartáveis. As rotinas de limpeza de 18/10 são históricas: não execute sobre inscrições reais.
