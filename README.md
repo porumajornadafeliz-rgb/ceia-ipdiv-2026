@@ -6,7 +6,7 @@ Sistema de inscrição familiar e entrada da **Igreja Presbiteriana de Divinópo
 
 O sistema inicia **sem inscrições e sem exemplos fictícios**, com **200 vagas disponíveis**. A inicialização de uma planilha existente preserva seus registros e históricos; não apaga inscrições reais.
 
-**Atualização atual: CONFIRMAR editável.** Use [o guia](docs/ATUALIZAR-CONFIRMACAO-EDITAVEL.md) e `entrega/ATUALIZAR-CONFIRMACAO-EDITAVEL-IPDIV-2026.zip`. A secretaria pode marcar e desmarcar a caixa de qualquer inscrição ativa, mesmo sem comprovante, inclusive para vaga oferecida pela igreja. A decisão fica salva, com conta e data no histórico. A caixa só altera a garantia: pagamentos, parcelas, comprovantes e valores recebidos são preservados. A conferência financeira usa **CONFIRMAR RECEBIMENTO**. Atualize primeiro o Público e depois a Administração, mantendo as implantações e os dados existentes.
+**Atualização atual: recuperação do painel e resposta ao clicar.** Use [o guia](docs/ATUALIZAR-ACESSO-E-AGILIDADE.md) e `entrega/ATUALIZAR-ACESSO-E-AGILIDADE-IPDIV-2026.zip`, somente na Administração. Distingue falhas de comunicação de acesso negado, repete leituras transitórias uma vez, mostra Salvando alteração… e evita uma segunda consulta completa após cada marcação. Mantém CONFIRMAR editável, valores recebidos e histórico. O Público permanece na versão [Confirmação editável](docs/ATUALIZAR-CONFIRMACAO-EDITAVEL.md). Não é necessário executar funções de configuração ou limpeza.
 
 O Público já recebeu a [escolha simplificada](docs/ATUALIZAR-PAGAMENTO-SIMPLIFICADO.md): À vista, 2x ou 3x, prévia de valores/datas e depois Pix/depósito/comprovante. O endereço divulgado permanece. Os testes locais não alteram o Google da igreja.
 

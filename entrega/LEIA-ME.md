@@ -1,10 +1,10 @@
-# Entrega atual — CONFIRMAR editável
+# Entrega atual — Acesso e resposta do painel
 
-Use **ATUALIZAR-CONFIRMACAO-EDITAVEL-IPDIV-2026.zip** e siga [o guia](../docs/ATUALIZAR-CONFIRMACAO-EDITAVEL.md). Este pacote contém PUBLICO/Code.gs e ADMINISTRACAO/Code.gs com os manifestos e LEIA-PRIMEIRO.txt. Atualize primeiro o Público e depois a Administração nas implantações existentes.
+Use **ATUALIZAR-ACESSO-E-AGILIDADE-IPDIV-2026.zip** e [o guia](../docs/ATUALIZAR-ACESSO-E-AGILIDADE.md). Contém somente ADMINISTRACAO/Code.gs, manifesto e LEIA-PRIMEIRO.txt. Atualize a implantação administrativa existente; preserve o Público na versão de confirmação editável já aplicada.
 
-A caixa **CONFIRMAR** pode ser marcada e desmarcada pela secretaria, mesmo sem comprovante. Marcar garante a vaga; desmarcar retira a garantia, respeitando o prazo da reserva. Funciona também em vagas oferecidas pela igreja. Cada alteração fica no histórico e permanece ao reabrir. A caixa não altera dinheiro recebido ou saldo; o registro financeiro usa CONFIRMAR RECEBIMENTO.
+A atualização distingue falha de comunicação e acesso negado, repete leituras transitórias uma vez, mostra Salvando alteração… e elimina uma consulta completa extra após cada clique bem-sucedido. A caixa CONFIRMAR continua editável mesmo sem comprovante; pagamentos e históricos são preservados. O caso local com primeira parcela paga foi testado. A troca de página relatada na implantação real ainda depende de observação no Google para identificar a causa exata.
 
-As configurações, a planilha, os dados reais e os endereços são preservados. Os manifestos são iguais aos anteriores. Não execute configuração nem limpeza para atualizar.
+Não é necessário clicar em Executar. Após colar e salvar, publique Nova versão na implantação existente. Não execute configuração nem limpeza.
 
 ## Histórico
 

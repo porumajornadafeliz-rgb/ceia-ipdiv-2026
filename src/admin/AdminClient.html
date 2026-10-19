@@ -69,15 +69,37 @@ function guaranteeControl(row){
   check.type='checkbox';check.checked=row.reservationStatus==='CONFIRMED';check.disabled=row.status!=='REGISTERED';
   help.id='guarantee-help-'+row.id;check.setAttribute('aria-describedby',help.id);
   help.textContent=row.status!=='REGISTERED'?'Inscrição cancelada.':check.checked?'Vaga garantida pela organização. Pode desmarcar.':'Marque para garantir a vaga, inclusive sem comprovante.';
-  check.onchange=()=>{const confirmed=check.checked;check.checked=!confirmed;changeReservation(row,confirmed,check);};
+  check.onchange=()=>{help.textContent='Salvando alteração…';changeReservation(row,check.checked,check);};
   label.append(check,el('span','CONFIRMAR'));box.append(label,help);return box;
+}
+function reservationMetrics(row){
+  const m={receivedTotal:row.payment?.received||0};
+  if(row.status!=='REGISTERED'){m.cancelledFamilies=1;return m;}
+  Object.assign(m,{families:1,people:row.people,declaredTotal:row.total});
+  if(row.reservationStatus==='CONFIRMED'){m.confirmedFamilies=1;m.confirmedPeople=row.people;}
+  else if(row.reservationStatus==='EXPIRED')m.expiredFamilies=1;else m.pendingFamilies=1;
+  if(row.reservationStatus!=='EXPIRED')m.pendingTotal=row.payment?.balance||0;
+  if(row.entryAt){m.enteredFamilies=1;m.enteredPeople=row.people;}
+  return m;
+}
+function applyReservationUpdate(updated){
+  const previous=state.rows.find(r=>r.id===updated.id);
+  if(previous){
+    const before=reservationMetrics(previous),after=reservationMetrics(updated);
+    for(const key of new Set([...Object.keys(before),...Object.keys(after)]))state.metrics[key]=(state.metrics[key]||0)+(after[key]||0)-(before[key]||0);
+    if(typeof state.capacity?.used==='number'){
+      const places=row=>row.status==='REGISTERED'&&['RESERVED','CONFIRMED'].includes(row.reservationStatus)?row.people:0;
+      state.capacity.used+=places(updated)-places(previous);state.capacity.remaining=Math.max(0,state.capacity.limit-state.capacity.used);
+    }
+  }
+  state.rows=state.rows.map(r=>r.id===updated.id?updated:r);renderMetrics();renderTable();
 }
 async function changeReservation(row,confirmed,check){
   await busy(check,async()=>{message('admin-error','');try{
     const updated=await api('reservation',{id:row.id,confirmed,version:row.reservationVersion});
-    state.rows=state.rows.map(r=>r.id===updated.id?updated:r);renderTable();
-    message('admin-success',confirmed?'Vaga garantida.':'Garantia desmarcada. A inscrição segue as regras de reserva e prazo.',true);await load();
-  }catch(error){await load();message('admin-error',error.message);}});
+    applyReservationUpdate(updated);
+    message('admin-success',confirmed?'Vaga garantida.':'Garantia desmarcada. A inscrição segue as regras de reserva e prazo.',true);
+  }catch(error){renderTable();await load();message('admin-error',error.message);}});
 }
 async function load() {
   message('admin-error', '');
