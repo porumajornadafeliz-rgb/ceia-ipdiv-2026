@@ -2,15 +2,16 @@
 from pathlib import Path
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 import json
+import sys
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / 'entrega'
 PUBLICATION = ROOT / 'dist/publicacao'
 
-def package(name, files):
+def package(name, files, date_time=(2026, 10, 18, 0, 0, 0)):
     with ZipFile(OUT / name, 'w', compression=ZIP_DEFLATED, compresslevel=9) as archive:
         for target, source in sorted(files.items()):
-            info = ZipInfo(target, date_time=(2026, 10, 18, 0, 0, 0))
+            info = ZipInfo(target, date_time=date_time)
             info.compress_type = ZIP_DEFLATED
             info.external_attr = 0o644 << 16
             archive.writestr(info, source.read_bytes())
@@ -21,6 +22,12 @@ def package(name, files):
     print(name, (OUT / name).stat().st_size, 'bytes')
 
 files = {str(p.relative_to(PUBLICATION)): p for p in PUBLICATION.rglob('*') if p.is_file()}
+if '--admin-only' in sys.argv:
+    admin = {k: p for k, p in files.items() if k.startswith('ADMINISTRACAO/')}
+    assert set(admin) == {'ADMINISTRACAO/Code.gs', 'ADMINISTRACAO/appsscript.json'}
+    admin.update({'LEIA-PRIMEIRO.txt': ROOT / 'docs/ATUALIZAR-ADMINISTRACAO.md', 'LICENCAS.txt': ROOT / 'THIRD_PARTY_NOTICES.md'})
+    package('ATUALIZAR-ADMINISTRACAO-IPDIV-2026.zip', admin, date_time=(2026, 10, 19, 0, 0, 0))
+    raise SystemExit(0)
 for name in ['PUBLICAR-CEIA-IPDIV-2026.zip', 'PUBLICAR-CEIA-IPDIV-2026-v2.zip']:
     package(name, files)
 update = {k: p for k, p in files.items() if k.startswith('PUBLICO/')}

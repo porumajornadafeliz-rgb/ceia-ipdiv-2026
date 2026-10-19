@@ -1,4 +1,10 @@
-# Entrega atual — Escolha simplificada de pagamento
+# Entrega atual — Painel Administração
+
+Use **ATUALIZAR-ADMINISTRACAO-IPDIV-2026.zip** para concluir o painel em 19/10. Contém somente ADMINISTRACAO/Code.gs, manifesto e guia LEIA-PRIMEIRO.txt. Atualize a implantação administrativa existente, executando como usuário que acessa. O acesso continua restrito às contas autorizadas. Preserve o Público e todos os dados atuais; não faça nova limpeza.
+
+O manifesto é igual ao anterior: identificação Google e conexão externa entre os projetos, sem acesso Drive adicional da secretaria. A atualização foi verificada localmente e ainda precisa ser aplicada pelo proprietário no Google. Lembretes continuam manuais, sem contratação de serviços.
+
+## Pacotes anteriores
 
 Use **ATUALIZAR-PAGAMENTO-SIMPLIFICADO-IPDIV-2026.zip** para esta revisão do Público. O guia LEIA-PRIMEIRO.txt explica copiar Código.gs, executar prepararPublicacao e atualizar a implantação existente. O manifesto continua igual. A conclusão do painel Administração fica para a próxima etapa; este pacote não pede substituí-lo agora.
 
